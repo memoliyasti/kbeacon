@@ -1,0 +1,20 @@
+/bin/
+/dist/
+/tmp/
+*.out
+*.test
+coverage.txt
+*.log
+.DS_Store
+kbeacon.zip
+*.sha256
+
+# Local Minikube development artifacts
+grafana-values.yaml
+prometheus-values.yaml
+kbeacon-local-endpoint.yaml
+tree.txt
+
+# Editor noise
+.idea/
+.vscode/

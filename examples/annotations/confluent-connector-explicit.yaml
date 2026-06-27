@@ -1,0 +1,23 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: jdbc-sink
+  namespace: data
+  annotations:
+    kbeacon.io/discovery-mode: explicit
+    kbeacon.io/owner-team: data-platform
+    kbeacon.io/watch-secrets-json: |
+      [
+        {
+          "name": "jdbc-sink-credentials",
+          "key": "password",
+          "purpose": "JDBC sink database password",
+          "criticality": "high"
+        }
+      ]
+spec:
+  class: io.confluent.connect.jdbc.JdbcSinkConnector
+  taskMax: 2
+  configs:
+    connection.url: jdbc:postgresql://postgres:5432/app
+    connection.user: sink

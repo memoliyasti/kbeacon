@@ -1,0 +1,95 @@
+alertmanager:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+configmapReload:
+  prometheus:
+    enabled: false
+
+server:
+  service:
+    type: ClusterIP
+
+  persistentVolume:
+    enabled: false
+
+  retention: "2d"
+
+  startupProbe:
+    enabled: true
+    periodSeconds: 5
+    failureThreshold: 30
+    timeoutSeconds: 5
+
+  readinessProbeInitialDelay: 10
+  livenessProbeInitialDelay: 30
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+
+scrapeConfigs:
+  prometheus:
+    enabled: true
+    job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  kubernetes-api-servers:
+    enabled: false
+
+  kubernetes-nodes:
+    enabled: false
+
+  kubernetes-nodes-cadvisor:
+    enabled: false
+
+  kubernetes-service-endpoints:
+    enabled: false
+
+  kubernetes-service-endpoints-slow:
+    enabled: false
+
+  prometheus-pushgateway:
+    enabled: false
+
+  kubernetes-services:
+    enabled: false
+
+  kubernetes-pods:
+    enabled: false
+
+  kbeacon-agent:
+    enabled: true
+    job_name: kbeacon-agent
+    honor_labels: true
+    metrics_path: /metrics
+    scheme: http
+    scrape_interval: 5s
+    scrape_timeout: 3s
+    static_configs:
+      - targets:
+          - kbeacon.kbeacon-system.svc.cluster.local:8080
+        labels:
+          cluster: minikube
+          app: kbeacon
+          component: agent
+          environment: local
+          deployment_mode: in-cluster
