@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  namespace: payments
+  annotations:
+    kbeacon.io/enabled: "true"
+    kbeacon.io/discovery-mode: hybrid
+    kbeacon.io/watch-secrets: "payments-db#password, jwt-signing-key, shared/platform-ca"
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/service: payments-api
+    kbeacon.io/environment: prod
+    kbeacon.io/criticality: critical
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payments-api
+  template:
+    metadata:
+      labels:
+        app: payments-api
+    spec:
+      imagePullSecrets:
+        - name: private-registry-credentials
+      containers:
+        - name: api
+          image: ghcr.io/example/payments-api:v1
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payments-db
+                  key: password
+          envFrom:
+            - secretRef:
+                name: payments-env
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: payments-tls

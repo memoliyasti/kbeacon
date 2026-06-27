@@ -1,0 +1,125 @@
+{{- if .Values.rbac.create }}
+{{- $appsResources := list -}}
+{{- if .Values.resourcesToWatch.apps.deployments }}{{- $appsResources = append $appsResources "deployments" -}}{{- end }}
+{{- if .Values.resourcesToWatch.apps.statefulSets }}{{- $appsResources = append $appsResources "statefulsets" -}}{{- end }}
+{{- if .Values.resourcesToWatch.apps.daemonSets }}{{- $appsResources = append $appsResources "daemonsets" -}}{{- end }}
+{{- if .Values.resourcesToWatch.apps.replicaSets }}{{- $appsResources = append $appsResources "replicasets" -}}{{- end }}
+
+{{- $batchResources := list -}}
+{{- if .Values.resourcesToWatch.batch.jobs }}{{- $batchResources = append $batchResources "jobs" -}}{{- end }}
+{{- if .Values.resourcesToWatch.batch.cronJobs }}{{- $batchResources = append $batchResources "cronjobs" -}}{{- end }}
+
+{{- if eq .Values.rbac.scope "cluster" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kbeacon.fullname" . }}
+  labels:
+    {{- include "kbeacon.labels" . | nindent 4 }}
+rules:
+  {{- if .Values.resourcesToWatch.core.pods }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.core.secrets }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $appsResources) 0 }}
+  - apiGroups: ["apps"]
+    resources: {{ toJson $appsResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $batchResources) 0 }}
+  - apiGroups: ["batch"]
+    resources: {{ toJson $batchResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.strimzi.kafkaConnectors }}
+  - apiGroups: ["kafka.strimzi.io"]
+    resources: ["kafkaconnectors"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.confluent.connectors }}
+  - apiGroups: ["platform.confluent.io"]
+    resources: ["connectors"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- with .Values.rbac.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kbeacon.fullname" . }}
+  labels:
+    {{- include "kbeacon.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kbeacon.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kbeacon.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kbeacon.fullname" . }}
+  labels:
+    {{- include "kbeacon.labels" . | nindent 4 }}
+rules:
+  {{- if .Values.resourcesToWatch.core.pods }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.core.secrets }}
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $appsResources) 0 }}
+  - apiGroups: ["apps"]
+    resources: {{ toJson $appsResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $batchResources) 0 }}
+  - apiGroups: ["batch"]
+    resources: {{ toJson $batchResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.strimzi.kafkaConnectors }}
+  - apiGroups: ["kafka.strimzi.io"]
+    resources: ["kafkaconnectors"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.confluent.connectors }}
+  - apiGroups: ["platform.confluent.io"]
+    resources: ["connectors"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- with .Values.rbac.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kbeacon.fullname" . }}
+  labels:
+    {{- include "kbeacon.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kbeacon.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kbeacon.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

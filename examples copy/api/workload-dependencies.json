@@ -1,0 +1,47 @@
+{
+  "apiVersion": "kbeacon.io/v1",
+  "cluster": "prod-eu-1",
+  "generatedAt": "2026-06-26T12:00:00Z",
+  "data": {
+    "workload": {
+      "ref": {
+        "cluster": "prod-eu-1",
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "namespace": "payments",
+        "name": "payments-api"
+      },
+      "ownerTeam": "payments-platform",
+      "criticality": "critical",
+      "discoveryMode": "hybrid",
+      "dependencyCount": 4,
+      "unresolvedCount": 0
+    },
+    "dependencies": [
+      {
+        "secret": {
+          "ref": {
+            "cluster": "prod-eu-1",
+            "namespace": "payments",
+            "name": "payments-db",
+            "key": "password"
+          },
+          "exists": true,
+          "criticality": "critical",
+          "impactScore": 82
+        },
+        "discoveryMode": "hybrid",
+        "resolved": true,
+        "optional": false,
+        "sources": [
+          {
+            "type": "env_secret_key_ref",
+            "path": "spec.template.spec.containers[api].env[DB_PASSWORD].valueFrom.secretKeyRef",
+            "container": "api",
+            "envVar": "DB_PASSWORD"
+          }
+        ]
+      }
+    ]
+  }
+}

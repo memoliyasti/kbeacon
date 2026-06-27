@@ -1,0 +1,96 @@
+image:
+  repository: kbeacon-agent
+  tag: dev
+  pullPolicy: IfNotPresent
+
+cluster:
+  name: minikube
+  environment: local
+  region: local
+
+log:
+  level: debug
+  format: json
+
+agent:
+  http:
+    port: 8080
+    metricsPath: /metrics
+  shutdownGracePeriod: 15s
+
+discovery:
+  defaultMode: hybrid
+  includeImagePullSecrets: true
+  includeInitContainers: true
+  includeEphemeralContainers: true
+  readPodTemplateAnnotations: true
+  namespaceAnnotations:
+    enabled: true
+  ownerResolution:
+    enabled: true
+    preferController: true
+    includeReplicaSets: false
+    includePodsControlledByWorkloads: false
+  namespaces:
+    include:
+      - kbeacon-demo
+    exclude: []
+  resyncInterval: 10h
+  reconcile:
+    debounce: 250ms
+    workers: 1
+    rateLimiter:
+      baseDelay: 5ms
+      maxDelay: 30s
+      maxRetries: 5
+
+resourcesToWatch:
+  core:
+    secrets: true
+    pods: false
+  apps:
+    deployments: true
+    statefulSets: false
+    daemonSets: false
+    replicaSets: false
+  batch:
+    jobs: false
+    cronJobs: false
+  strimzi:
+    kafkaConnectors: false
+    required: false
+    parseConfigProviderReferences: false
+  confluent:
+    connectors: false
+    required: false
+    inferMountedSecrets: false
+    mountedSecretPathPrefixes:
+      - /mnt/secrets
+
+metrics:
+  enabled: true
+  edge:
+    enabled: true
+    includeOwnerTeam: true
+    includeResolved: true
+  runtime:
+    enabled: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+serviceMonitor:
+  enabled: false
+
+rbac:
+  create: true
+  scope: cluster
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
