@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+
+ARG VERSION
+ARG TARGETOS
+ARG TARGETARCH
+
+FROM gcr.io/distroless/static:nonroot
+
+ARG VERSION
+ARG TARGETOS
+ARG TARGETARCH
+
+COPY dist/kbeacon-agent_${VERSION}_${TARGETOS}_${TARGETARCH} /kbeacon-agent
+
+USER nonroot:nonroot
+EXPOSE 8080
+ENTRYPOINT ["/kbeacon-agent"]

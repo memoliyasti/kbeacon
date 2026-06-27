@@ -23,7 +23,7 @@ jobs:
   validate:
     name: validate
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -43,7 +43,7 @@ jobs:
 
       - name: Check gofmt
         run: |
-          UNFORMATTED="$(gofmt -l $(git ls-files '*.go'))"
+          UNFORMATTED="$(git ls-files -z '*.go' | xargs -0 -r gofmt -l)"
           if [ -n "${UNFORMATTED}" ]; then
             echo "The following files are not gofmt-formatted:"
             echo "${UNFORMATTED}"
@@ -79,18 +79,41 @@ jobs:
             prom/prometheus:v3.1.0 \
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
-      - name: Docker build
-        run: |
-          docker build \
-            --build-arg VERSION=ci \
-            --build-arg COMMIT=${GITHUB_SHA} \
-            -t kbeacon-agent:ci \
-            .
+  docker-smoke:
+    name: docker smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: false
+          load: true
+          build-args: |
+            VERSION=ci
+            COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=kbeacon-ci-amd64
+          cache-to: type=gha,mode=max,scope=kbeacon-ci-amd64
+          tags: kbeacon-agent:ci
+
+      - name: Container help smoke
+        run: docker run --rm kbeacon-agent:ci --help
 
   publish-main-image:
     name: publish main image
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
     needs:
       - validate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -98,9 +121,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -125,12 +145,13 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          file: ./Dockerfile
+          platforms: linux/amd64
           push: true
           build-args: |
             VERSION=main
             COMMIT=${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=kbeacon-main-amd64
+          cache-to: type=gha,mode=max,scope=kbeacon-main-amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

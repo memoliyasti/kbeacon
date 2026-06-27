@@ -1,17 +1,22 @@
 .git
 .github
 bin
-dist
 tmp
 *.zip
 *.tar.gz
 *.sha256
+*.log
 
 # Local development artifacts
 grafana-values.yaml
 prometheus-values.yaml
 kbeacon-local-endpoint.yaml
 tree.txt
+
+# Accidental macOS Finder copy artifacts
+* copy
+* copy.*
+* copy/
 
 # OS/editor noise
 .DS_Store
