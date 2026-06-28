@@ -102,10 +102,19 @@ Install Prometheus and Grafana first. The local development helper files assume 
 ```bash
 kubectl create namespace kbeacon-demo --dry-run=client -o yaml | kubectl apply -f -
 
-kubectl -n kbeacon-demo create secret generic app-db-secret \
-  --from-literal=username=demo \
-  --from-literal=password=demo \
-  --dry-run=client -o yaml | kubectl apply -f -
+cat > /tmp/kbeacon-demo-secret.yaml <<'YAML'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-db-secret
+  namespace: kbeacon-demo
+type: Opaque
+stringData:
+  username: demo
+  password: demo
+YAML
+
+kubectl apply -f /tmp/kbeacon-demo-secret.yaml
 ```
 
 ```bash
