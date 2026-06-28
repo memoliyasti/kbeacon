@@ -2,8 +2,16 @@
 
 ```text
 kbeacon/
+  .github/
+    ISSUE_TEMPLATE/              # Issue forms
+    workflows/                   # CI, release, and Pages workflows
+    CODEOWNERS                   # Default code owners
+    PULL_REQUEST_TEMPLATE.md     # PR review checklist
+    dependabot.yml               # Dependency update automation
   README.md
+  mkdocs.yml                     # Documentation website configuration
   docs/
+    index.md                     # Documentation homepage
     technical-design.md          # Full production-grade design document
     api/openapi.yaml             # Agent REST API contract
     reference/annotations.md     # Implemented annotation reference

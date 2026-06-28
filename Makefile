@@ -1,8 +1,10 @@
 SHELL := /usr/bin/env bash
 GO ?= go
 HELM ?= helm
-IMAGE ?= ghcr.io/kbeacon/kbeacon-agent
+IMAGE ?= ghcr.io/memoliyasti/kbeacon
 TAG ?= dev
+PROMETHEUS_IMAGE ?= prom/prometheus:v3.1.0
+
 
 .PHONY: test
 test:
@@ -27,3 +29,20 @@ helm-template:
 .PHONY: package
 package:
 	git archive --format=zip --output kbeacon.zip HEAD
+
+
+.PHONY: helm-lint
+helm-lint:
+	$(HELM) lint ./charts/kbeacon --set cluster.name=local-dev
+
+.PHONY: prom-rules
+prom-rules:
+	docker run --rm -i --entrypoint=promtool $(PROMETHEUS_IMAGE) check rules /dev/stdin < examples/prometheus/rules.yaml
+
+.PHONY: docs
+docs:
+	python3 -m pip install -r requirements-docs.txt
+	mkdocs build --strict
+
+.PHONY: ci
+ci: fmt test helm-lint helm-template prom-rules

@@ -1,0 +1,11 @@
+# Default maintainers
+* @memoliyasti
+
+# Security-sensitive areas
+/.github/ @memoliyasti
+/charts/ @memoliyasti
+/internal/kube/ @memoliyasti
+/internal/server/ @memoliyasti
+/internal/metrics/ @memoliyasti
+/examples/prometheus/ @memoliyasti
+/SECURITY.md @memoliyasti

@@ -1,0 +1,27 @@
+name: Documentation issue
+description: Report missing, unclear, or outdated documentation
+title: "docs: "
+labels:
+  - kind/documentation
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      placeholder: docs/reference/metrics.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong or missing?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: false

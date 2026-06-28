@@ -1,5 +1,10 @@
 # KBeacon
 
+[![CI](https://github.com/memoliyasti/kbeacon/actions/workflows/ci.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/ci.yaml)
+[![Release](https://github.com/memoliyasti/kbeacon/actions/workflows/release.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/release.yaml)
+[![Docs](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 **KBeacon** is a Kubernetes-native Secret Dependency Intelligence platform.
 
 It answers one operational question clearly:
@@ -20,6 +25,16 @@ flowchart LR
   G -->|PromQL| M
   G -->|Grafana Alerting| N[Notification policies]
 ```
+
+## Community and governance
+
+- Documentation site: https://memoliyasti.github.io/kbeacon/
+- Contributing guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- Code of Conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- Security policy: [`SECURITY.md`](SECURITY.md)
+- Governance: [`GOVERNANCE.md`](GOVERNANCE.md)
+- Maintainers: [`MAINTAINERS.md`](MAINTAINERS.md)
+- Release process: [`RELEASE.md`](RELEASE.md)
 
 ## Current implementation status
 
@@ -239,8 +254,8 @@ The recommended default registry for this GitHub repository is **GitHub Containe
 After a merge to `main`, CI can publish a branch image such as:
 
 ```text
-ghcr.io/<github-user-or-org>/kbeacon-agent:main
-ghcr.io/<github-user-or-org>/kbeacon-agent:sha-<short-sha>
+ghcr.io/memoliyasti/kbeacon:main
+ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
 ```
 
 For semantic releases, push a tag:
@@ -265,7 +280,7 @@ helm upgrade --install kbeacon ./charts/kbeacon \
   --namespace kbeacon-system \
   --create-namespace \
   --set cluster.name=minikube \
-  --set image.repository=ghcr.io/<github-user-or-org>/kbeacon-agent \
+  --set image.repository=ghcr.io/memoliyasti/kbeacon \
   --set image.tag=0.1.0
 ```
 

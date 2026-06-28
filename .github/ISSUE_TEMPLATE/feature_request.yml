@@ -1,0 +1,57 @@
+name: Feature request
+description: Propose a new capability or improvement
+title: "feat: "
+labels:
+  - kind/feature
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user or operator problem should KBeacon solve?
+      placeholder: As a platform engineer, I need ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behavior.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - discovery
+        - graph
+        - metrics
+        - api
+        - helm
+        - dashboards
+        - alerting
+        - documentation
+        - ci/release
+        - security
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other options did you consider?
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and cardinality impact
+      description: For metrics or API changes, describe labels, cardinality, backwards compatibility, and migration impact.
+    validations:
+      required: false
