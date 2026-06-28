@@ -3494,7 +3494,7 @@ fullnameOverride: ""
 
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.1.0"
+  tag: "0.1.2"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
