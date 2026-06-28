@@ -1,3 +1,4 @@
+
 image:
   repository: kbeacon-agent
   tag: dev
@@ -6,16 +7,13 @@ image:
 cluster:
   name: minikube
   environment: local
-  region: local
 
 log:
   level: debug
-  format: json
 
 agent:
   http:
     port: 8080
-    metricsPath: /metrics
   shutdownGracePeriod: 15s
 
 discovery:
@@ -24,13 +22,6 @@ discovery:
   includeInitContainers: true
   includeEphemeralContainers: true
   readPodTemplateAnnotations: true
-  namespaceAnnotations:
-    enabled: true
-  ownerResolution:
-    enabled: true
-    preferController: true
-    includeReplicaSets: false
-    includePodsControlledByWorkloads: false
   namespaces:
     include:
       - kbeacon-demo
@@ -38,11 +29,6 @@ discovery:
   resyncInterval: 10h
   reconcile:
     debounce: 250ms
-    workers: 1
-    rateLimiter:
-      baseDelay: 5ms
-      maxDelay: 30s
-      maxRetries: 5
 
 resourcesToWatch:
   core:
@@ -52,27 +38,11 @@ resourcesToWatch:
     deployments: true
     statefulSets: false
     daemonSets: false
-    replicaSets: false
   batch:
     jobs: false
     cronJobs: false
-  strimzi:
-    kafkaConnectors: false
-    required: false
-    parseConfigProviderReferences: false
-  confluent:
-    connectors: false
-    required: false
-    inferMountedSecrets: false
-    mountedSecretPathPrefixes:
-      - /mnt/secrets
 
 metrics:
-  enabled: true
-  edge:
-    enabled: true
-    includeOwnerTeam: true
-    includeResolved: true
   runtime:
     enabled: true
 

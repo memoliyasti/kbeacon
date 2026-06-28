@@ -1,9 +1,9 @@
+
 {{- if .Values.rbac.create }}
 {{- $appsResources := list -}}
 {{- if .Values.resourcesToWatch.apps.deployments }}{{- $appsResources = append $appsResources "deployments" -}}{{- end }}
 {{- if .Values.resourcesToWatch.apps.statefulSets }}{{- $appsResources = append $appsResources "statefulsets" -}}{{- end }}
 {{- if .Values.resourcesToWatch.apps.daemonSets }}{{- $appsResources = append $appsResources "daemonsets" -}}{{- end }}
-{{- if .Values.resourcesToWatch.apps.replicaSets }}{{- $appsResources = append $appsResources "replicasets" -}}{{- end }}
 
 {{- $batchResources := list -}}
 {{- if .Values.resourcesToWatch.batch.jobs }}{{- $batchResources = append $batchResources "jobs" -}}{{- end }}
@@ -35,16 +35,6 @@ rules:
   {{- if gt (len $batchResources) 0 }}
   - apiGroups: ["batch"]
     resources: {{ toJson $batchResources }}
-    verbs: ["get", "list", "watch"]
-  {{- end }}
-  {{- if .Values.resourcesToWatch.strimzi.kafkaConnectors }}
-  - apiGroups: ["kafka.strimzi.io"]
-    resources: ["kafkaconnectors"]
-    verbs: ["get", "list", "watch"]
-  {{- end }}
-  {{- if .Values.resourcesToWatch.confluent.connectors }}
-  - apiGroups: ["platform.confluent.io"]
-    resources: ["connectors"]
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- with .Values.rbac.extraRules }}
@@ -91,16 +81,6 @@ rules:
   {{- if gt (len $batchResources) 0 }}
   - apiGroups: ["batch"]
     resources: {{ toJson $batchResources }}
-    verbs: ["get", "list", "watch"]
-  {{- end }}
-  {{- if .Values.resourcesToWatch.strimzi.kafkaConnectors }}
-  - apiGroups: ["kafka.strimzi.io"]
-    resources: ["kafkaconnectors"]
-    verbs: ["get", "list", "watch"]
-  {{- end }}
-  {{- if .Values.resourcesToWatch.confluent.connectors }}
-  - apiGroups: ["platform.confluent.io"]
-    resources: ["connectors"]
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- with .Values.rbac.extraRules }}

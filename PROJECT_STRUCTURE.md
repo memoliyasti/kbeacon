@@ -1,3 +1,4 @@
+
 # Project Structure
 
 ```text
@@ -12,8 +13,8 @@ kbeacon/
   mkdocs.yml                     # Documentation website configuration
   docs/
     index.md                     # Documentation homepage
-    technical-design.md          # Full production-grade design document
-    api/openapi.yaml             # Agent REST API contract
+    technical-design.md          # Full design document and future roadmap
+    api/openapi.yaml             # Implemented Agent REST API contract
     reference/annotations.md     # Implemented annotation reference
     reference/metrics.md         # Implemented metric reference
     reference/helm.md            # Helm usage reference

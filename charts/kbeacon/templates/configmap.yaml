@@ -1,3 +1,4 @@
+
 {{- if .Values.config.create }}
 apiVersion: v1
 kind: ConfigMap
@@ -15,28 +16,16 @@ data:
       region: {{ .Values.cluster.region | quote }}
     log:
       level: {{ .Values.log.level | quote }}
-      format: {{ .Values.log.format | quote }}
-      includeSecretNames: {{ .Values.log.includeSecretNames }}
     agent:
       http:
         port: {{ .Values.agent.http.port }}
-        metricsPath: {{ .Values.agent.http.metricsPath | quote }}
+        metricsPath: "/metrics"
       shutdownGracePeriod: {{ .Values.agent.shutdownGracePeriod | quote }}
-    api:
-      enabled: {{ .Values.api.enabled }}
-      defaultLimit: {{ .Values.api.defaultLimit }}
-      maxLimit: {{ .Values.api.maxLimit }}
-      maxResponseBytes: {{ .Values.api.maxResponseBytes }}
-      includeRawEdges: {{ .Values.api.includeRawEdges }}
-      includeSafeAnnotations: {{ .Values.api.includeSafeAnnotations }}
     discovery:
 {{ toYaml .Values.discovery | indent 6 }}
     resourcesToWatch:
 {{ toYaml .Values.resourcesToWatch | indent 6 }}
-    secretObservation:
-{{ toYaml .Values.secretObservation | indent 6 }}
-    impact:
-{{ toYaml .Values.impact | indent 6 }}
     metrics:
-{{ toYaml .Values.metrics | indent 6 }}
+      runtime:
+        enabled: {{ .Values.metrics.runtime.enabled }}
 {{- end }}

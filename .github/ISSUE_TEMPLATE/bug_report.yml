@@ -11,7 +11,7 @@ body:
     id: version
     attributes:
       label: KBeacon version
-      placeholder: v0.1.0 or main sha
+      placeholder: v0.1.2 or main sha
     validations:
       required: true
   - type: input

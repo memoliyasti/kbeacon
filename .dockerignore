@@ -1,3 +1,4 @@
+
 .git
 .github
 bin
@@ -7,7 +8,10 @@ tmp
 *.sha256
 *.log
 
-# Local development artifacts
+# Documentation and local artifacts
+site
+.venv
+.venv-docs
 grafana-values.yaml
 prometheus-values.yaml
 kbeacon-local-endpoint.yaml
@@ -22,11 +26,3 @@ tree.txt
 .DS_Store
 .idea
 .vscode
-site
-local-dev
-configure-prometheus-incluster.sh
-create-kbeacon-local-endpoint.sh
-deploy-incluster-minikube.sh
-kbeacon-minikube-values.yaml
-prometheus-kbeacon-incluster-values.yaml
-smoke-incluster.sh
