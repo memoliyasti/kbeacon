@@ -8,11 +8,22 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type GraphCollectorOptions struct {
+	EmitEdges bool
+}
+
+func DefaultGraphCollectorOptions() GraphCollectorOptions {
+	return GraphCollectorOptions{
+		EmitEdges: true,
+	}
+}
+
 type GraphCollector struct {
-	graph   *graph.Cache
-	cluster string
-	version string
-	commit  string
+	graph     *graph.Cache
+	cluster   string
+	version   string
+	commit    string
+	emitEdges bool
 
 	buildInfo                   *prometheus.Desc
 	clusterDependencyCount      *prometheus.Desc
@@ -29,11 +40,16 @@ type GraphCollector struct {
 }
 
 func NewGraphCollector(cache *graph.Cache, cluster, version, commit string) *GraphCollector {
+	return NewGraphCollectorWithOptions(cache, cluster, version, commit, DefaultGraphCollectorOptions())
+}
+
+func NewGraphCollectorWithOptions(cache *graph.Cache, cluster, version, commit string, options GraphCollectorOptions) *GraphCollector {
 	return &GraphCollector{
-		graph:   cache,
-		cluster: cluster,
-		version: version,
-		commit:  commit,
+		graph:     cache,
+		cluster:   cluster,
+		version:   version,
+		commit:    commit,
+		emitEdges: options.EmitEdges,
 
 		buildInfo: prometheus.NewDesc(
 			"kbeacon_build_info",
@@ -115,7 +131,9 @@ func (c *GraphCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.clusterDependencyCount
 	ch <- c.clusterSecretCount
 	ch <- c.clusterWorkloadCount
-	ch <- c.dependencyEdges
+	if c.emitEdges {
+		ch <- c.dependencyEdges
+	}
 	ch <- c.workloadDependencyCount
 	ch <- c.secretAffectedWorkloadCount
 	ch <- c.secretImpactScore
@@ -165,23 +183,25 @@ func (c *GraphCollector) Collect(ch chan<- prometheus.Metric) {
 		c.cluster,
 	)
 
-	for _, edge := range snapshot.Edges {
-		ch <- prometheus.MustNewConstMetric(
-			c.dependencyEdges,
-			prometheus.GaugeValue,
-			1,
-			edge.Cluster,
-			edge.Workload.Namespace,
-			edge.Workload.Kind,
-			edge.Workload.Name,
-			edge.Secret.Namespace,
-			edge.Secret.Name,
-			string(edge.DiscoveryMode),
-			edge.OwnerTeam,
-			edge.Criticality,
-			strconv.FormatBool(edge.Resolved),
-			strconv.FormatBool(edge.Optional),
-		)
+	if c.emitEdges {
+		for _, edge := range snapshot.Edges {
+			ch <- prometheus.MustNewConstMetric(
+				c.dependencyEdges,
+				prometheus.GaugeValue,
+				1,
+				edge.Cluster,
+				edge.Workload.Namespace,
+				edge.Workload.Kind,
+				edge.Workload.Name,
+				edge.Secret.Namespace,
+				edge.Secret.Name,
+				string(edge.DiscoveryMode),
+				edge.OwnerTeam,
+				edge.Criticality,
+				strconv.FormatBool(edge.Resolved),
+				strconv.FormatBool(edge.Optional),
+			)
+		}
 	}
 
 	for _, workload := range snapshot.Workloads {

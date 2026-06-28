@@ -18,6 +18,7 @@ Describe the change and why it is needed.
 - [ ] `go build -o ./bin/kbeacon-agent ./cmd/kbeacon-agent`
 - [ ] `helm lint ./charts/kbeacon --set cluster.name=ci`
 - [ ] `helm template kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=ci --set dashboards.enabled=true`
+- [ ] `helm template kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=ci --set metrics.edge.enabled=false`
 - [ ] `helm template kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=ci --set resourcesToWatch.core.secrets=false`
 - [ ] `promtool check rules examples/prometheus/rules.yaml`
 

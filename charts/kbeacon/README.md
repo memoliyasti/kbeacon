@@ -75,6 +75,18 @@ Dashboards are rendered from:
 charts/kbeacon/dashboards/
 ```
 
+## Metrics cardinality guard
+
+Disable detailed edge metrics when Prometheus cardinality is a concern:
+
+```yaml
+metrics:
+  edge:
+    enabled: false
+```
+
+The Agent still emits aggregate metrics and the REST API still exposes dependency edges.
+
 ## Resource watcher enablement
 
 ```yaml

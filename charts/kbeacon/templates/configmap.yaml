@@ -26,6 +26,8 @@ data:
     resourcesToWatch:
 {{ toYaml .Values.resourcesToWatch | indent 6 }}
     metrics:
+      edge:
+        enabled: {{ .Values.metrics.edge.enabled }}
       runtime:
         enabled: {{ .Values.metrics.runtime.enabled }}
 {{- end }}

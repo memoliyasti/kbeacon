@@ -62,6 +62,8 @@ resourcesToWatch:
     cronJobs: true
 
 metrics:
+  edge:
+    enabled: true
   runtime:
     enabled: true
 

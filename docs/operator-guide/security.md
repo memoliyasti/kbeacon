@@ -43,3 +43,14 @@ Use low-privilege mode when Secret read access is not acceptable:
       --set resourcesToWatch.core.secrets=false
 
 In low-privilege mode, KBeacon discovers workload references but cannot confirm Secret existence. Treat `exists=false` and `resolved=false` as "missing or unobservable".
+
+## Metric label sensitivity
+
+KBeacon does not export Secret values, but Secret names, workload names, namespaces, owner teams, and criticality labels can still be sensitive.
+
+For stricter environments:
+
+- restrict access to Prometheus, Mimir, Grafana, and the Agent API;
+- keep the Agent Service internal;
+- disable detailed edge metrics with `metrics.edge.enabled=false`;
+- use low-privilege mode with `resourcesToWatch.core.secrets=false` when Secret object reads are not allowed.

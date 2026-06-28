@@ -185,6 +185,29 @@ In this mode:
 
 Treat `exists="false"` and `resolved="false"` as "missing or unobservable" when Secret watching is disabled.
 
+## Cardinality guard
+
+`kbeacon_dependency_edges` is the most detailed metric family. It includes workload names and Secret names, so it can produce many time series in large clusters.
+
+Disable edge metrics when you only need aggregate impact, high fan-out, unresolved reference, and runtime health metrics:
+
+```yaml
+metrics:
+  edge:
+    enabled: false
+  runtime:
+    enabled: true
+```
+
+When edge metrics are disabled:
+
+- `kbeacon_dependency_edges` is not emitted;
+- aggregate metrics such as `kbeacon_cluster_dependency_count`, `kbeacon_workload_dependency_count`, `kbeacon_secret_affected_workload_count`, `kbeacon_secret_impact_score`, and `kbeacon_unresolved_secret_references` remain available;
+- the Agent API still returns dependency edges for internal debugging and inspection;
+- Grafana panels that rely directly on `kbeacon_dependency_edges` should be disabled or treated as optional.
+
+This setting is useful for very large clusters, shared Prometheus environments, or organizations that consider workload and Secret names sensitive metadata.
+
 ## Implemented runtime metrics
 
 ### `kbeacon_build_info`

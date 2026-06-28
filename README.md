@@ -125,6 +125,22 @@ If cluster policy does not allow the Agent to read Kubernetes Secret objects, di
 
 KBeacon still discovers workload-to-Secret references, but referenced Secrets are reported as `exists=false` and dependency edges as `resolved=false` because Secret existence is unobservable.
 
+### Metrics cardinality guard
+
+`kbeacon_dependency_edges` is the most detailed metric family and includes workload and Secret names as labels.
+
+For large clusters or shared Prometheus environments, disable detailed edge metrics:
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2 \
+      --set metrics.edge.enabled=false
+
+Aggregate metrics and the Agent API remain available.
+
 ## Verify
 
     kubectl -n kbeacon-system rollout status deploy/kbeacon

@@ -21,3 +21,17 @@ Example namespace filtering:
           - kube-system
           - kube-public
           - kube-node-lease
+
+## Metrics cardinality
+
+Detailed edge metrics are useful, but they include workload and Secret names as labels.
+
+For large clusters or shared Prometheus environments, disable `kbeacon_dependency_edges`:
+
+    metrics:
+      edge:
+        enabled: false
+      runtime:
+        enabled: true
+
+Aggregate impact metrics and the Agent API remain available.

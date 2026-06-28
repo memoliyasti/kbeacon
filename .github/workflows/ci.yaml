@@ -94,6 +94,16 @@ jobs:
           fi
           grep -n 'secrets: false' /tmp/kbeacon-low-privilege-rendered.yaml
 
+      - name: Helm template edge-disabled metrics
+        run: |
+          helm template kbeacon ./charts/kbeacon \
+            --namespace kbeacon-system \
+            --set cluster.name=ci \
+            --set metrics.edge.enabled=false \
+            > /tmp/kbeacon-edge-disabled-rendered.yaml
+          grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
+          grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
+
       - name: Check Prometheus rules
         run: |
           docker run --rm -i \

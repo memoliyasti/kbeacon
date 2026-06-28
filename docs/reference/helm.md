@@ -187,10 +187,16 @@ Disabled resources are not emitted in `kbeacon_cache_sync_status`.
 ### metrics
 
     metrics:
+      edge:
+        enabled: true
       runtime:
         enabled: true
 
-The current implementation always exposes graph metrics. Runtime collectors and recorder metrics are controlled by `metrics.runtime.enabled`.
+`metrics.edge.enabled` controls the high-cardinality `kbeacon_dependency_edges` metric family. Keep it enabled for detailed graph panels and troubleshooting. Disable it for large clusters or shared Prometheus environments where workload-name and Secret-name labels are too expensive.
+
+When `metrics.edge.enabled=false`, aggregate metrics and the Agent API remain available.
+
+`metrics.runtime.enabled` controls runtime collectors and recorder metrics.
 
 ### dashboards
 

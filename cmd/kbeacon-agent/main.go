@@ -146,7 +146,15 @@ func main() {
 	})
 
 	registry := prometheus.NewRegistry()
-	registry.MustRegister(kmetrics.NewGraphCollector(graphCache, cfg.Cluster.Name, version, commit))
+	registry.MustRegister(kmetrics.NewGraphCollectorWithOptions(
+		graphCache,
+		cfg.Cluster.Name,
+		version,
+		commit,
+		kmetrics.GraphCollectorOptions{
+			EmitEdges: cfg.Metrics.Edge.Enabled,
+		},
+	))
 	if runtimeRecorder != nil {
 		registry.MustRegister(runtimeRecorder)
 	}

@@ -35,6 +35,12 @@ package:
 helm-lint:
 	$(HELM) lint ./charts/kbeacon --set cluster.name=local-dev
 
+.PHONY: helm-template-edge-disabled
+helm-template-edge-disabled:
+	$(HELM) template kbeacon ./charts/kbeacon --set cluster.name=local-dev --set metrics.edge.enabled=false > /tmp/kbeacon-edge-disabled-rendered.yaml
+	@grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
+	@grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
+
 .PHONY: prom-rules
 prom-rules:
 	docker run --rm -i --entrypoint=promtool $(PROMETHEUS_IMAGE) check rules /dev/stdin < examples/prometheus/rules.yaml
@@ -45,7 +51,7 @@ docs:
 	mkdocs build --strict
 
 .PHONY: ci
-ci: fmt test helm-lint helm-template helm-template-low-privilege prom-rules
+ci: fmt test helm-lint helm-template helm-template-edge-disabled helm-template-low-privilege prom-rules
 
 .PHONY: helm-template-low-privilege
 helm-template-low-privilege:
