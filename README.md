@@ -175,6 +175,19 @@ Minikube support is kept for local development and end-to-end smoke testing. It 
 
 The local workflow exercises Helm, RBAC, Service networking, Kubernetes informers, Prometheus scraping, and Grafana dashboards.
 
+
+## Blast-radius demo
+
+A runnable demo is available in examples/demo-blast-radius.
+
+It creates a small multi-namespace application graph with inferred, explicit, hybrid, and unresolved Secret references.
+
+    ./examples/demo-blast-radius/run.sh apply
+    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+    curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/payments-db/impact | jq ".data.summary"
+
+See docs/user-guide/blast-radius-demo.md.
+
 ## Documentation
 
 - Website: https://memoliyasti.github.io/kbeacon/

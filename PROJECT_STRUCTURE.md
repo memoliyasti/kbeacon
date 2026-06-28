@@ -20,6 +20,7 @@ kbeacon/
     reference/metrics.md         # Implemented metric reference
     reference/helm.md            # Helm usage reference
     user-guide/discovery-modes.md  # How infer, explicit, hybrid, and disabled modes work
+    user-guide/blast-radius-demo.md # Runnable demo guide
     operator-guide/security.md  # Security and low-privilege deployment guidance
   charts/kbeacon/                # Helm chart for one lightweight Agent Deployment
   charts/kbeacon/dashboards/     # Dashboard ConfigMaps rendered by Helm
@@ -28,6 +29,7 @@ kbeacon/
     annotations/                 # Workload annotation examples
     prometheus/                  # Scrape, remote_write, recording and alert rules
     api/                         # Example API responses
+    demo-blast-radius/           # Runnable Secret blast-radius demo
   cmd/kbeacon-agent/             # KBeacon Agent entrypoint
   internal/
     config/                      # Runtime config loading and defaults
