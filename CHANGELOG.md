@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.1
+
+Documentation and release polish patch.
+
+- Added a Secret blast-radius demo with realistic multi-namespace workloads.
+- Recorded verified demo output from a live KBeacon Agent API run.
+- Fixed GitHub Pages Mermaid rendering for technical design diagrams.
+- Added Star History links to the README and documentation site.
+- Clarified project positioning, roadmap boundaries, and implementation scope.
+- Kept Agent behavior compatible with v0.2.0.
+
 ## v0.2.0
 
 This release focuses on making KBeacon safer, clearer, and easier to operate as a personal open source project.

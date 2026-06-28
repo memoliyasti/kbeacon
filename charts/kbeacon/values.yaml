@@ -4,7 +4,7 @@ fullnameOverride: ""
 
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.2.0"
+  tag: "0.2.1"
   digest: ""
   pullPolicy: IfNotPresent
 
