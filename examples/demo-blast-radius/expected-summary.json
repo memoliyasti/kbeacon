@@ -1,0 +1,51 @@
+{
+  "paymentsDb": {
+    "exists": true,
+    "affectedWorkloadCount": 3,
+    "affectedTeamCount": 3,
+    "affectedNamespaceCount": 2,
+    "unresolvedReferenceCount": 0,
+    "impactScore": 46,
+    "discoveryModes": {
+      "explicit": 1,
+      "infer": 2
+    }
+  },
+  "legacyPaymentToken": {
+    "exists": false,
+    "affectedWorkloadCount": 1,
+    "affectedTeamCount": 1,
+    "affectedNamespaceCount": 1,
+    "unresolvedReferenceCount": 1,
+    "impactScore": 38,
+    "discoveryModes": {
+      "explicit": 1
+    }
+  },
+  "paymentsApi": {
+    "dependencyCount": 3,
+    "unresolvedCount": 1,
+    "dependencies": [
+      {
+        "secret": "payments/legacy-payment-token",
+        "resolved": false,
+        "discoveryMode": "explicit"
+      },
+      {
+        "secret": "payments/payments-db",
+        "resolved": true,
+        "discoveryMode": "infer"
+      },
+      {
+        "secret": "shared/platform-ca",
+        "resolved": true,
+        "discoveryMode": "explicit"
+      }
+    ]
+  },
+  "dependencyMapSample": {
+    "nodes": 30,
+    "edges": 10,
+    "note": "Global dependency-map counts can vary when the cluster contains additional workloads."
+  }
+}
