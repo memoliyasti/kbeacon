@@ -96,7 +96,7 @@ Install the Helm chart:
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.1.2
+      --set image.tag=0.2.0
 
 If the GHCR package is public, no Kubernetes image pull Secret is required.
 
@@ -121,7 +121,7 @@ If the GHCR package is private, create a pull Secret with a classic GitHub PAT t
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.1.2 \
+      --set image.tag=0.2.0 \
       --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
 ### Low-privilege install
@@ -133,7 +133,7 @@ If cluster policy does not allow the Agent to read Kubernetes Secret objects, di
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.1.2 \
+      --set image.tag=0.2.0 \
       --set resourcesToWatch.core.secrets=false
 
 KBeacon still discovers workload-to-Secret references, but referenced Secrets are reported as `exists=false` and dependency edges as `resolved=false` because Secret existence is unobservable.
@@ -149,7 +149,7 @@ For large clusters or shared Prometheus environments, disable detailed edge metr
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.1.2 \
+      --set image.tag=0.2.0 \
       --set metrics.edge.enabled=false
 
 Aggregate metrics and the Agent API remain available.
@@ -199,8 +199,8 @@ The local workflow exercises Helm, RBAC, Service networking, Kubernetes informer
 
 Release tags use semantic versioning:
 
-    git tag -a v0.1.2 -m "KBeacon v0.1.2"
-    git push origin v0.1.2
+    git tag -a v0.2.0 -m "KBeacon v0.2.0"
+    git push origin v0.2.0
 
 The release workflow publishes:
 

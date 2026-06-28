@@ -9,6 +9,7 @@ kbeacon/
     PULL_REQUEST_TEMPLATE.md     # PR review checklist
     dependabot.yml               # Dependency update automation
   README.md
+  CHANGELOG.md                  # Release notes
   mkdocs.yml                     # Documentation website configuration
   docs/
     index.md                     # Documentation homepage
