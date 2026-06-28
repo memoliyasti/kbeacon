@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/kbeacon-agent
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   validate:

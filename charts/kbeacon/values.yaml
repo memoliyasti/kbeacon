@@ -2,7 +2,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  repository: ghcr.io/memoliyasti/kbeacon-agent
+  repository: ghcr.io/memoliyasti/kbeacon
   tag: "0.1.0"
   digest: ""
   pullPolicy: IfNotPresent

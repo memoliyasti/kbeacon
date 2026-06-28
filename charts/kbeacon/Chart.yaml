@@ -4,9 +4,9 @@ description: Kubernetes-native Secret Dependency Intelligence Agent for Promethe
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
-home: https://github.com/memoliyasti/kbeacon-2
+home: https://github.com/memoliyasti/kbeacon
 sources:
-  - https://github.com/memoliyasti/kbeacon-2
+  - https://github.com/memoliyasti/kbeacon
 keywords:
   - kubernetes
   - secrets
