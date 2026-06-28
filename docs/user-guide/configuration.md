@@ -1,51 +1,23 @@
 # Configuration
 
-KBeacon is configured through Helm values rendered into an Agent config file.
+KBeacon is configured through the Helm chart values file and the generated Agent configuration.
 
-## Cluster identity
+Important values:
 
-    cluster:
-      name: prod-eu-1
-      environment: prod
-      region: eu
+- `cluster.name`: logical cluster identity.
+- `discovery.defaultMode`: `infer`, `explicit`, `hybrid`, or `disabled`.
+- `discovery.namespaces.include`: namespace allow-list.
+- `discovery.namespaces.exclude`: namespace deny-list.
+- `resourcesToWatch`: resource informer enablement.
+- `metrics.runtime.enabled`: runtime metric collection.
 
-## Namespace filters
+Example namespace filtering:
 
     discovery:
       namespaces:
-        include: []
+        include:
+          - payments
         exclude:
           - kube-system
           - kube-public
           - kube-node-lease
-
-An empty include list means all namespaces are eligible unless excluded.
-
-## Discovery mode
-
-    discovery:
-      defaultMode: hybrid
-
-Supported values:
-
-- infer
-- explicit
-- hybrid
-- disabled
-
-## Resource watchers
-
-    resourcesToWatch:
-      core:
-        secrets: true
-        pods: true
-      apps:
-        deployments: true
-        statefulSets: true
-        daemonSets: true
-        replicaSets: false
-      batch:
-        jobs: true
-        cronJobs: true
-
-Disabled resources appear as optional in readiness responses.

@@ -1,16 +1,15 @@
 ## Summary
 
-<!-- What changed and why? -->
+Describe the change and why it is needed.
 
 ## Type of change
 
 - [ ] Bug fix
 - [ ] Feature
 - [ ] Documentation
-- [ ] Helm chart
-- [ ] Metrics/API contract
-- [ ] CI/release
-- [ ] Refactor
+- [ ] Helm/chart change
+- [ ] Metrics/API change
+- [ ] CI/release change
 
 ## Validation
 
@@ -19,18 +18,15 @@
 - [ ] `go build -o ./bin/kbeacon-agent ./cmd/kbeacon-agent`
 - [ ] `helm lint ./charts/kbeacon --set cluster.name=ci`
 - [ ] `helm template kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=ci --set dashboards.enabled=true`
-- [ ] `docker run --rm -i --entrypoint=promtool prom/prometheus:v3.1.0 check rules /dev/stdin < examples/prometheus/rules.yaml`
-- [ ] `mkdocs build --strict`
+- [ ] `promtool check rules examples/prometheus/rules.yaml`
 
-## Safety checklist
+## Security checklist
 
-- [ ] This change does not expose Kubernetes Secret values.
-- [ ] This change keeps Kubernetes RBAC read-only.
-- [ ] New Prometheus labels are bounded-cardinality and documented.
-- [ ] API or metric contract changes are documented.
-- [ ] Helm defaults remain safe for production.
-- [ ] Security-sensitive examples use placeholders only.
+- [ ] This change does not expose Secret values.
+- [ ] This change keeps Kubernetes permissions read-only.
+- [ ] This change does not add unbounded metric labels.
+- [ ] Documentation has been updated if behavior changes.
 
-## Notes for reviewers
+## Notes
 
-<!-- Anything reviewers should focus on? -->
+Add any rollout, compatibility, or follow-up notes.

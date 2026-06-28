@@ -1,31 +1,40 @@
 # KBeacon
 
-KBeacon is a Kubernetes-native Secret Dependency Intelligence Agent.
+KBeacon is a Kubernetes-native Secret Dependency Intelligence agent.
 
 It answers one operational question:
 
-> If this Kubernetes Secret changes, what workloads are affected?
+> If this Secret changes, what workloads are affected?
 
-KBeacon runs as a lightweight read-only Agent in each cluster, builds an in-memory dependency graph, exposes Prometheus metrics, and provides a small read-only HTTP API.
+KBeacon watches Kubernetes resources, builds an in-memory dependency graph, and exposes dependency intelligence through Prometheus metrics and a read-only HTTP API.
+
+## Why KBeacon?
+
+Secret rotations, certificate renewals, registry credential updates, and database credential changes can affect many workloads. KBeacon helps platform and SRE teams understand blast radius before changes become incidents.
 
 ## What KBeacon does
 
-- Watches Kubernetes resources with informers.
-- Discovers Secret dependencies from Pod templates and annotations.
-- Calculates Secret impact and fan-out.
+- Discovers Secret dependencies from Kubernetes workloads.
+- Supports inferred, explicit, and hybrid discovery modes.
+- Calculates Secret impact and workload fan-out.
 - Exposes Prometheus metrics.
-- Provides Grafana dashboard JSON.
-- Ships Helm deployment artifacts.
-- Avoids exporting Secret values.
+- Exposes a read-only Agent API.
+- Ships Grafana dashboards and alert examples.
+- Deploys as a lightweight Helm chart.
 
 ## What KBeacon does not do
 
-KBeacon does not rotate Secrets, mutate workloads, install CRDs, run admission webhooks, store data in a database, or provide a custom UI.
+- It does not export Secret values.
+- It does not mutate Kubernetes resources.
+- It does not install CRDs by default.
+- It does not run a graph database.
+- It does not replace Prometheus or Grafana.
 
-## Start here
+## Quick links
 
-- [Quickstart](getting-started.md)
-- [Installation](user-guide/installation.md)
+- [Getting started](getting-started.md)
+- [Helm reference](reference/helm.md)
 - [Metrics reference](reference/metrics.md)
-- [Annotation reference](reference/annotations.md)
-- [Security model](operator-guide/security.md)
+- [Annotations reference](reference/annotations.md)
+- [Technical design](technical-design.md)
+- [Contributing](community/contributing.md)

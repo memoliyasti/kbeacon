@@ -1,51 +1,27 @@
 # Security Policy
 
-KBeacon is designed to avoid exporting Kubernetes Secret values. It does observe Secret metadata and dependency relationships, which may be sensitive in many organizations.
+KBeacon is designed to avoid exporting Secret values. It does observe Secret metadata and may require sensitive read-only Kubernetes RBAC.
 
 ## Supported versions
 
-KBeacon is pre-1.0. Security fixes target the latest released version and `main`.
-
-| Version | Supported |
-| --- | --- |
-| `0.1.x` | yes |
-| older | no |
+KBeacon is pre-1.0. Security fixes target the latest release line.
 
 ## Reporting a vulnerability
 
-Please do not report security vulnerabilities in public GitHub issues.
+Please do not open a public issue for suspected vulnerabilities.
 
-Use GitHub private vulnerability reporting:
+Use GitHub private vulnerability reporting if enabled. Otherwise contact the maintainer privately and include:
 
-https://github.com/memoliyasti/kbeacon/security/advisories/new
-
-Include:
-
-- affected version or commit;
-- impact;
+- affected version;
+- deployment mode;
+- impact summary;
 - reproduction steps;
-- relevant logs with secrets redacted;
-- whether Secret values, credentials, or cluster access could be exposed.
+- any logs or manifests needed to understand the issue.
 
 ## Security principles
 
-KBeacon must:
-
-- never expose Secret `data` or `stringData`;
-- use read-only Kubernetes RBAC;
-- never mutate workloads or Secrets;
-- keep the Agent API internal by default;
-- treat Secret names and dependency metadata as sensitive;
-- document all metrics that include Secret or workload identifiers;
-- avoid logging Secret names unless explicitly configured and documented.
-
-## Deployment guidance
-
-Protect access to:
-
-- the KBeacon Agent API;
-- Prometheus and Mimir;
-- Grafana dashboards and alert data;
-- release credentials and image pull secrets.
-
-Use private registries and image pull secrets when the image package is private.
+- KBeacon must not expose Secret `data` or `stringData`.
+- KBeacon must use read-only Kubernetes permissions.
+- KBeacon must not mutate workloads or Secrets.
+- KBeacon's API should remain internal by default.
+- Secret names and dependency metadata may be sensitive.

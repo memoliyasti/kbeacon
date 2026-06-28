@@ -1,15 +1,12 @@
 # API
 
-KBeacon exposes a read-only HTTP API.
+The Agent exposes a read-only HTTP API.
 
-OpenAPI contract:
-
-    docs/api/openapi.yaml
-
-Common endpoints:
+Important endpoints:
 
 - `/healthz`
 - `/readyz`
+- `/metrics`
 - `/api/v1`
 - `/api/v1/secrets`
 - `/api/v1/workloads`
@@ -17,6 +14,4 @@ Common endpoints:
 - `/api/v1/secrets/{namespace}/{name}/impact`
 - `/api/v1/workloads/{namespace}/{kind}/{name}/dependencies`
 
-Example:
-
-    curl -sS http://127.0.0.1:8080/api/v1/secrets | jq
+The OpenAPI source is stored at `docs/api/openapi.yaml`.

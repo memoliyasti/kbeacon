@@ -1,23 +1,14 @@
 # Alerting
 
-Prometheus alerting and recording rules are available in:
+Example Prometheus recording and alert rules are stored at:
 
     examples/prometheus/rules.yaml
 
-Validate them with:
+Validate the rules with Prometheus promtool:
 
     docker run --rm -i \
       --entrypoint=promtool \
       prom/prometheus:v3.1.0 \
       check rules /dev/stdin < examples/prometheus/rules.yaml
 
-The example rules cover:
-
-- Agent down
-- cache not synced
-- graph rebuild latency
-- Secret changed with workload impact
-- high impact Secrets
-- large Secret fan-out
-- unresolved Secret references
-- no dependencies discovered
+KBeacon intentionally does not send notifications directly. Use Prometheus Alertmanager or Grafana Alerting.

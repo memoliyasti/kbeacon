@@ -1,21 +1,16 @@
 name: Question
-description: Ask a usage or design question
-title: "question: "
+description: Ask a usage or design question.
+title: "[question]: "
 labels:
-  - kind/question
+  - question
 body:
   - type: textarea
     id: question
     attributes:
       label: Question
-      description: What would you like to understand?
     validations:
       required: true
-
   - type: textarea
     id: context
     attributes:
       label: Context
-      description: Include installation mode, Helm values, Prometheus setup, or dashboard behavior if relevant.
-    validations:
-      required: false

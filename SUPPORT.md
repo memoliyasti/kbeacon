@@ -1,26 +1,9 @@
 # Support
 
-KBeacon is an open source project.
+KBeacon support channels:
 
-## Community support
+- GitHub Issues for bugs and feature requests.
+- GitHub Discussions if enabled for design questions and user support.
+- Security reports should follow `SECURITY.md`.
 
-Use GitHub issues for reproducible bugs and feature requests.
-
-Use GitHub Discussions for:
-
-- usage questions;
-- design discussions;
-- integration ideas;
-- roadmap feedback.
-
-## Security reports
-
-Do not open public issues for vulnerabilities.
-
-Use GitHub private vulnerability reporting:
-
-https://github.com/memoliyasti/kbeacon/security/advisories/new
-
-## Commercial support
-
-No commercial support offering is provided by this repository.
+For production incidents, use your organization's normal support and incident process. KBeacon maintainers do not operate user clusters.

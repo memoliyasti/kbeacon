@@ -1,26 +1,9 @@
 # Maintainers
 
-Current maintainers:
+Current maintainer:
 
-| Name | GitHub | Area |
-| --- | --- | --- |
-| Mehmet Yasti | @memoliyasti | Project owner, Agent, Helm, CI, releases |
+| Name | GitHub |
+| --- | --- |
+| Mehmet Yasti | @memoliyasti |
 
-## Maintainer responsibilities
-
-Maintainers are responsible for:
-
-- reviewing pull requests;
-- triaging issues;
-- publishing releases;
-- maintaining security response processes;
-- protecting project scope and quality;
-- enforcing the Code of Conduct.
-
-## Contact
-
-For normal project work, use GitHub issues and pull requests.
-
-For vulnerabilities, use GitHub private vulnerability reporting:
-
-https://github.com/memoliyasti/kbeacon/security/advisories/new
+Maintainers are expected to follow the Code of Conduct, keep reviews constructive, and prioritize safe handling of Secret metadata.

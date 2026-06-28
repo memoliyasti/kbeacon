@@ -1,19 +1,15 @@
 # Dashboards
 
-KBeacon ships Grafana dashboard JSON in two locations:
+KBeacon ships Grafana dashboard JSON files in two locations:
 
 - `dashboards/`
 - `charts/kbeacon/dashboards/`
 
-Enable dashboard ConfigMaps with Helm:
+Enable dashboard ConfigMaps through Helm:
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
       --set cluster.name=prod-eu-1 \
       --set dashboards.enabled=true
 
-The default label is:
-
-    grafana_dashboard: "1"
-
-This works with common Grafana dashboard sidecar configurations.
+Dashboards expect Prometheus metrics from the `kbeacon-agent` scrape job.

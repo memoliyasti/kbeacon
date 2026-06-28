@@ -1,30 +1,12 @@
-# Security model
+# Security operations
 
-KBeacon is read-only by design.
+KBeacon uses read-only Kubernetes access and does not export Secret values.
 
-## Secret data
+Operational recommendations:
 
-KBeacon must not expose Secret values.
-
-It may expose:
-
-- Secret names;
-- Secret namespaces;
-- Secret types;
-- dependency relationships;
-- owner team metadata;
-- criticality metadata.
-
-Treat this metadata as sensitive.
-
-## Kubernetes permissions
-
-The Helm chart grants read-only `get`, `list`, and `watch` permissions for enabled resources.
-
-## Agent API
-
-The Agent API is intended for in-cluster or trusted internal access. Do not expose it publicly.
-
-## Registry authentication
-
-If GHCR packages are private, use a Kubernetes image pull secret with `read:packages` permission.
+- Keep the Agent API internal.
+- Treat Secret names as sensitive metadata.
+- Restrict access to Prometheus, Mimir, Grafana, and Agent logs.
+- Use private registry pull secrets when the GHCR package is private.
+- Rotate registry tokens used for image pulls.
+- Prefer digest-pinned images in production.

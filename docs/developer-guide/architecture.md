@@ -1,30 +1,14 @@
 # Architecture
 
-KBeacon runs one Agent per Kubernetes cluster.
+KBeacon is a single lightweight Agent.
 
-```mermaid
-flowchart LR
-  K8S[Kubernetes API] --> A[KBeacon Agent]
-  A --> G[In-memory graph cache]
-  A --> M[/metrics]
-  A --> API[HTTP API]
-  M --> P[Prometheus]
-  P --> Grafana[Grafana]
-```
+Main components:
 
-## Agent components
+- Kubernetes client configuration.
+- Shared informer controller.
+- Secret dependency extractors.
+- In-memory graph cache.
+- Prometheus collectors.
+- Read-only HTTP API.
 
-- Kubernetes client configuration
-- Shared informer factory
-- resource informers
-- dependency extractors
-- graph cache
-- Prometheus collectors
-- HTTP API server
-
-## Data flow
-
-1. Informers observe Kubernetes resources.
-2. Extractors normalize workload-to-Secret edges.
-3. The graph cache calculates current impact.
-4. Metrics and API responses are served from the cache.
+The Agent does not require CRDs, a database, a queue, or an operator.

@@ -9,10 +9,13 @@ theme:
   name: material
   language: en
   features:
-    - navigation.instant
     - navigation.sections
+    - navigation.expand
     - navigation.top
+    - navigation.footer
     - content.code.copy
+    - content.action.edit
+    - search.suggest
     - search.highlight
   palette:
     - scheme: default
@@ -27,47 +30,54 @@ theme:
 
 plugins:
   - search
-  - minify:
-      minify_html: true
 
 markdown_extensions:
   - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
   - toc:
       permalink: true
+  - tables
+  - attr_list
+  - md_in_html
   - pymdownx.details
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
 
 nav:
-  - Home: index.md
-  - Getting started:
-      - Quickstart: getting-started.md
+  - Overview: index.md
+  - Getting started: getting-started.md
+  - User guide:
       - Installation: user-guide/installation.md
       - Configuration: user-guide/configuration.md
       - Dashboards: user-guide/dashboards.md
       - Alerting: user-guide/alerting.md
   - Operator guide:
-      - Security model: operator-guide/security.md
       - Releases: operator-guide/releases.md
-      - Helm reference: reference/helm.md
-      - Metrics reference: reference/metrics.md
-      - Annotation reference: reference/annotations.md
+      - Security: operator-guide/security.md
+  - Operations:
+      - Prometheus: operations/prometheus.md
+  - Reference:
+      - Helm: reference/helm.md
+      - Metrics: reference/metrics.md
+      - Annotations: reference/annotations.md
   - Developer guide:
       - Architecture: developer-guide/architecture.md
       - API: developer-guide/api.md
+  - API:
+      - Agent API: api/index.md
+  - Design:
       - Technical design: technical-design.md
-      - Contributing: community/contributing.md
   - Community:
       - Governance: community/governance.md
-      - Code of Conduct: community/code-of-conduct.md
-      - Support: community/support.md
       - Maintainers: community/maintainers.md
-      - Roadmap: community/roadmap.md
       - Adopters: community/adopters.md
+      - Roadmap: community/roadmap.md
+      - Contributing: community/contributing.md
+      - Security: community/security.md
+      - Support: community/support.md
+      - Code of Conduct: community/code-of-conduct.md

@@ -1,77 +1,44 @@
 name: Bug report
-description: Report a reproducible problem in KBeacon
-title: "bug: "
+description: Report a reproducible KBeacon bug.
+title: "[bug]: "
 labels:
-  - kind/bug
+  - bug
 body:
   - type: markdown
     attributes:
-      value: |
-        Thanks for helping improve KBeacon. Please do not include Secret values, kubeconfigs, tokens, or private registry credentials.
-
-  - type: textarea
-    id: summary
-    attributes:
-      label: Summary
-      description: What happened?
-      placeholder: KBeacon reports ...
-    validations:
-      required: true
-
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected behavior
-      description: What did you expect to happen?
-    validations:
-      required: true
-
-  - type: textarea
-    id: reproduce
-    attributes:
-      label: Reproduction steps
-      description: Provide the smallest reproducible example.
-      placeholder: |
-        1. Install with ...
-        2. Create workload ...
-        3. Query ...
-    validations:
-      required: true
-
+      value: Thanks for reporting a bug. Please include enough detail for maintainers to reproduce it.
   - type: input
     id: version
     attributes:
       label: KBeacon version
-      placeholder: v0.1.0, main, sha-...
+      placeholder: v0.1.0 or main sha
     validations:
       required: true
-
   - type: input
     id: kubernetes
     attributes:
       label: Kubernetes version
       placeholder: v1.29.0
-    validations:
-      required: false
-
   - type: textarea
-    id: environment
+    id: expected
     attributes:
-      label: Environment
-      description: Include Helm values, install mode, Prometheus mode, and platform.
-      placeholder: |
-        Helm values:
-        Prometheus:
-        Grafana:
-        Platform:
+      label: Expected behavior
     validations:
-      required: false
-
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
   - type: textarea
     id: logs
     attributes:
-      label: Logs and relevant output
-      description: Redact Secret names if needed. Never include Secret data.
+      label: Logs or output
       render: shell
-    validations:
-      required: false

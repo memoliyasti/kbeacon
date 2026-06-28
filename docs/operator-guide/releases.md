@@ -1,27 +1,20 @@
 # Releases
 
-KBeacon releases are created from Git tags.
+KBeacon releases are produced from semantic version tags.
 
-## Image tags
+Create a release tag:
 
-Release `v0.1.0` publishes:
+    git tag -a v0.1.0 -m "KBeacon v0.1.0"
+    git push origin v0.1.0
 
-    ghcr.io/memoliyasti/kbeacon:v0.1.0
-    ghcr.io/memoliyasti/kbeacon:0.1.0
-    ghcr.io/memoliyasti/kbeacon:latest
+The release workflow publishes:
 
-The `main` branch publishes:
+- Linux binaries.
+- macOS binaries.
+- Helm chart package.
+- SHA256 checksums.
+- Multi-arch container images for linux/amd64 and linux/arm64.
 
-    ghcr.io/memoliyasti/kbeacon:main
-    ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
+Images are published to:
 
-## Release assets
-
-A release includes:
-
-- Linux binaries
-- macOS binaries
-- Helm chart package
-- SHA256 checksums
-
-See `RELEASE.md` for the maintainer checklist.
+    ghcr.io/memoliyasti/kbeacon

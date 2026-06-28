@@ -1,3 +1,3 @@
 # Maintainers
 
-See `MAINTAINERS.md` for the current maintainer list and responsibilities.
+See the root `MAINTAINERS.md` file.

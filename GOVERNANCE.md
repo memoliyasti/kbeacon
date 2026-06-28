@@ -2,48 +2,36 @@
 
 KBeacon is currently a maintainer-led open source project.
 
-## Roles
+## Principles
 
-### Users
+- Keep the Agent lightweight.
+- Use Prometheus and Grafana instead of custom storage and UI.
+- Avoid exporting Secret values.
+- Keep Kubernetes access read-only.
+- Prefer simple, reviewable changes over large rewrites.
 
-Users install and operate KBeacon, report bugs, request features, and provide feedback.
+## Maintainers
 
-### Contributors
+Maintainers are responsible for:
 
-Contributors submit issues, documentation, tests, code, dashboards, alert rules, or examples.
-
-### Maintainers
-
-Maintainers review contributions, manage releases, triage issues, enforce project standards, and protect the security of the project.
-
-Maintainers are listed in `MAINTAINERS.md`.
+- reviewing pull requests;
+- triaging issues;
+- cutting releases;
+- preserving project scope;
+- documenting public API and metric changes.
 
 ## Decision making
 
-KBeacon uses lazy consensus for most decisions:
+Routine changes can be merged after maintainer review and CI success.
 
-1. A proposal is opened as an issue or pull request.
-2. Maintainers and contributors discuss trade-offs.
-3. If no blocking concern remains, a maintainer may merge.
+Design-changing work should start as an issue or design discussion. Examples:
 
-Blocking concerns should be specific, actionable, and tied to project goals such as security, reliability, maintainability, API compatibility, or metric cardinality.
+- new metric names or labels;
+- API contract changes;
+- new Kubernetes resource extractors;
+- Helm chart security changes;
+- release workflow changes.
 
-## Project values
+## Release process
 
-KBeacon optimizes for:
-
-- read-only Kubernetes operation;
-- no Secret value exposure;
-- small operational footprint;
-- Prometheus-compatible metrics;
-- Grafana-compatible user workflows;
-- clear documentation and contributor experience;
-- stable public contracts.
-
-## Becoming a maintainer
-
-A contributor may be invited to become a maintainer after sustained, high-quality contributions and demonstrated care for project values.
-
-## Code of Conduct
-
-All participants must follow `CODE_OF_CONDUCT.md`.
+Releases are created from semantic version tags. See `docs/operator-guide/releases.md`.

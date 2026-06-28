@@ -1,46 +1,58 @@
 # Getting started
 
-This guide runs KBeacon locally on Minikube in in-cluster mode.
+## Install with Helm
 
-## Prerequisites
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1
 
-- Kubernetes cluster, such as Minikube
-- kubectl
-- Helm
-- Docker
-- jq
+## Install from a private GHCR package
 
-## Create a demo workload
+If the package is private, create a Kubernetes image pull secret from your local Docker login.
 
-    kubectl create namespace kbeacon-demo --dry-run=client -o yaml | kubectl apply -f -
+    read -rs "Registry token: " REGISTRY_TOKEN
+    echo
 
-    kubectl -n kbeacon-demo create secret generic app-db-secret \
-      --from-literal=username=demo \
-      --from-literal=password=demo \
-      --dry-run=client -o yaml | kubectl apply -f -
+    printf '%s' "${REGISTRY_TOKEN}" | docker login ghcr.io \
+      -u <github-user> \
+      --password-stdin
 
-Apply a workload that references the Secret through env vars, envFrom, and a volume. See `README.md` for the full manifest.
+    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
 
-## Deploy KBeacon
+    kubectl -n kbeacon-system create secret generic ghcr-pull-secret \
+      --type=kubernetes.io/dockerconfigjson \
+      --from-file=.dockerconfigjson="${HOME}/.docker/config.json"
 
-    ./hack/local-dev/deploy-incluster-minikube.sh
+    unset REGISTRY_TOKEN
 
-## Configure Prometheus
+Install KBeacon with the pull secret.
 
-    ./hack/local-dev/configure-prometheus-incluster.sh
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.0 \
+      --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
-Port-forward Prometheus:
+## Verify the Agent
 
-    kubectl -n kube-addons port-forward svc/prometheus-server 9090:80
+    kubectl -n kbeacon-system rollout status deploy/kbeacon
+    kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
 
-Run smoke tests:
-
-    ./hack/local-dev/smoke-incluster.sh
-
-## Query the Agent API
+Port-forward the Agent API.
 
     kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 
+Query the Agent.
+
     curl -sS http://127.0.0.1:8081/readyz | jq
+    curl -sS http://127.0.0.1:8081/api/v1/config | jq
     curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
-    curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
+
+## Local Minikube workflow
+
+    ./hack/local-dev/deploy-incluster-minikube.sh
+    ./hack/local-dev/configure-prometheus-incluster.sh
+    ./hack/local-dev/smoke-incluster.sh
