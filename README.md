@@ -190,6 +190,10 @@ See docs/user-guide/blast-radius-demo.md.
 
 ## Documentation
 
+- Blast-radius demo: docs/user-guide/blast-radius-demo.md
+- Live demo metric validation: `make demo-metrics-live`
+
+
 - Website: https://memoliyasti.github.io/kbeacon/
 - Getting started: docs/getting-started.md
 - Helm reference: docs/reference/helm.md

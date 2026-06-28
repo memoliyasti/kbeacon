@@ -10,7 +10,7 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run stale-check release-metadata-check package clean
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live stale-check release-metadata-check package clean
 
 validate: validate-ci demo-dry-run
 
@@ -60,11 +60,15 @@ docs:
 
 demo-lint:
 	bash -n examples/demo-blast-radius/run.sh
+	bash -n hack/validate-demo-metrics.sh
 
 demo-dry-run: demo-lint
 	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/namespace.yaml > /tmp/kbeacon-demo-dry-run.txt
 	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/secrets.yaml >> /tmp/kbeacon-demo-dry-run.txt
 	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/workloads.yaml >> /tmp/kbeacon-demo-dry-run.txt
+
+demo-metrics-live: demo-lint
+	./hack/validate-demo-metrics.sh
 
 stale-check:
 	./hack/stale-check.sh

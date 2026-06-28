@@ -71,3 +71,13 @@ The important behavior is that `payments/payments-db` is resolved and high-impac
 ## Delete demo resources
 
     ./examples/demo-blast-radius/run.sh delete
+
+<!-- kbeacon-demo-metrics:start -->
+## Verified metrics output
+
+Run:
+
+    make demo-metrics-live
+
+The expected metric summary is stored in `examples/demo-blast-radius/expected-metrics.json`.
+<!-- kbeacon-demo-metrics:end -->

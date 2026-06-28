@@ -89,3 +89,27 @@ Expected `Deployment/payments-api` dependencies:
 
 The important behavior is that `payments/payments-db` is resolved and high-impact, while `payments/legacy-payment-token` is intentionally unresolved but still visible in the graph.
 <!-- kbeacon-demo-verified-output:end -->
+
+<!-- kbeacon-demo-metrics:start -->
+## Verified metrics output
+
+The blast-radius demo can also be validated through the Agent `/metrics` endpoint.
+
+Run:
+
+    make demo-metrics-live
+
+The validation script applies the demo resources, opens a temporary port-forward to the Agent, downloads `/metrics`, and checks these expected values:
+
+| Metric | Labels | Expected value |
+| --- | --- | --- |
+| `kbeacon_secret_affected_workload_count` | `namespace="payments", secret_name="payments-db", exists="true"` | `3` |
+| `kbeacon_secret_impact_score` | `namespace="payments", secret_name="payments-db", exists="true"` | `46` |
+| `kbeacon_secret_affected_workload_count` | `namespace="payments", secret_name="legacy-payment-token", exists="false"` | `1` |
+| `kbeacon_secret_impact_score` | `namespace="payments", secret_name="legacy-payment-token", exists="false"` | `38` |
+| `kbeacon_unresolved_secret_references` | `namespace="payments", secret_name="legacy-payment-token"` | `1` |
+| `kbeacon_workload_dependency_count` | `namespace="payments", workload_name="payments-api"` | `3` |
+| `kbeacon_dependency_edges` | `workload_namespace="payments", workload_name="payments-api", secret_name="legacy-payment-token", resolved="false"` | `1` |
+
+The expected metric summary is stored in `examples/demo-blast-radius/expected-metrics.json`.
+<!-- kbeacon-demo-metrics:end -->

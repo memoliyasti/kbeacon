@@ -1,0 +1,9 @@
+{
+  "paymentsDbAffectedWorkloads": 3,
+  "paymentsDbImpactScore": 46,
+  "legacyPaymentTokenAffectedWorkloads": 1,
+  "legacyPaymentTokenImpactScore": 38,
+  "legacyPaymentTokenUnresolvedReferences": 1,
+  "paymentsApiDependencyCount": 3,
+  "paymentsApiLegacyTokenEdgeResolved": false
+}
