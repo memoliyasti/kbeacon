@@ -13,6 +13,9 @@ Describe the change and why it is needed.
 
 ## Validation
 
+- [ ] `make validate-ci`
+- [ ] `make demo-dry-run`
+
 - [ ] `go fmt ./...`
 - [ ] `go test ./...`
 - [ ] `go build -o ./bin/kbeacon-agent ./cmd/kbeacon-agent`
@@ -28,6 +31,7 @@ Describe the change and why it is needed.
 - [ ] This change does not expose Secret values.
 - [ ] This change keeps Kubernetes permissions read-only.
 - [ ] This change does not add unbounded metric labels.
+- [ ] `make stale-check` passes.
 - [ ] Documentation has been updated if behavior changes.
 
 ## Notes

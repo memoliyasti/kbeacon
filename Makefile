@@ -1,63 +1,82 @@
 SHELL := /usr/bin/env bash
 GO ?= go
 HELM ?= helm
+PYTHON ?= python3
+MKDOCS ?= mkdocs
 IMAGE ?= ghcr.io/memoliyasti/kbeacon
 TAG ?= dev
 PROMETHEUS_IMAGE ?= prom/prometheus:v3.1.0
+CLUSTER_NAME ?= ci
+NAMESPACE ?= kbeacon-system
+CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run stale-check release-metadata-check package clean
 
-.PHONY: test
-test:
-	$(GO) test ./...
+validate: validate-ci demo-dry-run
 
-.PHONY: fmt
+validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint stale-check release-metadata-check
+
+ci: validate-ci
+
 fmt:
 	$(GO) fmt ./...
 
-.PHONY: run
+test:
+	$(GO) test ./...
+
+build:
+	$(GO) build -trimpath -o ./bin/kbeacon-agent ./cmd/kbeacon-agent
+
 run:
 	KBEACON_CLUSTER_NAME=local-dev $(GO) run ./cmd/kbeacon-agent
 
-.PHONY: docker-build
 docker-build:
 	docker build -t $(IMAGE):$(TAG) .
 
-.PHONY: helm-template
-helm-template:
-	$(HELM) template kbeacon ./charts/kbeacon --set cluster.name=local-dev
-
-.PHONY: package
-package:
-	git archive --format=zip --output kbeacon.zip HEAD
-
-
-.PHONY: helm-lint
 helm-lint:
-	$(HELM) lint ./charts/kbeacon --set cluster.name=local-dev
+	$(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME)
 
-.PHONY: helm-template-edge-disabled
+helm-template:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set dashboards.enabled=true > /tmp/kbeacon-rendered.yaml
+
+helm-template-low-privilege:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set resourcesToWatch.core.secrets=false > /tmp/kbeacon-low-privilege-rendered.yaml
+	! grep -q "resources: \[\"secrets\"\]" /tmp/kbeacon-low-privilege-rendered.yaml
+
 helm-template-edge-disabled:
-	$(HELM) template kbeacon ./charts/kbeacon --set cluster.name=local-dev --set metrics.edge.enabled=false > /tmp/kbeacon-edge-disabled-rendered.yaml
-	@grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
-	@grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
+	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set metrics.edge.enabled=false > /tmp/kbeacon-edge-disabled-rendered.yaml
 
-.PHONY: prom-rules
+helm-template-namespace:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace payments --set cluster.name=$(CLUSTER_NAME) --set rbac.scope=namespace --set-string discovery.namespaces.include[0]=payments > /tmp/kbeacon-namespace-rendered.yaml
+	grep -q "kind: Role" /tmp/kbeacon-namespace-rendered.yaml
+	! grep -q "kind: ClusterRole" /tmp/kbeacon-namespace-rendered.yaml
+
 prom-rules:
 	docker run --rm -i --entrypoint=promtool $(PROMETHEUS_IMAGE) check rules /dev/stdin < examples/prometheus/rules.yaml
 
-.PHONY: docs
 docs:
-	python3 -m pip install -r requirements-docs.txt
-	mkdocs build --strict
+	$(PYTHON) -m venv .venv-docs
+	. .venv-docs/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements-docs.txt && mkdocs build --strict
 
-.PHONY: ci
-ci: fmt test helm-lint helm-template helm-template-edge-disabled helm-template-low-privilege prom-rules
+demo-lint:
+	bash -n examples/demo-blast-radius/run.sh
 
-.PHONY: helm-template-low-privilege
-helm-template-low-privilege:
-	$(HELM) template kbeacon ./charts/kbeacon --set cluster.name=local-dev --set resourcesToWatch.core.secrets=false > /tmp/kbeacon-low-privilege-rendered.yaml
-	@if grep -n 'resources: \["secrets"\]' /tmp/kbeacon-low-privilege-rendered.yaml; then \
-		echo "low-privilege render unexpectedly contains Secret RBAC"; \
-		exit 1; \
-	fi
-	@grep -n 'secrets: false' /tmp/kbeacon-low-privilege-rendered.yaml
+demo-dry-run: demo-lint
+	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/namespace.yaml > /tmp/kbeacon-demo-dry-run.txt
+	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/secrets.yaml >> /tmp/kbeacon-demo-dry-run.txt
+	kubectl apply --dry-run=client --validate=false -f examples/demo-blast-radius/workloads.yaml >> /tmp/kbeacon-demo-dry-run.txt
+
+stale-check:
+	./hack/stale-check.sh
+
+release-metadata-check:
+	grep -q "version: $(CHART_VERSION)" charts/kbeacon/Chart.yaml
+	grep -q "appVersion:.*$(CHART_VERSION)" charts/kbeacon/Chart.yaml
+	grep -q "tag:.*$(CHART_VERSION)" charts/kbeacon/values.yaml
+	grep -q "version: $(CHART_VERSION)" docs/api/openapi.yaml
+
+package:
+	git archive --format=zip --output kbeacon.zip HEAD
+
+clean:
+	rm -rf bin dist site .venv-docs kbeacon.zip
