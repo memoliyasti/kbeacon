@@ -19,7 +19,6 @@ data:
     agent:
       http:
         port: {{ .Values.agent.http.port }}
-        metricsPath: "/metrics"
       shutdownGracePeriod: {{ .Values.agent.shutdownGracePeriod | quote }}
     discovery:
 {{ toYaml .Values.discovery | indent 6 }}

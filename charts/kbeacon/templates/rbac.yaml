@@ -1,5 +1,8 @@
 
 {{- if .Values.rbac.create }}
+{{- if not (has .Values.rbac.scope (list "cluster" "namespace")) }}
+{{- fail "rbac.scope must be either cluster or namespace" }}
+{{- end }}
 {{- $appsResources := list -}}
 {{- if .Values.resourcesToWatch.apps.deployments }}{{- $appsResources = append $appsResources "deployments" -}}{{- end }}
 {{- if .Values.resourcesToWatch.apps.statefulSets }}{{- $appsResources = append $appsResources "statefulsets" -}}{{- end }}

@@ -104,6 +104,21 @@ jobs:
           grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
           grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
 
+      - name: Helm template namespace-scoped
+        run: |
+          helm template kbeacon ./charts/kbeacon \
+            --namespace payments \
+            --set cluster.name=ci \
+            --set rbac.scope=namespace \
+            --set discovery.namespaces.include={payments} \
+            > /tmp/kbeacon-namespace-rendered.yaml
+
+          grep -q "kind: Role" /tmp/kbeacon-namespace-rendered.yaml
+          if grep -q "kind: ClusterRole" /tmp/kbeacon-namespace-rendered.yaml; then
+            echo "namespace-scoped render unexpectedly contains ClusterRole"
+            exit 1
+          fi
+
       - name: Check Prometheus rules
         run: |
           docker run --rm -i \

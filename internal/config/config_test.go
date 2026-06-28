@@ -22,7 +22,6 @@ log:
 agent:
   http:
     port: 9099
-    metricsPath: /metrics
   shutdownGracePeriod: 20s
 discovery:
   defaultMode: infer
@@ -39,7 +38,6 @@ discovery:
   reconcile:
     debounce: 500ms
 metrics:
-  enabled: true
   edge:
     enabled: true
   runtime:

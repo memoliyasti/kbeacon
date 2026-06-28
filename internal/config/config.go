@@ -29,9 +29,7 @@ type ClusterConfig struct {
 }
 
 type LogConfig struct {
-	Level              string `yaml:"level" json:"level"`
-	Format             string `yaml:"format" json:"format"`
-	IncludeSecretNames bool   `yaml:"includeSecretNames" json:"includeSecretNames"`
+	Level string `yaml:"level" json:"level"`
 }
 
 type AgentConfig struct {
@@ -40,8 +38,7 @@ type AgentConfig struct {
 }
 
 type HTTPConfig struct {
-	Port        int    `yaml:"port" json:"port"`
-	MetricsPath string `yaml:"metricsPath" json:"metricsPath"`
+	Port int `yaml:"port" json:"port"`
 }
 
 type DiscoveryConfig struct {
@@ -62,12 +59,10 @@ type NamespaceSelectorConfig struct {
 
 type ReconcileConfig struct {
 	Debounce string `yaml:"debounce" json:"debounce"`
-	Workers  int    `yaml:"workers" json:"workers"`
 }
 
 type MetricsConfig struct {
-	Enabled bool `yaml:"enabled" json:"enabled"`
-	Edge    struct {
+	Edge struct {
 		Enabled bool `yaml:"enabled" json:"enabled"`
 	} `yaml:"edge" json:"edge"`
 	Runtime struct {
@@ -84,7 +79,6 @@ type ResourcesToWatchConfig struct {
 		Deployments  bool `yaml:"deployments" json:"deployments"`
 		StatefulSets bool `yaml:"statefulSets" json:"statefulSets"`
 		DaemonSets   bool `yaml:"daemonSets" json:"daemonSets"`
-		ReplicaSets  bool `yaml:"replicaSets" json:"replicaSets"`
 	} `yaml:"apps" json:"apps"`
 	Batch struct {
 		Jobs     bool `yaml:"jobs" json:"jobs"`
@@ -101,10 +95,8 @@ func Default() Config {
 	cfg.Cluster.Name = "local-dev"
 
 	cfg.Log.Level = "info"
-	cfg.Log.Format = "json"
 
 	cfg.Agent.HTTP.Port = 8080
-	cfg.Agent.HTTP.MetricsPath = "/metrics"
 	cfg.Agent.ShutdownGracePeriod = "15s"
 
 	cfg.Discovery.DefaultMode = string(graph.DiscoveryModeHybrid)
@@ -119,9 +111,7 @@ func Default() Config {
 	}
 	cfg.Discovery.ResyncInterval = "10h"
 	cfg.Discovery.Reconcile.Debounce = "250ms"
-	cfg.Discovery.Reconcile.Workers = 1
 
-	cfg.Metrics.Enabled = true
 	cfg.Metrics.Edge.Enabled = true
 	cfg.Metrics.Runtime.Enabled = true
 
@@ -130,7 +120,6 @@ func Default() Config {
 	cfg.ResourcesToWatch.Apps.Deployments = true
 	cfg.ResourcesToWatch.Apps.StatefulSets = true
 	cfg.ResourcesToWatch.Apps.DaemonSets = true
-	cfg.ResourcesToWatch.Apps.ReplicaSets = true
 	cfg.ResourcesToWatch.Batch.Jobs = true
 	cfg.ResourcesToWatch.Batch.CronJobs = true
 
@@ -195,9 +184,6 @@ func (c *Config) Normalize() {
 	}
 	if c.Agent.HTTP.Port == 0 {
 		c.Agent.HTTP.Port = 8080
-	}
-	if c.Agent.HTTP.MetricsPath == "" {
-		c.Agent.HTTP.MetricsPath = "/metrics"
 	}
 	if c.Agent.ShutdownGracePeriod == "" {
 		c.Agent.ShutdownGracePeriod = "15s"

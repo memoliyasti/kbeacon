@@ -44,6 +44,8 @@
 
 ---
 
+**Implementation note:** this document includes long-term design intent and future roadmap items. The implemented public contract for the current release is in `docs/reference/*`, `docs/api/openapi.yaml`, `charts/kbeacon/values.yaml`, and the Go tests.
+
 ## 1. Executive summary
 
 KBeacon is a Kubernetes-native Secret Dependency Intelligence platform. It discovers how Kubernetes Secrets are consumed by workloads, calculates the operational blast radius of Secret changes, and exposes that information through Prometheus metrics and a small HTTP API.
