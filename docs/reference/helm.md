@@ -76,7 +76,7 @@ cluster:
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.1.0"
+  tag: "0.1.2"
   pullPolicy: IfNotPresent
 ```
 
@@ -93,8 +93,8 @@ For personal GHCR releases:
 
 ```yaml
 image:
-  repository: ghcr.io/<github-user-or-org>/kbeacon-agent
-  tag: v0.1.0
+  repository: ghcr.io/<github-user-or-org>/kbeacon
+  tag: v0.1.2
 ```
 
 ### `discovery.namespaces`

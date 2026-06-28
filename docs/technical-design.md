@@ -3493,7 +3493,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  repository: ghcr.io/kbeacon/kbeacon-agent
+  repository: ghcr.io/memoliyasti/kbeacon
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 

@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/kbeacon/kbeacon/internal/graph"
+	"github.com/memoliyasti/kbeacon/internal/graph"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

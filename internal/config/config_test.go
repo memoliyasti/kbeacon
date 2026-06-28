@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/kbeacon/kbeacon/internal/graph"
+	"github.com/memoliyasti/kbeacon/internal/graph"
 )
 
 func TestLoadConfigFromYAML(t *testing.T) {

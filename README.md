@@ -270,8 +270,8 @@ ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
 For semantic releases, push a tag:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 The release workflow publishes:
@@ -290,7 +290,7 @@ helm upgrade --install kbeacon ./charts/kbeacon \
   --create-namespace \
   --set cluster.name=minikube \
   --set image.repository=ghcr.io/memoliyasti/kbeacon \
-  --set image.tag=0.1.0
+  --set image.tag=0.1.2
 ```
 
 ## REST API

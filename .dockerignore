@@ -22,3 +22,11 @@ tree.txt
 .DS_Store
 .idea
 .vscode
+site
+local-dev
+configure-prometheus-incluster.sh
+create-kbeacon-local-endpoint.sh
+deploy-incluster-minikube.sh
+kbeacon-minikube-values.yaml
+prometheus-kbeacon-incluster-values.yaml
+smoke-incluster.sh

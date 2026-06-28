@@ -21,3 +21,10 @@ tree.txt
 /site/
 .venv-docs/
 .venv/
+/local-dev/
+/configure-prometheus-incluster.sh
+/create-kbeacon-local-endpoint.sh
+/deploy-incluster-minikube.sh
+/kbeacon-minikube-values.yaml
+/prometheus-kbeacon-incluster-values.yaml
+/smoke-incluster.sh

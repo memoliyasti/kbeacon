@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kbeacon/kbeacon/internal/graph"
+	"github.com/memoliyasti/kbeacon/internal/graph"
 )
 
 type Options struct {

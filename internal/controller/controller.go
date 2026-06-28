@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kbeacon/kbeacon/internal/discovery"
-	"github.com/kbeacon/kbeacon/internal/graph"
+	"github.com/memoliyasti/kbeacon/internal/discovery"
+	"github.com/memoliyasti/kbeacon/internal/graph"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
 	appsinformers "k8s.io/client-go/informers/apps/v1"

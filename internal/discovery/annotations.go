@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kbeacon/kbeacon/internal/graph"
+	"github.com/memoliyasti/kbeacon/internal/graph"
 )
 
 const (

@@ -33,7 +33,7 @@ Install with the pull secret.
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.1.0 \
+      --set image.tag=0.1.2 \
       --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
 ## Digest pinning
