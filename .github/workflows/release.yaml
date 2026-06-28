@@ -113,8 +113,6 @@ jobs:
           build darwin arm64 "" &
           pids+=("$!")
 
-          build windows amd64 ".exe" &
-          pids+=("$!")
 
           for pid in "${pids[@]}"; do
             wait "${pid}"
