@@ -5,48 +5,64 @@
   "data": {
     "nodes": [
       {
-        "id": "workload:prod-eu-1:payments:Deployment:payments-api",
+        "id": "workload:payments/deployment/payments-api",
         "type": "workload",
-        "label": "payments-api",
+        "label": "Deployment/payments-api",
         "ref": {
           "cluster": "prod-eu-1",
+          "namespace": "payments",
           "apiVersion": "apps/v1",
           "kind": "Deployment",
-          "namespace": "payments",
           "name": "payments-api"
         },
         "ownerTeam": "payments-platform",
         "criticality": "critical"
       },
       {
-        "id": "secret:prod-eu-1:payments:payments-db",
+        "id": "secret:payments/payments-db",
         "type": "secret",
-        "label": "payments-db",
+        "label": "Secret/payments-db",
         "ref": {
           "cluster": "prod-eu-1",
           "namespace": "payments",
           "name": "payments-db"
         },
+        "ownerTeam": "payments-platform",
         "criticality": "critical",
         "impactScore": 82
       }
     ],
     "edges": [
       {
-        "id": "edge:6b71f4e1",
-        "from": "workload:prod-eu-1:payments:Deployment:payments-api",
-        "to": "secret:prod-eu-1:payments:payments-db",
-        "discoveryMode": "hybrid",
+        "id": "prod-eu-1|payments|deployment|payments-api|payments|payments-db",
+        "cluster": "prod-eu-1",
+        "workload": {
+          "cluster": "prod-eu-1",
+          "namespace": "payments",
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "name": "payments-api"
+        },
+        "secret": {
+          "cluster": "prod-eu-1",
+          "namespace": "payments",
+          "name": "payments-db"
+        },
+        "discoveryMode": "infer",
         "sources": [
           {
-            "type": "env_secret_key_ref",
-            "path": "spec.template.spec.containers[api].env[DB_PASSWORD].valueFrom.secretKeyRef",
+            "type": "env.secretKeyRef",
+            "path": "env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]",
             "container": "api",
             "envVar": "DB_PASSWORD"
           }
         ],
+        "optional": false,
         "resolved": true,
-        "optional": false
+        "ownerTeam": "payments-platform",
+        "criticality": "critical",
+        "firstObservedAt": "2026-06-26T11:30:00Z",
+        "lastObservedAt": "2026-06-26T12:00:00Z"
       }
     ]
   }

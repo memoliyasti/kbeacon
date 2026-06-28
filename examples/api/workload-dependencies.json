@@ -6,12 +6,14 @@
     "workload": {
       "ref": {
         "cluster": "prod-eu-1",
+        "namespace": "payments",
         "apiVersion": "apps/v1",
         "kind": "Deployment",
-        "namespace": "payments",
         "name": "payments-api"
       },
       "ownerTeam": "payments-platform",
+      "service": "payments-api",
+      "environment": "prod",
       "criticality": "critical",
       "discoveryMode": "hybrid",
       "dependencyCount": 4,
@@ -23,11 +25,17 @@
           "ref": {
             "cluster": "prod-eu-1",
             "namespace": "payments",
-            "name": "payments-db",
-            "key": "password"
+            "name": "payments-db"
           },
           "exists": true,
+          "type": "Opaque",
+          "ownerTeam": "payments-platform",
           "criticality": "critical",
+          "observedChangeCount": 3,
+          "affectedWorkloadCount": 7,
+          "affectedTeamCount": 2,
+          "affectedNamespaceCount": 2,
+          "unresolvedReferenceCount": 0,
           "impactScore": 82
         },
         "discoveryMode": "hybrid",
@@ -35,8 +43,8 @@
         "optional": false,
         "sources": [
           {
-            "type": "env_secret_key_ref",
-            "path": "spec.template.spec.containers[api].env[DB_PASSWORD].valueFrom.secretKeyRef",
+            "type": "env.secretKeyRef",
+            "path": "env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]",
             "container": "api",
             "envVar": "DB_PASSWORD"
           }
