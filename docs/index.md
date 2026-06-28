@@ -50,3 +50,7 @@ Read more in [Why KBeacon?](concepts/why-kbeacon.md).
 - Metrics reference: reference/metrics.md
 - Annotations reference: reference/annotations.md
 - Security: community/security.md
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=memoliyasti/kbeacon&type=Date)](https://star-history.com/#memoliyasti/kbeacon&Date)

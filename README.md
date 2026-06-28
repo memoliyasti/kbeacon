@@ -185,6 +185,10 @@ The local workflow exercises Helm, RBAC, Service networking, Kubernetes informer
 - API contract: docs/api/openapi.yaml
 - Technical design: docs/technical-design.md
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=memoliyasti/kbeacon&type=Date)](https://star-history.com/#memoliyasti/kbeacon&Date)
+
 ## Community
 
 - Contributing: CONTRIBUTING.md
