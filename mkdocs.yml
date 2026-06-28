@@ -54,6 +54,7 @@ nav:
   - User guide:
       - Installation: user-guide/installation.md
       - Configuration: user-guide/configuration.md
+      - Discovery modes: user-guide/discovery-modes.md
       - Dashboards: user-guide/dashboards.md
       - Alerting: user-guide/alerting.md
   - Operator guide:

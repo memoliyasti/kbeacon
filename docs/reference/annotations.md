@@ -20,6 +20,9 @@ All annotations use the `kbeacon.io/` prefix.
 
 ## Discovery modes
 
+For operational examples and mode selection guidance, see [Discovery modes](../user-guide/discovery-modes.md).
+
+
 ### `infer`
 
 KBeacon discovers dependencies from Pod specs:

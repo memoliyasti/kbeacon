@@ -170,3 +170,18 @@ The release workflow publishes:
 ## License
 
 Apache License 2.0. See LICENSE.
+
+## Discovery modes
+
+KBeacon supports four workload discovery modes:
+
+| Mode | Behavior |
+| --- | --- |
+| `infer` | Discover Secret references from standard Pod spec fields. |
+| `explicit` | Use only `kbeacon.io/watch-secrets` and `kbeacon.io/watch-secrets-json`. |
+| `hybrid` | Combine inferred and explicit dependencies. This is the recommended default. |
+| `disabled` | Ignore the workload. |
+
+Discovery mode controls how dependencies are found. It is not the same thing as Kubernetes Secret `type`.
+
+See the [Discovery modes guide](docs/user-guide/discovery-modes.md) and [Annotation reference](docs/reference/annotations.md).
