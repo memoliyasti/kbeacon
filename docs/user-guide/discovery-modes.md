@@ -258,6 +258,20 @@ The current Agent does not directly infer dependencies from:
 
 Use explicit annotations for these cases until native support is implemented.
 
+## Low-privilege discovery
+
+Discovery modes work even when Secret watching is disabled:
+
+```yaml
+resourcesToWatch:
+  core:
+    secrets: false
+```
+
+This does not disable workload discovery. It only prevents KBeacon from observing Secret objects. Inferred and explicit dependency edges are still created, but they are reported as unresolved because Secret existence cannot be confirmed.
+
+Use this when security policy allows workload reads but not Secret reads.
+
 ## Validation
 
 After deploying a workload, check discovered dependencies through the Agent API:

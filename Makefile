@@ -45,4 +45,13 @@ docs:
 	mkdocs build --strict
 
 .PHONY: ci
-ci: fmt test helm-lint helm-template prom-rules
+ci: fmt test helm-lint helm-template helm-template-low-privilege prom-rules
+
+.PHONY: helm-template-low-privilege
+helm-template-low-privilege:
+	$(HELM) template kbeacon ./charts/kbeacon --set cluster.name=local-dev --set resourcesToWatch.core.secrets=false > /tmp/kbeacon-low-privilege-rendered.yaml
+	@if grep -n 'resources: \["secrets"\]' /tmp/kbeacon-low-privilege-rendered.yaml; then \
+		echo "low-privilege render unexpectedly contains Secret RBAC"; \
+		exit 1; \
+	fi
+	@grep -n 'secrets: false' /tmp/kbeacon-low-privilege-rendered.yaml

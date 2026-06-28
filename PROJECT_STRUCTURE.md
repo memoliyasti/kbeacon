@@ -19,6 +19,7 @@ kbeacon/
     reference/metrics.md         # Implemented metric reference
     reference/helm.md            # Helm usage reference
     user-guide/discovery-modes.md  # How infer, explicit, hybrid, and disabled modes work
+    operator-guide/security.md  # Security and low-privilege deployment guidance
   charts/kbeacon/                # Helm chart for one lightweight Agent Deployment
   charts/kbeacon/dashboards/     # Dashboard ConfigMaps rendered by Helm
   dashboards/                    # Grafana dashboard JSON examples

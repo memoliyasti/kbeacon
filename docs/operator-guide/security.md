@@ -29,3 +29,17 @@ Even without Secret values, the following can be sensitive:
 - impact scores.
 
 Protect dashboards and metrics accordingly.
+
+## Low-privilege mode
+
+By default, KBeacon can watch Secret metadata so it can resolve whether a referenced Secret exists and read safe metadata such as type and annotations. Kubernetes RBAC does not separate Secret metadata from Secret data, so this permission is sensitive even though KBeacon does not export Secret values.
+
+Use low-privilege mode when Secret read access is not acceptable:
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set resourcesToWatch.core.secrets=false
+
+In low-privilege mode, KBeacon discovers workload references but cannot confirm Secret existence. Treat `exists=false` and `resolved=false` as "missing or unobservable".

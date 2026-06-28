@@ -21,6 +21,29 @@ The helper script builds `kbeacon-agent:dev` in the Minikube Docker daemon and i
 
     hack/local-dev/kbeacon-minikube-values.yaml
 
+## Low-privilege mode
+
+Some organizations do not allow an observability agent to `get`, `list`, or `watch` Kubernetes Secrets. KBeacon can still discover workload references without Secret object access.
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.core.secrets=false
+```
+
+In this mode:
+
+- the chart does not render Secret RBAC rules;
+- the Agent does not start the Secret informer;
+- workload-to-Secret edges are still discovered from Pod specs and explicit annotations;
+- referenced Secrets are represented with `exists=false`;
+- dependency edges have `resolved=false`;
+- Secret metadata from Secret annotations, Secret type, change timestamps, and change counters are unavailable.
+
+This mode is useful when the main requirement is blast-radius visibility and the cluster security model does not permit Secret reads.
+
 ## Prometheus Operator ServiceMonitor
 
 Enable the ServiceMonitor only if Prometheus Operator CRDs are installed.

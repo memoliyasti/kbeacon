@@ -111,6 +111,20 @@ If the GHCR package is private, create a pull Secret with a classic GitHub PAT t
       --set image.tag=0.1.2 \
       --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
+### Low-privilege install
+
+If cluster policy does not allow the Agent to read Kubernetes Secret objects, disable Secret watching:
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2 \
+      --set resourcesToWatch.core.secrets=false
+
+KBeacon still discovers workload-to-Secret references, but referenced Secrets are reported as `exists=false` and dependency edges as `resolved=false` because Secret existence is unobservable.
+
 ## Verify
 
     kubectl -n kbeacon-system rollout status deploy/kbeacon

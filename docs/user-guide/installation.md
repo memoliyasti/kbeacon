@@ -50,6 +50,18 @@ Install with the pull Secret.
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
       --set image.digest=sha256:<digest>
 
+## Low-privilege install
+
+Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret objects:
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set resourcesToWatch.core.secrets=false
+
+KBeacon will still discover workload references from Pod specs and explicit annotations, but referenced Secrets are marked as unobservable.
+
 ## ServiceMonitor
 
 Enable this only when Prometheus Operator CRDs are installed.

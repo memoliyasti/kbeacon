@@ -117,3 +117,45 @@ func TestControllerStoresRecorder(t *testing.T) {
 		t.Fatal("expected controller to store recorder from options")
 	}
 }
+
+func TestControllerLowPrivilegeModeMarksSecretInformerOptional(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster: "minikube",
+			Resources: ResourceConfig{
+				Secrets:     false,
+				Deployments: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	status, ready := ctrl.Status()
+	if ready {
+		t.Fatal("expected controller not to be ready because Deployment cache is enabled but not synced")
+	}
+
+	byResource := map[string]map[string]any{}
+	for _, item := range status {
+		byResource[item["resource"].(string)] = item
+	}
+
+	if byResource["Secret"]["optional"] != true {
+		t.Fatalf("expected disabled Secret informer to be optional, got %#v", byResource["Secret"])
+	}
+
+	if byResource["Secret"]["reason"] != "disabled" {
+		t.Fatalf("expected disabled Secret reason, got %#v", byResource["Secret"])
+	}
+
+	cacheStatus := ctrl.CacheSyncStatus()
+	if _, ok := cacheStatus["Secret"]; ok {
+		t.Fatalf("expected disabled Secret informer to be omitted from cache sync status, got %#v", cacheStatus)
+	}
+
+	if _, ok := cacheStatus["Deployment"]; !ok {
+		t.Fatalf("expected enabled Deployment informer in cache sync status, got %#v", cacheStatus)
+	}
+}

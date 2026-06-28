@@ -171,6 +171,20 @@ Labels: `cluster`, `namespace`, `secret_name`
 kbeacon_unresolved_secret_references{job="kbeacon-agent"} > 0
 ```
 
+## Low-privilege mode and `exists` / `resolved`
+
+When `resourcesToWatch.core.secrets=false`, KBeacon does not observe Kubernetes Secret objects. It can still discover references from workloads, but it cannot prove whether a referenced Secret exists.
+
+In this mode:
+
+- `kbeacon_cluster_secret_count` reports observed Secret objects, so it is normally `0`;
+- referenced Secret series use `exists="false"`;
+- dependency edge series use `resolved="false"`;
+- `kbeacon_secret_last_changed_timestamp_seconds` is not emitted for unobserved Secrets;
+- `kbeacon_secret_changes_total` remains `0` for unobserved Secrets.
+
+Treat `exists="false"` and `resolved="false"` as "missing or unobservable" when Secret watching is disabled.
+
 ## Implemented runtime metrics
 
 ### `kbeacon_build_info`

@@ -69,6 +69,19 @@ jobs:
             --set dashboards.enabled=true \
             > /tmp/kbeacon-rendered.yaml
 
+      - name: Helm template low-privilege
+        run: |
+          helm template kbeacon ./charts/kbeacon \
+            --namespace kbeacon-system \
+            --set cluster.name=release \
+            --set resourcesToWatch.core.secrets=false \
+            > /tmp/kbeacon-low-privilege-rendered.yaml
+          if grep -n 'resources: \["secrets"\]' /tmp/kbeacon-low-privilege-rendered.yaml; then
+            echo "low-privilege render unexpectedly contains Secret RBAC"
+            exit 1
+          fi
+          grep -n 'secrets: false' /tmp/kbeacon-low-privilege-rendered.yaml
+
       - name: Check Prometheus rules
         run: |
           docker run --rm -i \

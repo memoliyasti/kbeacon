@@ -33,6 +33,20 @@ Run smoke tests:
 ./hack/local-dev/smoke-incluster.sh
 ```
 
+## Low-privilege mode
+
+Disable Secret watching when cluster policy does not allow the Agent ServiceAccount to read Kubernetes Secrets:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.core.secrets=false
+```
+
+The Agent still discovers workload references, but referenced Secrets are marked `exists=false` and dependency edges are marked `resolved=false`.
+
 ## ServiceMonitor
 
 Enable only when Prometheus Operator CRDs are installed.

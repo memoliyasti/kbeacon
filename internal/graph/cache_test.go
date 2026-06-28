@@ -143,3 +143,70 @@ func TestApplySnapshotTracksUnresolvedSecretReference(t *testing.T) {
 		t.Fatalf("expected unresolved count 1, got %d", impact.Secret.UnresolvedReferenceCount)
 	}
 }
+
+func TestApplySnapshotWithoutSecretInputsKeepsDependencyEdgesUnresolved(t *testing.T) {
+	cache := NewCache("minikube")
+	now := time.Unix(2000, 0)
+
+	workload := WorkloadRef{
+		Cluster:    "minikube",
+		Namespace:  "payments",
+		APIVersion: "apps/v1",
+		Kind:       "Deployment",
+		Name:       "api",
+	}
+
+	secret := SecretRef{
+		Cluster:   "minikube",
+		Namespace: "payments",
+		Name:      "db-password",
+	}
+
+	cache.ApplySnapshot(
+		nil,
+		[]WorkloadInput{
+			{
+				Ref:           workload,
+				OwnerTeam:     "payments",
+				Criticality:   "high",
+				DiscoveryMode: DiscoveryModeHybrid,
+				Edges: []DependencyEdge{
+					{
+						Workload:      workload,
+						Secret:        secret,
+						DiscoveryMode: DiscoveryModeInfer,
+						Sources: []DependencySource{
+							{
+								Type: "env.secretKeyRef",
+								Path: "env[DB_PASSWORD].valueFrom.secretKeyRef",
+							},
+						},
+					},
+				},
+			},
+		},
+		now,
+	)
+
+	snapshot := cache.Snapshot()
+	if len(snapshot.Edges) != 1 {
+		t.Fatalf("expected one dependency edge, got %#v", snapshot.Edges)
+	}
+	if snapshot.Edges[0].Resolved {
+		t.Fatalf("expected edge to be unresolved when Secret inputs are unavailable, got %#v", snapshot.Edges[0])
+	}
+
+	impact, ok := cache.GetSecretImpact("payments", "db-password")
+	if !ok {
+		t.Fatal("expected referenced Secret to be represented in graph")
+	}
+	if impact.Secret.Exists {
+		t.Fatalf("expected referenced Secret to have exists=false without Secret inputs, got %#v", impact.Secret)
+	}
+	if impact.Secret.UnresolvedReferenceCount != 1 {
+		t.Fatalf("expected unresolved reference count 1, got %d", impact.Secret.UnresolvedReferenceCount)
+	}
+	if impact.Secret.AffectedWorkloadCount != 1 {
+		t.Fatalf("expected affected workload count 1, got %d", impact.Secret.AffectedWorkloadCount)
+	}
+}
