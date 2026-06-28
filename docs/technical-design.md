@@ -1,3 +1,7 @@
+!!! note "Status of this document"
+    This document includes both current implementation details and future design intent. For the implemented public contract of the current release, use the reference documentation, OpenAPI file, Helm values, and Go tests as the source of truth.
+
+
 # KBeacon Technical Design
 
 > Kubernetes-native Secret Dependency Intelligence for Prometheus, Grafana, and Mimir.

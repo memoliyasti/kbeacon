@@ -50,6 +50,8 @@ markdown_extensions:
 
 nav:
   - Overview: index.md
+  - Concepts:
+      - Why KBeacon: concepts/why-kbeacon.md
   - Getting started: getting-started.md
   - User guide:
       - Installation: user-guide/installation.md

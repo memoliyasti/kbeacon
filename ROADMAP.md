@@ -1,43 +1,64 @@
 # KBeacon Roadmap
 
-## v0.1
+KBeacon is an early-stage personal open source project. The roadmap is intentionally practical and focused on the current project goal: Secret dependency discovery for Kubernetes workloads.
 
-- Core workload discovery.
-- Infer, explicit, and hybrid modes.
+## Current release line
+
+Implemented today:
+
+- Kubernetes workload Secret dependency discovery.
+- `infer`, `explicit`, `hybrid`, and `disabled` discovery modes.
+- Read-only Agent API.
 - Prometheus metrics.
-- REST API.
-- Helm chart.
 - Grafana dashboard examples.
-- PromQL alert examples.
+- Helm chart.
+- Low-privilege mode without Secret object reads.
+- Edge metric cardinality guard.
+- GitHub Actions CI, release workflow, and documentation website.
 
-## v0.2
+## Near-term priorities
 
+### Documentation and usability
+
+- Keep README, website, Helm reference, OpenAPI, and examples aligned with real behavior.
+- Add more end-to-end examples for common Secret patterns.
+- Improve private GHCR installation guidance.
+- Keep Minikube as a local development workflow, not as the production install path.
+
+### Safety and operability
+
+- Continue tightening least-privilege RBAC examples.
+- Add more tests for low-privilege and namespace-scoped installs.
+- Improve readiness and troubleshooting guidance.
+- Keep high-cardinality metrics optional and documented.
+
+### API and metrics maturity
+
+- Keep API response tests aligned with OpenAPI.
+- Treat metric names and labels as public contract.
+- Avoid adding unbounded labels.
+- Add compatibility notes before changing API or metric behavior.
+
+## Later ideas
+
+These are possible future features, not current promises:
+
+- ExternalSecret target Secret modeling.
+- SecretProviderClass and CSI Secret Store support.
+- Ingress TLS Secret discovery.
 - Strimzi KafkaConnector support.
 - Confluent Connector support.
-- Stronger optional CRD handling.
-- Scale testing harness.
+- Grafana App Plugin.
+- Historical dependency timeline using Prometheus or Mimir data.
+- Optional operator mode for larger fleets.
 
-## v0.3
+## Out of scope for now
 
-- Production dashboard pack.
-- Recording rule pack.
-- Grafana data links to Agent API.
+KBeacon does not plan to become:
 
-## v0.4
-
-- Ingress TLS Secret support.
-- ExternalSecret support.
-- SecretProviderClass support.
-
-## v0.5
-
-- Grafana App Plugin preview.
-- API-backed dependency graph explorer.
-- Mimir-backed timeline views.
-
-## v1.0
-
-- Stable metrics.
-- Stable API v1.
-- Performance and security review.
-- Upgrade compatibility policy.
+- a Secret rotation system;
+- a policy enforcement engine;
+- a security scanner;
+- a custom dashboard platform;
+- a graph database service;
+- a replacement for Prometheus, Grafana, or Mimir.

@@ -25,6 +25,19 @@ KBeacon gives platform and SRE teams a current, queryable view of:
 - which workloads reference missing or unobservable Secrets;
 - which Secret changes should be reviewed before rollout.
 
+
+## Project positioning
+
+KBeacon is not a replacement for Kubernetes, Prometheus, Grafana, or Mimir.
+
+Kubernetes already stores the workload specs. Prometheus and Grafana already provide metrics, dashboards, and alerting. The missing layer is a continuously updated, normalized dependency graph that answers which workloads depend on which Secrets.
+
+KBeacon is that discovery layer.
+
+It uses the Kubernetes API as source of truth, keeps only an in-memory current graph, exposes Prometheus metrics and a read-only API, and leaves storage and visualization to the observability stack.
+
+See [Why KBeacon?](docs/concepts/why-kbeacon.md) for the detailed project boundary.
+
 ## Current status
 
 KBeacon is early-stage but functional. The current implementation includes:

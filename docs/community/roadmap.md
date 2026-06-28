@@ -1,43 +1,21 @@
-# KBeacon Roadmap
+# Roadmap
 
-## v0.1
+KBeacon is an early-stage personal open source project.
 
-- Core workload discovery.
-- Infer, explicit, and hybrid modes.
-- Prometheus metrics.
-- REST API.
-- Helm chart.
-- Grafana dashboard examples.
-- PromQL alert examples.
+The current focus is a small, safe, and useful Kubernetes Agent that discovers Secret dependency relationships and exports them to existing observability tools.
 
-## v0.2
+## Focus areas
 
-- Strimzi KafkaConnector support.
-- Confluent Connector support.
-- Stronger optional CRD handling.
-- Scale testing harness.
+- Correct Kubernetes workload discovery.
+- Safe handling of Secret metadata.
+- Clear Prometheus metrics.
+- Clear OpenAPI and examples.
+- Useful Grafana dashboards.
+- Practical Helm installation paths.
+- Low-privilege deployment guidance.
 
-## v0.3
+## Future ideas
 
-- Production dashboard pack.
-- Recording rule pack.
-- Grafana data links to Agent API.
+Future ideas are tracked in the root `ROADMAP.md` and in GitHub issues.
 
-## v0.4
-
-- Ingress TLS Secret support.
-- ExternalSecret support.
-- SecretProviderClass support.
-
-## v0.5
-
-- Grafana App Plugin preview.
-- API-backed dependency graph explorer.
-- Mimir-backed timeline views.
-
-## v1.0
-
-- Stable metrics.
-- Stable API v1.
-- Performance and security review.
-- Upgrade compatibility policy.
+Large features should start as an issue before implementation.

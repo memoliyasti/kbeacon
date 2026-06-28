@@ -1,4 +1,3 @@
-
 # Project Structure
 
 ```text
@@ -13,6 +12,7 @@ kbeacon/
   mkdocs.yml                     # Documentation website configuration
   docs/
     index.md                     # Documentation homepage
+    concepts/why-kbeacon.md       # Why the project exists and what gap it fills
     technical-design.md          # Full design document and future roadmap
     api/openapi.yaml             # Implemented Agent REST API contract
     reference/annotations.md     # Implemented annotation reference

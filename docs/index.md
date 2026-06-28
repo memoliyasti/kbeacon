@@ -12,6 +12,17 @@ KBeacon watches Kubernetes resources with read-only access, builds an in-memory 
 
 Secret rotations, certificate renewals, registry credential updates, and database credential changes can affect many workloads. KBeacon helps platform and SRE teams understand blast radius before changes become incidents.
 
+
+## Why not just Kubernetes API, Prometheus, and Grafana?
+
+KBeacon does not replace those tools. It connects them.
+
+The Kubernetes API has the raw objects, but not a normalized Secret dependency graph. Prometheus and Grafana can store, query, alert, and visualize dependency data, but they do not discover workload-to-Secret edges by themselves.
+
+KBeacon fills that gap by watching Kubernetes resources, normalizing Secret references, and exporting the result.
+
+Read more in [Why KBeacon?](concepts/why-kbeacon.md).
+
 ## What KBeacon does
 
 - Discovers Secret dependencies from Kubernetes workloads.
