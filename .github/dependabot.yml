@@ -1,25 +1,119 @@
 version: 2
+
 updates:
-  - package-ecosystem: gomod
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - github_actions
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+      interval: "weekly"
+      day: "monday"
+      time: "08:15"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - python
+      - docs
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      docs-python-minor-patch:
+        patterns:
+          - "mkdocs*"
+          - "pymdown-extensions"
+          - "pygments"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
-  - package-ecosystem: docker
-    directory: /
+  - package-ecosystem: "gomod"
+    directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-
-  - package-ecosystem: pip
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+      interval: "weekly"
+      day: "monday"
+      time: "08:30"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - go
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      prometheus-go-minor-patch:
+        patterns:
+          - "github.com/prometheus/*"
+        update-types:
+          - "minor"
+          - "patch"
+      go-support-minor-patch:
+        patterns:
+          - "golang.org/x/*"
+          - "google.golang.org/*"
+          - "github.com/google/*"
+          - "github.com/cespare/*"
+          - "github.com/beorn7/*"
+          - "github.com/klauspost/*"
+          - "sigs.k8s.io/yaml"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Kubernetes client libraries must be upgraded together in a dedicated
+      # compatibility branch. Do not let Dependabot jump from v0.26.x to v0.36.x
+      # in separate PRs.
+      - dependency-name: "k8s.io/api"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "k8s.io/apimachinery"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "k8s.io/client-go"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "k8s.io/kube-openapi"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "k8s.io/utils"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      - dependency-name: "sigs.k8s.io/structured-merge-diff/*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
