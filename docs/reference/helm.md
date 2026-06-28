@@ -1,4 +1,3 @@
-
 # KBeacon Helm Reference
 
 KBeacon deploys as one lightweight Deployment and one Service.

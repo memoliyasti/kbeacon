@@ -1,37 +1,56 @@
-# KBeacon Governance
+# Governance
 
 KBeacon is currently a maintainer-led open source project.
 
-## Principles
+## Scope
 
-- Keep the Agent lightweight.
-- Use Prometheus and Grafana instead of custom storage and UI.
-- Avoid exporting Secret values.
-- Keep Kubernetes access read-only.
-- Prefer simple, reviewable changes over large rewrites.
+KBeacon focuses on Kubernetes Secret dependency intelligence:
 
-## Maintainers
+- discovery;
+- dependency graph construction;
+- Secret impact scoring;
+- Prometheus metrics;
+- read-only Agent API;
+- Helm packaging;
+- Grafana dashboard and alert examples.
+
+KBeacon intentionally avoids becoming a monitoring platform, Secret manager, policy engine, or custom UI.
+
+## Maintainer responsibilities
 
 Maintainers are responsible for:
 
-- reviewing pull requests;
-- triaging issues;
-- cutting releases;
-- preserving project scope;
-- documenting public API and metric changes.
+- project direction;
+- issue triage;
+- pull request review;
+- releases;
+- security response;
+- documentation quality;
+- protecting the project's scope and security model.
 
 ## Decision making
 
-Routine changes can be merged after maintainer review and CI success.
+Routine changes can be merged after CI passes and maintainer review.
 
-Design-changing work should start as an issue or design discussion. Examples:
+Design-changing work should start as an issue or proposal, especially:
 
-- new metric names or labels;
+- new resource extractors;
+- metric name or label changes;
 - API contract changes;
-- new Kubernetes resource extractors;
-- Helm chart security changes;
-- release workflow changes.
+- Helm RBAC changes;
+- release workflow changes;
+- security-sensitive behavior changes.
 
-## Release process
+## Compatibility
 
-Releases are created from semantic version tags. See `docs/operator-guide/releases.md`.
+KBeacon is pre-1.0. Maintainers should still avoid unnecessary breaking changes and document any changes to:
+
+- metrics;
+- annotations;
+- API responses;
+- Helm values;
+- dashboard assumptions.
+
+## Releases
+
+Releases are created from semantic version tags. See RELEASE.md.

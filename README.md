@@ -5,375 +5,168 @@
 [![Docs](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-**KBeacon** is a Kubernetes-native Secret Dependency Intelligence platform.
+KBeacon is a lightweight Kubernetes-native Secret dependency intelligence agent.
 
-It answers one operational question clearly:
+It answers one operational question:
 
-> **If this Secret changes, what workloads are affected?**
+> If this Secret changes, what workloads are affected?
 
-KBeacon is intentionally lightweight. It does not introduce a monitoring platform, graph database, message bus, custom UI, CRDs, admission webhooks, or an operator. Each Kubernetes cluster runs one KBeacon Agent. Existing Prometheus scrapes the Agent. Prometheus can remote-write to Grafana Mimir. Grafana remains the user interface for dashboards and alerting.
+KBeacon watches Kubernetes resources with read-only access, builds an in-memory dependency graph, exposes Prometheus metrics, and provides a small read-only Agent API. It is designed to work with the observability stack platform teams already run: Prometheus, Grafana, and optionally Grafana Mimir.
 
-```mermaid
-flowchart LR
-  subgraph K8S[Kubernetes cluster]
-    A[KBeacon Agent] -->|/metrics| P[Prometheus]
-    A -->|REST API| API[/KBeacon API/]
-  end
+## Why KBeacon?
 
-  P -->|optional remote_write| M[Mimir]
-  G[Grafana] -->|PromQL| P
-  G -->|PromQL| M
-  G -->|Grafana Alerting| N[Notification policies]
-```
+Secret rotations, certificate renewals, registry credential updates, and database password changes can affect many workloads. Without dependency intelligence, teams often rely on manual kubectl searches, manifest grep, tribal knowledge, or incident response after a change already broke something.
 
-## Community and governance
+KBeacon gives platform and SRE teams a current, queryable view of:
 
-- Documentation site: https://memoliyasti.github.io/kbeacon/
-- Contributing guide: [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- Code of Conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
-- Security policy: [`SECURITY.md`](SECURITY.md)
-- Governance: [`GOVERNANCE.md`](GOVERNANCE.md)
-- Maintainers: [`MAINTAINERS.md`](MAINTAINERS.md)
-- Release process: [`RELEASE.md`](RELEASE.md)
+- which workloads reference each Secret;
+- which Secrets have large fan-out;
+- which teams and namespaces are affected;
+- which workloads reference missing or unobservable Secrets;
+- which Secret changes should be reviewed before rollout.
 
-## Current implementation status
+## Current status
 
-KBeacon includes a working Go Agent and Helm chart.
+KBeacon is early-stage but functional. The current implementation includes:
 
-Implemented today:
-
-- Kubernetes `client-go` configuration with in-cluster config and local kubeconfig fallback.
+- Kubernetes client-go in-cluster and local kubeconfig support.
 - Shared informer based discovery.
-- Informers for Secret, Pod, Deployment, StatefulSet, DaemonSet, Job, and CronJob.
-- Dependency extraction from:
-  - `env.valueFrom.secretKeyRef`
-  - `envFrom.secretRef`
-  - `volumes.secret`
-  - `imagePullSecrets`
-  - `kbeacon.io/watch-secrets`
-  - `kbeacon.io/watch-secrets-json`
-- Config-driven namespace include/exclude filtering.
-- Config-driven resource watcher enablement.
-- In-memory Secret dependency graph cache.
-- REST API backed by the graph cache.
-- Prometheus collectors for dependency and runtime metrics.
-- Grafana dashboards.
+- Watchers for Secret, Pod, Deployment, StatefulSet, DaemonSet, Job, and CronJob.
+- Dependency extraction from env.valueFrom.secretKeyRef.
+- Dependency extraction from envFrom.secretRef.
+- Dependency extraction from volumes.secret.
+- Dependency extraction from imagePullSecrets.
+- Explicit dependencies through kbeacon.io/watch-secrets.
+- Explicit dependencies through kbeacon.io/watch-secrets-json.
+- Namespace include and exclude filtering.
+- Resource watcher enablement.
+- In-memory dependency graph cache.
+- Read-only REST API.
+- Prometheus metrics.
+- Grafana dashboard JSON.
 - Prometheus alerting and recording rule examples.
-- Helm deployment.
-- Local Minikube in-cluster workflow.
-- GitHub Actions CI and GHCR release workflow.
+- Helm chart.
+- GitHub Actions CI, GitHub Pages documentation, and GHCR release publishing.
 
-Planned / future:
+Planned work is tracked in ROADMAP.md.
 
-- Strimzi `KafkaConnector` discovery.
-- Confluent `Connector` discovery.
-- `ReplicaSet` owner-resolution improvements.
-- ExternalSecret and SecretProviderClass support.
-- Grafana App Plugin.
-- OpenTelemetry export path.
-- Optional operator mode.
+## Design principles
 
-## Core principles
+1. No Secret values exported. KBeacon never emits Kubernetes Secret data or stringData through logs, metrics, or API responses.
+2. Read-only Kubernetes access. KBeacon observes resources; it does not mutate Secrets or workloads.
+3. Prometheus and Grafana first. KBeacon emits metrics and dashboards instead of running a custom UI or database.
+4. Small operational footprint. One Agent Deployment per cluster; no queue, graph database, CRD, operator, or admission webhook required.
+5. Bounded public contracts. Metrics, annotations, API responses, and Helm values are documented and reviewed carefully.
 
-1. **Grafana is the UI.** KBeacon ships dashboards and may later ship a Grafana App Plugin, but it does not run a custom web UI.
-2. **Prometheus/Mimir are the storage.** KBeacon exposes metrics and a read-only HTTP API; it does not persist dependency history in a local database.
-3. **KBeacon is the discovery engine.** It watches Kubernetes resources, calculates dependencies and impact, then exposes the current state.
-4. **No Secret values are exported.** KBeacon never emits Secret data values through metrics, logs, or APIs.
-5. **No platform sprawl.** No Kafka, no correlator service, no graph database, no CRDs, no admission webhooks, no AI subsystem.
+## Architecture
 
-## Quickstart: Minikube in-cluster mode
+    Kubernetes API
+        |
+        | read-only watch/list
+        v
+    KBeacon Agent
+        |
+        | /metrics
+        v
+    Prometheus ---- optional remote_write ----> Grafana Mimir
+        |
+        | PromQL
+        v
+    Grafana dashboards and alerting
 
-This is the recommended local development workflow because it exercises the real Helm chart, RBAC, Kubernetes informers, Prometheus scrape path, and Grafana dashboards.
+## Installation
 
-### Prerequisites
+Install the Helm chart:
 
-```bash
-minikube start
-kubectl config current-context
-helm version
-docker version
-jq --version
-```
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2
 
-Install Prometheus and Grafana first. The local development helper files assume Prometheus is installed in `kube-addons` and Grafana has a Prometheus datasource.
+If the GHCR package is public, no Kubernetes image pull Secret is required.
 
-### Create demo workload
+If the GHCR package is private, create a pull Secret with a classic GitHub PAT that has read:packages:
 
-```bash
-kubectl create namespace kbeacon-demo --dry-run=client -o yaml | kubectl apply -f -
+    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
 
-cat > /tmp/kbeacon-demo-secret.yaml <<'YAML'
-apiVersion: v1
-kind: Secret
-metadata:
-  name: app-db-secret
-  namespace: kbeacon-demo
-type: Opaque
-stringData:
-  username: demo
-  password: demo
-YAML
+    read -rsp "GHCR read:packages token: " GHCR_TOKEN
+    echo
 
-kubectl apply -f /tmp/kbeacon-demo-secret.yaml
-```
+    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
+      --docker-server=ghcr.io \
+      --docker-username=<github-username> \
+      --docker-password="${GHCR_TOKEN}" \
+      --docker-email=<email> \
+      --dry-run=client -o yaml | kubectl apply -f -
 
-```bash
-cat > /tmp/kbeacon-demo-deployment.yaml <<'EOF'
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-  namespace: kbeacon-demo
-  annotations:
-    kbeacon.io/enabled: "true"
-    kbeacon.io/discovery-mode: "hybrid"
-    kbeacon.io/owner-team: "platform"
-    kbeacon.io/criticality: "high"
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: api
-  template:
-    metadata:
-      labels:
-        app: api
-    spec:
-      containers:
-        - name: api
-          image: busybox:1.36
-          command: ["sh", "-c", "sleep 3600"]
-          env:
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: app-db-secret
-                  key: username
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-db-secret
-                  key: password
-          envFrom:
-            - secretRef:
-                name: app-db-secret
-          volumeMounts:
-            - name: db-secret
-              mountPath: /var/run/secrets/db
-              readOnly: true
-      volumes:
-        - name: db-secret
-          secret:
-            secretName: app-db-secret
-EOF
+    unset GHCR_TOKEN
 
-kubectl apply -f /tmp/kbeacon-demo-deployment.yaml
-```
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2 \
+      --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
-### Build and deploy KBeacon into Minikube
+## Verify
 
-```bash
-./hack/local-dev/deploy-incluster-minikube.sh
-```
+    kubectl -n kbeacon-system rollout status deploy/kbeacon
+    kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
+    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 
-This script:
+    curl -sS http://127.0.0.1:8081/readyz | jq
+    curl -sS http://127.0.0.1:8081/api/v1/config | jq
+    curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
+    curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
 
-- switches Docker to the Minikube Docker daemon;
-- builds `kbeacon-agent:dev`;
-- installs the Helm chart into `kbeacon-system`;
-- waits for `Deployment/kbeacon` rollout.
+## Local development
 
-### Configure Prometheus to scrape KBeacon
+Minikube support is kept for local development and end-to-end smoke testing. It is not the production installation path.
 
-```bash
-./hack/local-dev/configure-prometheus-incluster.sh
-```
+    ./hack/local-dev/deploy-incluster-minikube.sh
+    ./hack/local-dev/configure-prometheus-incluster.sh
+    ./hack/local-dev/smoke-incluster.sh
 
-Make sure Prometheus is reachable locally:
+The local workflow exercises Helm, RBAC, Service networking, Kubernetes informers, Prometheus scraping, and Grafana dashboards.
 
-```bash
-kubectl -n kube-addons port-forward svc/prometheus-server 9090:80
-```
+## Documentation
 
-### Smoke test
+- Website: https://memoliyasti.github.io/kbeacon/
+- Getting started: docs/getting-started.md
+- Helm reference: docs/reference/helm.md
+- Metrics reference: docs/reference/metrics.md
+- Annotations reference: docs/reference/annotations.md
+- API contract: docs/api/openapi.yaml
+- Technical design: docs/technical-design.md
 
-```bash
-./hack/local-dev/smoke-incluster.sh
-```
+## Community
 
-Expected results:
+- Contributing: CONTRIBUTING.md
+- Code of Conduct: CODE_OF_CONDUCT.md
+- Security policy: SECURITY.md
+- Support: SUPPORT.md
+- Governance: GOVERNANCE.md
+- Maintainers: MAINTAINERS.md
+- Adopters: ADOPTERS.md
 
-```text
-up{job="kbeacon-agent"} == 1
-kbeacon_cluster_dependency_count{job="kbeacon-agent"} == 1
-kbeacon_secret_impact_score{namespace="kbeacon-demo",secret_name="app-db-secret"} == 24
-```
+## Releases
 
-### Test the REST API
+Release tags use semantic versioning:
 
-```bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-```
-
-```bash
-curl -sS http://127.0.0.1:8081/readyz | jq
-curl -sS http://127.0.0.1:8081/api/v1/config | jq
-curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
-curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
-curl -sS http://127.0.0.1:8081/api/v1/secrets/kbeacon-demo/app-db-secret/impact | jq '.data.secret'
-```
-
-Expected Secret impact:
-
-```json
-{
-  "ownerTeam": "platform",
-  "criticality": "high",
-  "affectedWorkloadCount": 1,
-  "affectedTeamCount": 1,
-  "affectedNamespaceCount": 1,
-  "impactScore": 24
-}
-```
-
-## Production-style Helm install
-
-```bash
-helm upgrade --install kbeacon ./charts/kbeacon \
-  --namespace kbeacon-system \
-  --create-namespace \
-  --set cluster.name=prod-eu-1
-```
-
-Prometheus Operator users can enable the optional ServiceMonitor:
-
-```bash
-helm upgrade --install kbeacon ./charts/kbeacon \
-  --namespace kbeacon-system \
-  --create-namespace \
-  --set cluster.name=prod-eu-1 \
-  --set serviceMonitor.enabled=true \
-  --set serviceMonitor.labels.release=kube-prometheus-stack
-```
-
-## Container images and releases
-
-The recommended default registry for this GitHub repository is **GitHub Container Registry (GHCR)**.
-
-After a merge to `main`, CI can publish a branch image such as:
-
-```text
-ghcr.io/memoliyasti/kbeacon:main
-ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
-```
-
-For semantic releases, push a tag:
-
-```bash
-git tag v0.1.2
-git push origin v0.1.2
-```
+    git tag -a v0.1.2 -m "KBeacon v0.1.2"
+    git push origin v0.1.2
 
 The release workflow publishes:
 
-- multi-arch container image: `linux/amd64`, `linux/arm64`;
-- GitHub Release;
+- GitHub Release assets;
 - Linux and macOS binaries;
 - Helm chart package;
-- SHA256 checksums.
-
-Example install from GHCR:
-
-```bash
-helm upgrade --install kbeacon ./charts/kbeacon \
-  --namespace kbeacon-system \
-  --create-namespace \
-  --set cluster.name=minikube \
-  --set image.repository=ghcr.io/memoliyasti/kbeacon \
-  --set image.tag=0.1.2
-```
-
-## REST API
-
-The Agent exposes a read-only API:
-
-```text
-GET /healthz
-GET /readyz
-GET /metrics
-GET /api/v1
-GET /api/v1/config
-GET /api/v1/secrets
-GET /api/v1/workloads
-GET /api/v1/dependency-map
-GET /api/v1/secrets/{namespace}/{name}/impact
-GET /api/v1/workloads/{namespace}/{kind}/{name}/dependencies
-```
-
-Compatibility aliases without `/v1` are also available for selected endpoints.
-
-## Implemented metrics
-
-Commonly used metrics include:
-
-```text
-kbeacon_build_info
-kbeacon_agent_info
-kbeacon_cluster_dependency_count
-kbeacon_cluster_secret_count
-kbeacon_cluster_workload_count
-kbeacon_dependency_edges
-kbeacon_workload_dependency_count
-kbeacon_secret_affected_workload_count
-kbeacon_secret_impact_score
-kbeacon_secret_last_changed_timestamp_seconds
-kbeacon_secret_changes_total
-kbeacon_secret_info
-kbeacon_unresolved_secret_references
-kbeacon_cache_sync_status
-kbeacon_cache_objects
-kbeacon_kubernetes_watch_events_total
-kbeacon_graph_update_duration_seconds
-```
-
-See [`docs/reference/metrics.md`](docs/reference/metrics.md).
-
-## Grafana dashboards
-
-Dashboard JSON files are available in:
-
-```text
-dashboards/
-charts/kbeacon/dashboards/
-```
-
-The Helm chart can render dashboard ConfigMaps when `dashboards.enabled=true`.
-
-Local Grafana sidecar reload:
-
-```bash
-kubectl -n kube-addons create configmap kbeacon-dashboards \
-  --from-file=dashboards/kbeacon-cluster-overview.json \
-  --from-file=dashboards/kbeacon-secret-dependency-map.json \
-  --from-file=dashboards/kbeacon-team-overview.json \
-  --dry-run=client -o yaml | \
-kubectl label --local -f - grafana_dashboard=1 -o yaml | \
-kubectl apply -f -
-```
-
-## Documentation map
-
-| Document | Purpose |
-| --- | --- |
-| [`docs/technical-design.md`](docs/technical-design.md) | Full architecture and implementation design |
-| [`docs/api/openapi.yaml`](docs/api/openapi.yaml) | REST API contract |
-| [`docs/reference/annotations.md`](docs/reference/annotations.md) | Implemented annotation reference |
-| [`docs/reference/metrics.md`](docs/reference/metrics.md) | Implemented Prometheus metric catalog |
-| [`docs/reference/helm.md`](docs/reference/helm.md) | Helm values and deployment notes |
-| [`examples/prometheus/rules.yaml`](examples/prometheus/rules.yaml) | Prometheus alerting and recording rules |
-| [`dashboards/`](dashboards/) | Grafana dashboard JSON |
-| [`hack/local-dev/`](hack/local-dev/) | Minikube development helpers |
+- SHA256 checksums;
+- multi-arch container images for linux/amd64 and linux/arm64.
 
 ## License
 
-Apache License 2.0. See [`LICENSE`](LICENSE).
+Apache License 2.0. See LICENSE.

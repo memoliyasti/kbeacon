@@ -5,28 +5,33 @@
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
       --create-namespace \
-      --set cluster.name=prod-eu-1
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2
 
-## Install from a private GHCR package
+## Public GHCR image
 
-If the package is private, create a Kubernetes image pull secret from your local Docker login.
+If the GHCR package is public, Kubernetes does not need an image pull Secret.
 
-    read -rs "Registry token: " REGISTRY_TOKEN
-    echo
+## Private GHCR image
 
-    printf '%s' "${REGISTRY_TOKEN}" | docker login ghcr.io \
-      -u <github-user> \
-      --password-stdin
+If the GHCR package is private, create a pull Secret with a classic GitHub PAT that has read:packages.
 
     kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
 
-    kubectl -n kbeacon-system create secret generic ghcr-pull-secret \
-      --type=kubernetes.io/dockerconfigjson \
-      --from-file=.dockerconfigjson="${HOME}/.docker/config.json"
+    read -rsp "GHCR read:packages token: " GHCR_TOKEN
+    echo
 
-    unset REGISTRY_TOKEN
+    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
+      --docker-server=ghcr.io \
+      --docker-username=<github-username> \
+      --docker-password="${GHCR_TOKEN}" \
+      --docker-email=<email> \
+      --dry-run=client -o yaml | kubectl apply -f -
 
-Install KBeacon with the pull secret.
+    unset GHCR_TOKEN
+
+Install with the pull Secret.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -36,7 +41,7 @@ Install KBeacon with the pull secret.
       --set image.tag=0.1.2 \
       --set 'imagePullSecrets[0].name=ghcr-pull-secret'
 
-## Verify the Agent
+## Verify
 
     kubectl -n kbeacon-system rollout status deploy/kbeacon
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
@@ -50,8 +55,11 @@ Query the Agent.
     curl -sS http://127.0.0.1:8081/readyz | jq
     curl -sS http://127.0.0.1:8081/api/v1/config | jq
     curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
+    curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
 
 ## Local Minikube workflow
+
+Minikube is kept as a development and smoke-test workflow. It is not the production installation path.
 
     ./hack/local-dev/deploy-incluster-minikube.sh
     ./hack/local-dev/configure-prometheus-incluster.sh

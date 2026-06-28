@@ -2,13 +2,17 @@
 
 KBeacon is early-stage. Public adopters can be listed here when they are ready to share usage.
 
-## How to add yourself
+## Current adopters
 
-Open a pull request adding your organization or project with:
+No public adopters have been listed yet.
 
-- name;
-- optional URL;
-- environment type, such as dev, staging, or production;
-- short usage description.
+## Add your project
 
-Do not include confidential cluster names, Secret names, or internal service names.
+Open a pull request with:
+
+- organization or project name;
+- optional public URL;
+- environment type, such as development, staging, or production;
+- short description of how KBeacon is used.
+
+Do not include confidential cluster names, Secret names, namespaces, or internal service names.

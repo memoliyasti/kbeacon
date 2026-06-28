@@ -5,28 +5,33 @@
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
       --create-namespace \
-      --set cluster.name=prod-eu-1
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=ghcr.io/memoliyasti/kbeacon \
+      --set image.tag=0.1.2
+
+## Public registry image
+
+If the GHCR package is public, no Kubernetes image pull Secret is required.
 
 ## Private GHCR image pull
 
-Create a Kubernetes image pull secret from your Docker config.
-
-    read -rs "Registry token: " REGISTRY_TOKEN
-    echo
-
-    printf '%s' "${REGISTRY_TOKEN}" | docker login ghcr.io \
-      -u <github-user> \
-      --password-stdin
+Create a Kubernetes image pull Secret with a classic GitHub PAT that has read:packages.
 
     kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
 
-    kubectl -n kbeacon-system create secret generic ghcr-pull-secret \
-      --type=kubernetes.io/dockerconfigjson \
-      --from-file=.dockerconfigjson="${HOME}/.docker/config.json"
+    read -rsp "GHCR read:packages token: " GHCR_TOKEN
+    echo
 
-    unset REGISTRY_TOKEN
+    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
+      --docker-server=ghcr.io \
+      --docker-username=<github-username> \
+      --docker-password="${GHCR_TOKEN}" \
+      --docker-email=<email> \
+      --dry-run=client -o yaml | kubectl apply -f -
 
-Install with the pull secret.
+    unset GHCR_TOKEN
+
+Install with the pull Secret.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -54,3 +59,9 @@ Enable this only when Prometheus Operator CRDs are installed.
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set serviceMonitor.enabled=true
+
+## Local development
+
+Use Minikube only for local development and smoke tests.
+
+    ./hack/local-dev/deploy-incluster-minikube.sh
