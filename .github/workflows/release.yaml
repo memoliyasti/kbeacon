@@ -107,7 +107,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make helm-template-low-privilege helm-template-edge-disabled helm-template-namespace docs demo-lint stale-check release-metadata-check
+        run: make helm-template-low-privilege helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
       - name: Build release binaries
         run: |

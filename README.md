@@ -191,7 +191,7 @@ See docs/user-guide/blast-radius-demo.md.
 ## Documentation
 
 - Blast-radius demo: docs/user-guide/blast-radius-demo.md
-- Live demo metric validation: `make demo-metrics-live`
+- Live demo metric validation: `make demo-metrics-live`\n- Scale testing: docs/user-guide/scale-testing.md
 
 
 - Website: https://memoliyasti.github.io/kbeacon/
