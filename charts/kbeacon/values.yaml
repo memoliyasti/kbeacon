@@ -39,6 +39,34 @@ discovery:
   includeInitContainers: true
   includeEphemeralContainers: true
   readPodTemplateAnnotations: true
+  metadataLabels:
+    enabled: true
+    ownerTeam:
+      - app.kubernetes.io/team
+      - team
+      - owner-team
+      - ownerTeam
+      - technical-owner
+      - technicalOwner
+      - business-owner
+      - businessOwner
+    service:
+      - app.kubernetes.io/name
+      - app
+      - service
+      - service-name
+      - serviceName
+    environment:
+      - app.kubernetes.io/environment
+      - environment
+      - env
+      - stage
+    criticality:
+      - app.kubernetes.io/criticality
+      - criticality
+      - priority
+      - tier
+      - slo-tier
   namespaces:
     include: []
     exclude:

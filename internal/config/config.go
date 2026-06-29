@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/memoliyasti/kbeacon/internal/discovery"
 	"github.com/memoliyasti/kbeacon/internal/graph"
 	"sigs.k8s.io/yaml"
 )
@@ -47,9 +48,18 @@ type DiscoveryConfig struct {
 	IncludeInitContainers      bool                    `yaml:"includeInitContainers" json:"includeInitContainers"`
 	IncludeEphemeralContainers bool                    `yaml:"includeEphemeralContainers" json:"includeEphemeralContainers"`
 	ReadPodTemplateAnnotations bool                    `yaml:"readPodTemplateAnnotations" json:"readPodTemplateAnnotations"`
+	MetadataLabels             MetadataLabelsConfig    `yaml:"metadataLabels" json:"metadataLabels"`
 	Namespaces                 NamespaceSelectorConfig `yaml:"namespaces" json:"namespaces"`
 	ResyncInterval             string                  `yaml:"resyncInterval" json:"resyncInterval"`
 	Reconcile                  ReconcileConfig         `yaml:"reconcile" json:"reconcile"`
+}
+
+type MetadataLabelsConfig struct {
+	Enabled     bool     `yaml:"enabled" json:"enabled"`
+	OwnerTeam   []string `yaml:"ownerTeam" json:"ownerTeam"`
+	Service     []string `yaml:"service" json:"service"`
+	Environment []string `yaml:"environment" json:"environment"`
+	Criticality []string `yaml:"criticality" json:"criticality"`
 }
 
 type NamespaceSelectorConfig struct {
@@ -104,6 +114,12 @@ func Default() Config {
 	cfg.Discovery.IncludeInitContainers = true
 	cfg.Discovery.IncludeEphemeralContainers = true
 	cfg.Discovery.ReadPodTemplateAnnotations = true
+	metadataLabelDefaults := discovery.DefaultMetadataLabelKeyConfig()
+	cfg.Discovery.MetadataLabels.Enabled = true
+	cfg.Discovery.MetadataLabels.OwnerTeam = metadataLabelDefaults.OwnerTeam
+	cfg.Discovery.MetadataLabels.Service = metadataLabelDefaults.Service
+	cfg.Discovery.MetadataLabels.Environment = metadataLabelDefaults.Environment
+	cfg.Discovery.MetadataLabels.Criticality = metadataLabelDefaults.Criticality
 	cfg.Discovery.Namespaces.Exclude = []string{
 		"kube-system",
 		"kube-public",
@@ -191,6 +207,7 @@ func (c *Config) Normalize() {
 	if c.Discovery.DefaultMode == "" {
 		c.Discovery.DefaultMode = string(graph.DiscoveryModeHybrid)
 	}
+	c.Discovery.MetadataLabels = normalizeMetadataLabels(c.Discovery.MetadataLabels)
 	if c.Discovery.ResyncInterval == "" {
 		c.Discovery.ResyncInterval = "10h"
 	}
@@ -204,6 +221,25 @@ func (c *Config) Normalize() {
 			"kube-node-lease",
 		}
 	}
+}
+
+func normalizeMetadataLabels(in MetadataLabelsConfig) MetadataLabelsConfig {
+	defaults := discovery.DefaultMetadataLabelKeyConfig()
+
+	if len(in.OwnerTeam) == 0 {
+		in.OwnerTeam = defaults.OwnerTeam
+	}
+	if len(in.Service) == 0 {
+		in.Service = defaults.Service
+	}
+	if len(in.Environment) == 0 {
+		in.Environment = defaults.Environment
+	}
+	if len(in.Criticality) == 0 {
+		in.Criticality = defaults.Criticality
+	}
+
+	return in
 }
 
 func (c Config) HTTPBindAddress() string {

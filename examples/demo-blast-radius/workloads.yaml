@@ -3,13 +3,14 @@ kind: Deployment
 metadata:
   name: payments-api
   namespace: payments
+  labels:
+    app.kubernetes.io/name: payments
+    app.kubernetes.io/team: payments-platform
+    app.kubernetes.io/environment: demo
+    priority: critical
   annotations:
     kbeacon.io/enabled: "true"
     kbeacon.io/discovery-mode: hybrid
-    kbeacon.io/owner-team: payments-platform
-    kbeacon.io/service: payments
-    kbeacon.io/environment: demo
-    kbeacon.io/criticality: critical
     kbeacon.io/watch-secrets: "shared/platform-ca,payments/legacy-payment-token"
 spec:
   replicas: 1
@@ -42,13 +43,14 @@ kind: Deployment
 metadata:
   name: checkout-worker
   namespace: payments
+  labels:
+    app.kubernetes.io/name: checkout
+    app.kubernetes.io/team: checkout
+    app.kubernetes.io/environment: demo
+    priority: high
   annotations:
     kbeacon.io/enabled: "true"
     kbeacon.io/discovery-mode: infer
-    kbeacon.io/owner-team: checkout
-    kbeacon.io/service: checkout
-    kbeacon.io/environment: demo
-    kbeacon.io/criticality: high
 spec:
   replicas: 1
   selector:
@@ -78,13 +80,14 @@ kind: Deployment
 metadata:
   name: reports-api
   namespace: reports
+  labels:
+    app.kubernetes.io/name: reports
+    app.kubernetes.io/team: data-platform
+    app.kubernetes.io/environment: demo
+    priority: medium
   annotations:
     kbeacon.io/enabled: "true"
     kbeacon.io/discovery-mode: explicit
-    kbeacon.io/owner-team: data-platform
-    kbeacon.io/service: reports
-    kbeacon.io/environment: demo
-    kbeacon.io/criticality: medium
     kbeacon.io/watch-secrets: "payments/payments-db,shared/platform-ca"
 spec:
   replicas: 1

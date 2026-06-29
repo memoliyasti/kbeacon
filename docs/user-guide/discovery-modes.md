@@ -14,6 +14,8 @@ Use `hybrid` for most workloads.
 
 `hybrid` lets KBeacon discover normal Kubernetes Secret references automatically and also lets teams add annotations for references that cannot be inferred from a Pod spec.
 
+KBeacon metadata annotations are not required for normal Pod-spec inference. Ownership, service, environment, and criticality can be read from existing workload labels through `discovery.metadataLabels`.
+
 ```yaml
 metadata:
   annotations:

@@ -123,6 +123,13 @@ func main() {
 	discoveryOptions.IncludeInitContainers = cfg.Discovery.IncludeInitContainers
 	discoveryOptions.IncludeEphemeralContainers = cfg.Discovery.IncludeEphemeralContainers
 	discoveryOptions.ReadPodTemplateAnnotations = cfg.Discovery.ReadPodTemplateAnnotations
+	discoveryOptions.MetadataLabelsEnabled = cfg.Discovery.MetadataLabels.Enabled
+	discoveryOptions.MetadataLabelKeys = discovery.MetadataLabelKeyConfig{
+		OwnerTeam:   cfg.Discovery.MetadataLabels.OwnerTeam,
+		Service:     cfg.Discovery.MetadataLabels.Service,
+		Environment: cfg.Discovery.MetadataLabels.Environment,
+		Criticality: cfg.Discovery.MetadataLabels.Criticality,
+	}
 
 	ctrl := controller.New(client, graphCache, controller.Options{
 		Cluster:           cfg.Cluster.Name,

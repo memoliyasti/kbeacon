@@ -2,6 +2,8 @@
 
 This demo creates a small multi-namespace application graph that shows why KBeacon exists.
 
+KBeacon reads owner, service, environment, and criticality from workload labels in this demo. KBeacon annotations are used only for discovery controls and explicit dependencies.
+
 It creates:
 
 - Secret/payments-db in namespace payments.

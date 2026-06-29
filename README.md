@@ -51,6 +51,7 @@ KBeacon is early-stage but functional. The current implementation includes:
 - Dependency extraction from imagePullSecrets.
 - Explicit dependencies through kbeacon.io/watch-secrets.
 - Explicit dependencies through kbeacon.io/watch-secrets-json.
+- Metadata fallback from existing workload labels.
 - Namespace include and exclude filtering.
 - Resource watcher enablement.
 - In-memory dependency graph cache.

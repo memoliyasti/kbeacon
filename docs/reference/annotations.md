@@ -89,6 +89,28 @@ metadata:
     kbeacon.io/ignore-secrets: "image-pull-secret,sidecar-token"
 ```
 
+## Existing label fallback
+
+KBeacon metadata annotations are optional.
+
+For workload ownership and classification, KBeacon first checks `kbeacon.io/*` annotations. If those annotations are absent, it can read existing workload labels configured through `discovery.metadataLabels`.
+
+Default label keys include common platform conventions such as:
+
+- `app.kubernetes.io/team`
+- `team`
+- `technical-owner`
+- `business-owner`
+- `app.kubernetes.io/name`
+- `service`
+- `app.kubernetes.io/environment`
+- `environment`
+- `priority`
+- `tier`
+- `slo-tier`
+
+This lets teams adopt KBeacon without rolling out metadata-only annotation changes to application Pods.
+
 ## Ownership and criticality
 
 KBeacon derives Secret metadata as follows:

@@ -12,6 +12,48 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type MetadataLabelKeyConfig struct {
+	OwnerTeam   []string
+	Service     []string
+	Environment []string
+	Criticality []string
+}
+
+func DefaultMetadataLabelKeyConfig() MetadataLabelKeyConfig {
+	return MetadataLabelKeyConfig{
+		OwnerTeam: []string{
+			"app.kubernetes.io/team",
+			"team",
+			"owner-team",
+			"ownerTeam",
+			"technical-owner",
+			"technicalOwner",
+			"business-owner",
+			"businessOwner",
+		},
+		Service: []string{
+			"app.kubernetes.io/name",
+			"app",
+			"service",
+			"service-name",
+			"serviceName",
+		},
+		Environment: []string{
+			"app.kubernetes.io/environment",
+			"environment",
+			"env",
+			"stage",
+		},
+		Criticality: []string{
+			"app.kubernetes.io/criticality",
+			"criticality",
+			"priority",
+			"tier",
+			"slo-tier",
+		},
+	}
+}
+
 type Options struct {
 	Cluster                    string
 	DefaultMode                graph.DiscoveryMode
@@ -19,6 +61,8 @@ type Options struct {
 	IncludeInitContainers      bool
 	IncludeEphemeralContainers bool
 	ReadPodTemplateAnnotations bool
+	MetadataLabelsEnabled      bool
+	MetadataLabelKeys          MetadataLabelKeyConfig
 }
 
 func DefaultOptions(cluster string) Options {
@@ -29,6 +73,8 @@ func DefaultOptions(cluster string) Options {
 		IncludeInitContainers:      true,
 		IncludeEphemeralContainers: true,
 		ReadPodTemplateAnnotations: true,
+		MetadataLabelsEnabled:      true,
+		MetadataLabelKeys:          DefaultMetadataLabelKeyConfig(),
 	}
 }
 
@@ -58,7 +104,9 @@ func WorkloadFromDeployment(opts Options, deployment *appsv1.Deployment) graph.W
 		deployment.Name,
 		string(deployment.UID),
 		deployment.Annotations,
+		deployment.Labels,
 		deployment.Spec.Template.Annotations,
+		deployment.Spec.Template.Labels,
 		deployment.Spec.Template.Spec,
 	)
 }
@@ -72,7 +120,9 @@ func WorkloadFromStatefulSet(opts Options, statefulSet *appsv1.StatefulSet) grap
 		statefulSet.Name,
 		string(statefulSet.UID),
 		statefulSet.Annotations,
+		statefulSet.Labels,
 		statefulSet.Spec.Template.Annotations,
+		statefulSet.Spec.Template.Labels,
 		statefulSet.Spec.Template.Spec,
 	)
 }
@@ -86,7 +136,9 @@ func WorkloadFromDaemonSet(opts Options, daemonSet *appsv1.DaemonSet) graph.Work
 		daemonSet.Name,
 		string(daemonSet.UID),
 		daemonSet.Annotations,
+		daemonSet.Labels,
 		daemonSet.Spec.Template.Annotations,
+		daemonSet.Spec.Template.Labels,
 		daemonSet.Spec.Template.Spec,
 	)
 }
@@ -100,6 +152,8 @@ func WorkloadFromPod(opts Options, pod *corev1.Pod) graph.WorkloadInput {
 		pod.Name,
 		string(pod.UID),
 		pod.Annotations,
+		pod.Labels,
+		nil,
 		nil,
 		pod.Spec,
 	)
@@ -114,7 +168,9 @@ func WorkloadFromJob(opts Options, job *batchv1.Job) graph.WorkloadInput {
 		job.Name,
 		string(job.UID),
 		job.Annotations,
+		job.Labels,
 		job.Spec.Template.Annotations,
+		job.Spec.Template.Labels,
 		job.Spec.Template.Spec,
 	)
 }
@@ -128,7 +184,9 @@ func WorkloadFromCronJob(opts Options, cronJob *batchv1.CronJob) graph.WorkloadI
 		cronJob.Name,
 		string(cronJob.UID),
 		cronJob.Annotations,
+		cronJob.Labels,
 		cronJob.Spec.JobTemplate.Spec.Template.Annotations,
+		cronJob.Spec.JobTemplate.Spec.Template.Labels,
 		cronJob.Spec.JobTemplate.Spec.Template.Spec,
 	)
 }
@@ -141,10 +199,14 @@ func workloadFromPodSpec(
 	name string,
 	uid string,
 	objectAnnotations map[string]string,
+	objectLabels map[string]string,
 	templateAnnotations map[string]string,
+	templateLabels map[string]string,
 	podSpec corev1.PodSpec,
 ) graph.WorkloadInput {
 	annotations := effectiveAnnotations(objectAnnotations, templateAnnotations, opts.ReadPodTemplateAnnotations)
+	labels := effectiveLabels(objectLabels, templateLabels, opts.ReadPodTemplateAnnotations)
+	labelKeys := opts.MetadataLabelKeys.withDefaults()
 	mode := discoveryModeFor(annotations, opts.DefaultMode)
 
 	ref := graph.WorkloadRef{
@@ -158,10 +220,10 @@ func workloadFromPodSpec(
 
 	input := graph.WorkloadInput{
 		Ref:           ref,
-		OwnerTeam:     annotations[AnnotationOwnerTeam],
-		Service:       annotations[AnnotationService],
-		Environment:   annotations[AnnotationEnvironment],
-		Criticality:   annotations[AnnotationCriticality],
+		OwnerTeam:     metadataValue(annotations[AnnotationOwnerTeam], labels, labelKeys.OwnerTeam, opts.MetadataLabelsEnabled),
+		Service:       metadataValue(annotations[AnnotationService], labels, labelKeys.Service, opts.MetadataLabelsEnabled),
+		Environment:   metadataValue(annotations[AnnotationEnvironment], labels, labelKeys.Environment, opts.MetadataLabelsEnabled),
+		Criticality:   metadataValue(annotations[AnnotationCriticality], labels, labelKeys.Criticality, opts.MetadataLabelsEnabled),
 		DiscoveryMode: mode,
 	}
 
@@ -465,6 +527,64 @@ func effectiveAnnotations(objectAnnotations, templateAnnotations map[string]stri
 	}
 
 	return out
+}
+
+func effectiveLabels(objectLabels, templateLabels map[string]string, includeTemplate bool) map[string]string {
+	out := map[string]string{}
+
+	if includeTemplate {
+		for k, v := range templateLabels {
+			out[k] = v
+		}
+	}
+
+	for k, v := range objectLabels {
+		out[k] = v
+	}
+
+	return out
+}
+
+func metadataValue(annotationValue string, labels map[string]string, labelKeys []string, labelsEnabled bool) string {
+	if value := strings.TrimSpace(annotationValue); value != "" {
+		return value
+	}
+
+	if !labelsEnabled {
+		return ""
+	}
+
+	return firstLabelValue(labels, labelKeys)
+}
+
+func firstLabelValue(labels map[string]string, keys []string) string {
+	for _, key := range keys {
+		value := strings.TrimSpace(labels[key])
+		if value != "" {
+			return value
+		}
+	}
+
+	return ""
+}
+
+func (c MetadataLabelKeyConfig) withDefaults() MetadataLabelKeyConfig {
+	defaults := DefaultMetadataLabelKeyConfig()
+
+	if len(c.OwnerTeam) == 0 {
+		c.OwnerTeam = defaults.OwnerTeam
+	}
+	if len(c.Service) == 0 {
+		c.Service = defaults.Service
+	}
+	if len(c.Environment) == 0 {
+		c.Environment = defaults.Environment
+	}
+	if len(c.Criticality) == 0 {
+		c.Criticality = defaults.Criticality
+	}
+
+	return c
 }
 
 func discoveryModeFor(annotations map[string]string, fallback graph.DiscoveryMode) graph.DiscoveryMode {

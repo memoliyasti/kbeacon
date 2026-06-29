@@ -29,6 +29,16 @@ discovery:
   includeInitContainers: true
   includeEphemeralContainers: false
   readPodTemplateAnnotations: true
+  metadataLabels:
+    enabled: true
+    ownerTeam:
+      - team
+    service:
+      - service
+    environment:
+      - env
+    criticality:
+      - priority
   namespaces:
     include:
       - app-a
@@ -70,6 +80,14 @@ metrics:
 
 	if len(cfg.Discovery.Namespaces.Include) != 2 {
 		t.Fatalf("expected 2 included namespaces, got %#v", cfg.Discovery.Namespaces.Include)
+	}
+
+	if !cfg.Discovery.MetadataLabels.Enabled {
+		t.Fatal("expected metadata label fallback to be enabled")
+	}
+
+	if got := cfg.Discovery.MetadataLabels.OwnerTeam[0]; got != "team" {
+		t.Fatalf("expected custom owner team label key team, got %q", got)
 	}
 
 	resync, err := cfg.ResyncInterval()

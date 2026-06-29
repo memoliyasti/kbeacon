@@ -162,3 +162,107 @@ func TestWorkloadFromDeploymentDisabled(t *testing.T) {
 		t.Fatalf("expected no edges for disabled workload, got %#v", input.Edges)
 	}
 }
+
+func TestWorkloadFromDeploymentUsesMetadataLabelFallback(t *testing.T) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "payments",
+			UID:       "deployment-uid",
+			Labels: map[string]string{
+				"app.kubernetes.io/team":        "payments-platform",
+				"app.kubernetes.io/name":        "payments",
+				"app.kubernetes.io/environment": "prod",
+				"priority":                      "critical",
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name: "api",
+							Env: []corev1.EnvVar{
+								{
+									Name: "DB_PASSWORD",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "payments-db",
+											},
+											Key: "password",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+
+	if input.OwnerTeam != "payments-platform" {
+		t.Fatalf("expected owner team from labels, got %q", input.OwnerTeam)
+	}
+	if input.Service != "payments" {
+		t.Fatalf("expected service from labels, got %q", input.Service)
+	}
+	if input.Environment != "prod" {
+		t.Fatalf("expected environment from labels, got %q", input.Environment)
+	}
+	if input.Criticality != "critical" {
+		t.Fatalf("expected criticality from labels, got %q", input.Criticality)
+	}
+}
+
+func TestWorkloadMetadataAnnotationsOverrideLabels(t *testing.T) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "payments",
+			UID:       "deployment-uid",
+			Labels: map[string]string{
+				"app.kubernetes.io/team":        "label-team",
+				"app.kubernetes.io/name":        "label-service",
+				"app.kubernetes.io/environment": "label-env",
+				"priority":                      "low",
+			},
+			Annotations: map[string]string{
+				AnnotationOwnerTeam:   "annotation-team",
+				AnnotationService:     "annotation-service",
+				AnnotationEnvironment: "annotation-env",
+				AnnotationCriticality: "high",
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:    "api",
+							Command: []string{"sh", "-c", "sleep 3600"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+
+	if input.OwnerTeam != "annotation-team" {
+		t.Fatalf("expected annotation owner team to win, got %q", input.OwnerTeam)
+	}
+	if input.Service != "annotation-service" {
+		t.Fatalf("expected annotation service to win, got %q", input.Service)
+	}
+	if input.Environment != "annotation-env" {
+		t.Fatalf("expected annotation environment to win, got %q", input.Environment)
+	}
+	if input.Criticality != "high" {
+		t.Fatalf("expected annotation criticality to win, got %q", input.Criticality)
+	}
+}
