@@ -70,6 +70,25 @@ demo-dry-run: demo-lint
 demo-metrics-live: demo-lint
 	./hack/validate-demo-metrics.sh
 
+scale-generate:
+	./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 25 100
+
+scale-lint:
+	bash -n hack/generate-scale-fixture.sh
+	./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 5 10
+	test -s /tmp/kbeacon-scale-fixture/namespace.yaml
+	test -s /tmp/kbeacon-scale-fixture/secrets.yaml
+	test -s /tmp/kbeacon-scale-fixture/workloads.yaml
+	test -s /tmp/kbeacon-scale-fixture/expected-summary.json
+
+scale-dry-run: scale-generate
+	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/namespace.yaml > /tmp/kbeacon-scale-dry-run.txt
+	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/secrets.yaml >> /tmp/kbeacon-scale-dry-run.txt
+	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/workloads.yaml >> /tmp/kbeacon-scale-dry-run.txt
+
+scale-delete:
+	kubectl delete namespace kbeacon-scale --ignore-not-found
+
 stale-check:
 	./hack/stale-check.sh
 

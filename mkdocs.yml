@@ -62,6 +62,7 @@ nav:
       - Configuration: user-guide/configuration.md
       - Discovery modes: user-guide/discovery-modes.md
       - Blast-radius demo: user-guide/blast-radius-demo.md
+      - Scale testing: user-guide/scale-testing.md
       - Dashboards: user-guide/dashboards.md
       - Alerting: user-guide/alerting.md
   - Operator guide:

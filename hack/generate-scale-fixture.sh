@@ -23,7 +23,8 @@ pad() {
 }
 
 criticality_for() {
-  case $(("$1" % 4)) in
+  local n="${1:-0}"
+  case $((n % 4)) in
     0) printf "%s" "low" ;;
     1) printf "%s" "medium" ;;
     2) printf "%s" "high" ;;

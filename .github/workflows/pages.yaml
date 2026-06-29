@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - docs/**
+      - examples/**
+      - hack/**
       - mkdocs.yml
       - requirements-docs.txt
       - README.md
