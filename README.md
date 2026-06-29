@@ -198,6 +198,7 @@ See docs/user-guide/blast-radius-demo.md.
 - Getting started: docs/getting-started.md
 - Helm reference: docs/reference/helm.md
 - Metrics reference: docs/reference/metrics.md
+- Dashboard queries: docs/user-guide/dashboard-queries.md
 - Annotations reference: docs/reference/annotations.md
 - API contract: docs/api/openapi.yaml
 - Technical design: docs/technical-design.md

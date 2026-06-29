@@ -19,7 +19,8 @@ kbeacon/
     reference/annotations.md     # Implemented annotation reference
     reference/metrics.md         # Implemented metric reference
     reference/helm.md            # Helm usage reference
-    user-guide/discovery-modes.md  # How infer, explicit, hybrid, and disabled modes work
+    user-guide/discovery-modes.md
+    user-guide/dashboard-queries.md  # PromQL snippets used by dashboards  # How infer, explicit, hybrid, and disabled modes work
     user-guide/blast-radius-demo.md # Runnable demo guide
     operator-guide/security.md  # Security and low-privilege deployment guidance
   charts/kbeacon/                # Helm chart for one lightweight Agent Deployment

@@ -10,11 +10,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-delete stale-check release-metadata-check package clean
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-delete stale-check release-metadata-check package clean dashboards-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint scale-lint stale-check release-metadata-check
+validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint stale-check release-metadata-check
 
 ci: validate-ci
 
@@ -88,6 +88,9 @@ scale-dry-run: scale-generate
 
 scale-delete:
 	kubectl delete namespace kbeacon-scale --ignore-not-found
+
+dashboards-lint:
+	./hack/validate-dashboards.sh
 
 stale-check:
 	./hack/stale-check.sh
