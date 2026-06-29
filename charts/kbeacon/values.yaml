@@ -86,6 +86,7 @@ serviceMonitor:
   annotations: {}
   interval: 30s
   scrapeTimeout: 10s
+  honorLabels: true
   metricRelabelings: []
   relabelings: []
 
