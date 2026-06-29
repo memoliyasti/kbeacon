@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.2
+
+- Added deterministic scale fixture generation and validation targets.
+- Added live demo metrics validation for the blast-radius demo.
+- Added dashboard JSON validation and a PromQL dashboard query guide.
+- Wired reusable quality gates into local validation and CI.
+- Kept Agent behavior compatible with v0.2.1.
+
+
 ## v0.2.1
 
 Documentation and release polish patch.

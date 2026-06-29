@@ -35,7 +35,7 @@ If the GHCR package is private, create an image pull Secret and pass it to the c
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.1 \
+      --set image.tag=0.2.2 \
       --set "imagePullSecrets[0].name=ghcr-pull-secret"
 
 ## Low-privilege mode
@@ -109,7 +109,7 @@ Without Prometheus Operator, scrape the Service directly.
 
     image:
       repository: ghcr.io/memoliyasti/kbeacon
-      tag: "0.2.1"
+      tag: "0.2.2"
       digest: ""
       pullPolicy: IfNotPresent
 

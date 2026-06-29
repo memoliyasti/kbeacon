@@ -11,7 +11,7 @@ if [ -n "${secret_hits}" ]; then
   exit 1
 fi
 
-version_pattern="0\.2\.0|v0\.2\.0"
+version_pattern="0\.2\.0|v0\.2\.0|0\.2\.1|v0\.2\.1"
 version_hits="$(git grep -nE "${version_pattern}" -- README.md RELEASE.md charts docs mkdocs.yml PROJECT_STRUCTURE.md .github internal cmd examples 2>/dev/null || true)"
 
 if [ -n "${version_hits}" ]; then
