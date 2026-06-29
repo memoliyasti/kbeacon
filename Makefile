@@ -10,11 +10,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-delete stale-check release-metadata-check package clean dashboards-lint
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-delete stale-check release-metadata-check package clean dashboards-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint stale-check release-metadata-check
+validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint stale-check release-metadata-check
 
 ci: validate-ci
 
@@ -45,6 +45,13 @@ helm-template-low-privilege:
 
 helm-template-edge-disabled:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set metrics.edge.enabled=false > /tmp/kbeacon-edge-disabled-rendered.yaml
+
+
+helm-template-prometheus-annotations:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=ci --set prometheus.scrapeAnnotations.enabled=true > /tmp/kbeacon-prometheus-annotations-rendered.yaml
+	grep -q "prometheus.io/scrape: \"true\"" /tmp/kbeacon-prometheus-annotations-rendered.yaml
+	grep -q "prometheus.io/path: \"/metrics\"" /tmp/kbeacon-prometheus-annotations-rendered.yaml
+	grep -q "prometheus.io/port: \"8080\"" /tmp/kbeacon-prometheus-annotations-rendered.yaml
 
 helm-template-namespace:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace payments --set cluster.name=$(CLUSTER_NAME) --set rbac.scope=namespace --set-string discovery.namespaces.include[0]=payments > /tmp/kbeacon-namespace-rendered.yaml

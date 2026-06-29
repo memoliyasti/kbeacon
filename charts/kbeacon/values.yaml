@@ -73,6 +73,13 @@ service:
   annotations: {}
   labels: {}
 
+prometheus:
+  scrapeAnnotations:
+    enabled: false
+    target: service
+    path: /metrics
+    port: "8080"
+
 serviceMonitor:
   enabled: false
   labels: {}

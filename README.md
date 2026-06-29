@@ -98,31 +98,7 @@ Install the Helm chart:
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
       --set image.tag=0.2.2
 
-If the GHCR package is public, no Kubernetes image pull Secret is required.
-
-If the GHCR package is private, create a pull Secret with a classic GitHub PAT that has read:packages:
-
-    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
-
-    read -rsp "GHCR read:packages token: " GHCR_TOKEN
-    echo
-
-    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
-      --docker-server=ghcr.io \
-      --docker-username=<github-username> \
-      --docker-password="${GHCR_TOKEN}" \
-      --docker-email=<email> \
-      --dry-run=client -o yaml | kubectl apply -f -
-
-    unset GHCR_TOKEN
-
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
-      --set 'imagePullSecrets[0].name=ghcr-pull-secret'
+The default GHCR image is public and does not require a Kubernetes image pull Secret.
 
 ### Low-privilege install
 

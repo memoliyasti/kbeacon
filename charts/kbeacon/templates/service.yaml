@@ -7,9 +7,17 @@ metadata:
     {{- with .Values.service.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.service.annotations }}
+  {{- $scrapeAnnotationsEnabled := and .Values.prometheus.scrapeAnnotations.enabled (eq .Values.prometheus.scrapeAnnotations.target "service") }}
+  {{- if or .Values.service.annotations $scrapeAnnotationsEnabled }}
   annotations:
+    {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if $scrapeAnnotationsEnabled }}
+    prometheus.io/scrape: "true"
+    prometheus.io/path: {{ .Values.prometheus.scrapeAnnotations.path | default "/metrics" | quote }}
+    prometheus.io/port: {{ .Values.prometheus.scrapeAnnotations.port | default (toString .Values.service.port) | quote }}
+    {{- end }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}

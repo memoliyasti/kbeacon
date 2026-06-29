@@ -12,31 +12,19 @@ The chart does not install KBeacon CRDs, an operator, admission webhooks, databa
       --create-namespace \
       --set cluster.name=prod-eu-1
 
-## Private GHCR package
 
-If the GHCR package is private, create an image pull Secret and pass it to the chart.
+## Public image
 
-    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
+The default image for this repository is public and does not require a Kubernetes image pull Secret.
 
-    read -rsp "GHCR read:packages token: " GHCR_TOKEN
-    echo
+    image:
+      repository: ghcr.io/memoliyasti/kbeacon
+      tag: "0.2.2"
 
-    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
-      --docker-server=ghcr.io \
-      --docker-username=<github-username> \
-      --docker-password="${GHCR_TOKEN}" \
-      --docker-email=<email> \
-      --dry-run=client -o yaml | kubectl apply -f -
+Use `imagePullSecrets` only when deploying your own private image or private registry.
 
-    unset GHCR_TOKEN
-
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
-      --set "imagePullSecrets[0].name=ghcr-pull-secret"
+    imagePullSecrets:
+      - name: registry-pull-secret
 
 ## Low-privilege mode
 
@@ -77,6 +65,24 @@ Enable the ServiceMonitor only if Prometheus Operator CRDs are installed.
       --set cluster.name=prod-eu-1 \
       --set serviceMonitor.enabled=true \
       --set serviceMonitor.labels.release=kube-prometheus-stack
+
+## Prometheus scrape annotations
+
+Some Prometheus installations scrape Services with `prometheus.io/*` annotations. Enable KBeacon Service annotations only when your Prometheus configuration supports annotation discovery.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set prometheus.scrapeAnnotations.enabled=true
+
+Rendered Service annotations:
+
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8080"
+
+ServiceMonitor remains the recommended integration for Prometheus Operator clusters.
 
 ## Standard Prometheus scrape target
 
@@ -180,6 +186,17 @@ Disabled resources appear in `/readyz` as optional and are not emitted in `kbeac
 `metrics.edge.enabled=false` disables only the high-cardinality `kbeacon_dependency_edges` metric family. Aggregate graph metrics and the Agent API remain available.
 
 `metrics.runtime.enabled=false` disables runtime recorder and runtime collector metrics. Graph metrics remain available.
+
+### prometheus.scrapeAnnotations
+
+    prometheus:
+      scrapeAnnotations:
+        enabled: false
+        target: service
+        path: /metrics
+        port: "8080"
+
+When enabled with `target: service`, the chart adds Prometheus scrape annotations to the KBeacon Service. This does not change application workloads.
 
 ### dashboards
 

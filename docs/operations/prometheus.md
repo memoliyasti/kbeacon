@@ -1,8 +1,40 @@
+
 # Prometheus
 
-KBeacon exposes metrics at `/metrics`.
+KBeacon exposes Prometheus metrics at `/metrics`.
 
-Example scrape target:
+There are three supported scrape integration styles.
+
+## Prometheus Operator ServiceMonitor
+
+Use this when your cluster runs Prometheus Operator.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set serviceMonitor.enabled=true \
+      --set serviceMonitor.labels.release=kube-prometheus-stack
+
+## Service scrape annotations
+
+Use this only when your Prometheus configuration discovers Services with `prometheus.io/*` annotations.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set prometheus.scrapeAnnotations.enabled=true
+
+The chart renders these annotations on the KBeacon Service:
+
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8080"
+
+## Static scrape config
+
+Use this when scrape targets are managed centrally.
 
     scrape_configs:
       - job_name: kbeacon-agent
@@ -16,4 +48,6 @@ Example scrape target:
               app: kbeacon
               component: agent
 
-Prometheus Operator users can enable `serviceMonitor.enabled=true`.
+## Query portability
+
+KBeacon metrics always include the `cluster` label. The Prometheus `job` label depends on how the target is scraped, so dashboards should not require a single hard-coded job name.

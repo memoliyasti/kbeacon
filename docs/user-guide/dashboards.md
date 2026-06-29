@@ -12,4 +12,4 @@ Enable dashboard ConfigMaps through Helm:
       --set cluster.name=prod-eu-1 \
       --set dashboards.enabled=true
 
-Dashboards expect Prometheus metrics from the `kbeacon-agent` scrape job.
+Dashboards expect KBeacon metrics in Prometheus. The Prometheus `job` label depends on your scrape integration, so prefer dashboard variables or queries based on the KBeacon `cluster` label.

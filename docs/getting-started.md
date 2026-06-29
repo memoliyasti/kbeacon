@@ -1,6 +1,9 @@
+
 # Getting started
 
 ## Install with Helm
+
+KBeacon publishes a public GHCR image for this repository. Kubernetes does not need an image pull Secret for the default install.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -9,39 +12,7 @@
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
       --set image.tag=0.2.2
 
-## Public GHCR image
-
-If the GHCR package is public, Kubernetes does not need an image pull Secret.
-
-## Private GHCR image
-
-If the GHCR package is private, create a pull Secret with a classic GitHub PAT that has read:packages.
-
-    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
-
-    read -rsp "GHCR read:packages token: " GHCR_TOKEN
-    echo
-
-    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
-      --docker-server=ghcr.io \
-      --docker-username=<github-username> \
-      --docker-password="${GHCR_TOKEN}" \
-      --docker-email=<email> \
-      --dry-run=client -o yaml | kubectl apply -f -
-
-    unset GHCR_TOKEN
-
-Install with the pull Secret.
-
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
-      --set 'imagePullSecrets[0].name=ghcr-pull-secret'
-
-## Verify
+## Verify the Agent
 
     kubectl -n kbeacon-system rollout status deploy/kbeacon
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
@@ -56,6 +27,30 @@ Query the Agent.
     curl -sS http://127.0.0.1:8081/api/v1/config | jq
     curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
     curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
+
+## Prometheus scraping
+
+KBeacon exposes metrics at `/metrics`.
+
+Prometheus Operator users should prefer ServiceMonitor.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set serviceMonitor.enabled=true
+
+Clusters that use Prometheus annotation discovery can enable Service annotations instead.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set prometheus.scrapeAnnotations.enabled=true
+
+Clusters that manage scrape config centrally can scrape the Service directly.
+
+    kbeacon.kbeacon-system.svc.cluster.local:8080
 
 ## Local Minikube workflow
 

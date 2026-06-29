@@ -12,7 +12,7 @@ Every KBeacon domain metric includes:
 | --- | --- |
 | `cluster` | Logical cluster name from config or `KBEACON_CLUSTER_NAME`. |
 
-Prometheus scrape jobs usually add:
+Prometheus scrape jobs usually add these labels. Exact values depend on ServiceMonitor, Service annotation discovery, or static scrape config:
 
 | Label | Meaning |
 | --- | --- |
@@ -32,7 +32,7 @@ Total current dependency edge count by cluster.
 Labels: `cluster`
 
 ```promql
-sum by (cluster) (kbeacon_cluster_dependency_count{job="kbeacon-agent"})
+sum by (cluster) (kbeacon_cluster_dependency_count)
 ```
 
 ### `kbeacon_cluster_secret_count`
@@ -87,7 +87,7 @@ Labels: `cluster`, `namespace`, `workload_kind`, `workload_name`, `owner_team`, 
 
 ```promql
 sum by (cluster, namespace, workload_kind, workload_name) (
-  kbeacon_workload_dependency_count{job="kbeacon-agent"}
+  kbeacon_workload_dependency_count{cluster=~"$cluster"}
 )
 ```
 
@@ -100,7 +100,7 @@ Unique workloads affected by a Secret.
 Labels: `cluster`, `namespace`, `secret_name`, `owner_team`, `criticality`, `exists`
 
 ```promql
-topk(20, kbeacon_secret_affected_workload_count{job="kbeacon-agent"})
+topk(20, kbeacon_secret_affected_workload_count{cluster=~"$cluster"})
 ```
 
 ### `kbeacon_secret_impact_score`
@@ -120,7 +120,7 @@ Current scoring is intentionally simple and deterministic:
 Labels: `cluster`, `namespace`, `secret_name`, `owner_team`, `criticality`, `exists`
 
 ```promql
-topk(20, kbeacon_secret_impact_score{job="kbeacon-agent"})
+topk(20, kbeacon_secret_impact_score{cluster=~"$cluster"})
 ```
 
 ### `kbeacon_secret_last_changed_timestamp_seconds`
@@ -132,7 +132,7 @@ Last observed Secret change timestamp as Unix seconds.
 Labels: `cluster`, `namespace`, `secret_name`
 
 ```promql
-time() - kbeacon_secret_last_changed_timestamp_seconds{job="kbeacon-agent"}
+time() - kbeacon_secret_last_changed_timestamp_seconds{cluster=~"$cluster"}
 ```
 
 ### `kbeacon_secret_changes_total`
@@ -144,7 +144,7 @@ Observed Secret metadata update count during the current Agent lifecycle.
 Labels: `cluster`, `namespace`, `secret_name`
 
 ```promql
-increase(kbeacon_secret_changes_total{job="kbeacon-agent"}[1h])
+increase(kbeacon_secret_changes_total{cluster=~"$cluster"}[1h])
 ```
 
 ### `kbeacon_secret_info`
@@ -168,7 +168,7 @@ Unresolved Secret references by Secret.
 Labels: `cluster`, `namespace`, `secret_name`
 
 ```promql
-kbeacon_unresolved_secret_references{job="kbeacon-agent"} > 0
+kbeacon_unresolved_secret_references{cluster=~"$cluster"} > 0
 ```
 
 ## Low-privilege mode and `exists` / `resolved`
@@ -237,7 +237,7 @@ Labels: `cluster`, `resource`
 Disabled resources are not emitted in this metric.
 
 ```promql
-min by (cluster, resource) (kbeacon_cache_sync_status{job="kbeacon-agent"})
+min by (cluster, resource) (kbeacon_cache_sync_status{cluster=~"$cluster"})
 ```
 
 ### `kbeacon_cache_objects`
@@ -262,7 +262,7 @@ Labels: `cluster`, `resource`, `event`
 
 ```promql
 sum by (cluster, resource, event) (
-  rate(kbeacon_kubernetes_watch_events_total{job="kbeacon-agent"}[5m])
+  rate(kbeacon_kubernetes_watch_events_total{cluster=~"$cluster"}[5m])
 )
 ```
 
@@ -280,7 +280,7 @@ Labels: `cluster`, `reason`
 histogram_quantile(
   0.95,
   sum by (cluster, le) (
-    rate(kbeacon_graph_update_duration_seconds_bucket{job="kbeacon-agent"}[5m])
+    rate(kbeacon_graph_update_duration_seconds_bucket{cluster=~"$cluster"}[5m])
   )
 )
 ```
@@ -324,31 +324,31 @@ Use the REST API for detailed dependency source paths and Secret key-level detai
 Agent health:
 
 ```promql
-up{job="kbeacon-agent"}
+up{cluster=~"$cluster"}
 ```
 
 Top impact Secrets:
 
 ```promql
-topk(20, kbeacon_secret_impact_score{job="kbeacon-agent"})
+topk(20, kbeacon_secret_impact_score{cluster=~"$cluster"})
 ```
 
 Secrets affecting workloads:
 
 ```promql
-kbeacon_secret_affected_workload_count{job="kbeacon-agent"} > 0
+kbeacon_secret_affected_workload_count{cluster=~"$cluster"} > 0
 ```
 
 Dependency edges for a namespace:
 
 ```promql
-kbeacon_dependency_edges{job="kbeacon-agent",workload_namespace="kbeacon-demo"}
+kbeacon_dependency_edges{cluster=~"$cluster",workload_namespace="kbeacon-demo"}
 ```
 
 Recent Secret changes:
 
 ```promql
-increase(kbeacon_secret_changes_total{job="kbeacon-agent"}[1h])
+increase(kbeacon_secret_changes_total{cluster=~"$cluster"}[1h])
 ```
 
 Graph rebuild p95:
@@ -357,7 +357,7 @@ Graph rebuild p95:
 histogram_quantile(
   0.95,
   sum by (cluster, le) (
-    rate(kbeacon_graph_update_duration_seconds_bucket{job="kbeacon-agent"}[5m])
+    rate(kbeacon_graph_update_duration_seconds_bucket{cluster=~"$cluster"}[5m])
   )
 )
 ```

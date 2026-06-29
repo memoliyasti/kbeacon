@@ -43,6 +43,16 @@ Enable only when Prometheus Operator CRDs are installed.
       --set serviceMonitor.enabled=true \
       --set serviceMonitor.labels.release=kube-prometheus-stack
 
+## Prometheus scrape annotations
+
+Enable this only when your Prometheus installation discovers Services with `prometheus.io/*` annotations.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set prometheus.scrapeAnnotations.enabled=true
+
 ## Dashboard ConfigMaps
 
     helm upgrade --install kbeacon ./charts/kbeacon \

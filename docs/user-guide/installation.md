@@ -1,6 +1,9 @@
+
 # Installation
 
 ## Helm chart
+
+KBeacon publishes a public GHCR image for this repository. The default install does not require an image pull Secret.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -9,39 +12,9 @@
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
       --set image.tag=0.2.2
 
-## Public registry image
-
-If the GHCR package is public, no Kubernetes image pull Secret is required.
-
-## Private GHCR image pull
-
-Create a Kubernetes image pull Secret with a classic GitHub PAT that has read:packages.
-
-    kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
-
-    read -rsp "GHCR read:packages token: " GHCR_TOKEN
-    echo
-
-    kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
-      --docker-server=ghcr.io \
-      --docker-username=<github-username> \
-      --docker-password="${GHCR_TOKEN}" \
-      --docker-email=<email> \
-      --dry-run=client -o yaml | kubectl apply -f -
-
-    unset GHCR_TOKEN
-
-Install with the pull Secret.
-
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
-      --set 'imagePullSecrets[0].name=ghcr-pull-secret'
-
 ## Digest pinning
+
+For production, you can pin the image by digest.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -50,9 +23,21 @@ Install with the pull Secret.
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
       --set image.digest=sha256:<digest>
 
+## Private registry or forked image
+
+Only use `imagePullSecrets` when you publish your own private image or deploy from a private registry.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set image.repository=<private-registry>/<namespace>/kbeacon \
+      --set image.tag=<tag> \
+      --set imagePullSecrets[0].name=<registry-pull-secret>
+
 ## Low-privilege install
 
-Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret objects:
+Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret objects.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
@@ -62,15 +47,23 @@ Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret ob
 
 KBeacon will still discover workload references from Pod specs and explicit annotations, but referenced Secrets are marked as unobservable.
 
-## ServiceMonitor
+## Prometheus scraping
 
-Enable this only when Prometheus Operator CRDs are installed.
+Prometheus Operator users should prefer ServiceMonitor.
 
     helm upgrade --install kbeacon ./charts/kbeacon \
       --namespace kbeacon-system \
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set serviceMonitor.enabled=true
+
+Clusters that use annotation-based Prometheus discovery can enable Service annotations.
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --create-namespace \
+      --set cluster.name=prod-eu-1 \
+      --set prometheus.scrapeAnnotations.enabled=true
 
 ## Local development
 
