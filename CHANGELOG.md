@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Added Prometheus scrape annotations and preserved KBeacon metric labels in ServiceMonitor by default.
+- Added workload metadata fallback from existing Kubernetes labels.
+- Added API filtering and bounded pagination controls.
+- Added a live scale benchmark report harness.
+- Clarified official GHCR image guidance as public by default.
+
+
 ## v0.2.2
 
 - Added deterministic scale fixture generation and validation targets.

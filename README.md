@@ -59,6 +59,7 @@ KBeacon is early-stage but functional. The current implementation includes:
 - Prometheus metrics.
 - Grafana dashboard JSON.
 - Prometheus alerting and recording rule examples.
+- Live scale benchmark reports for API, metrics, graph rebuild, and pod resource observations.
 - Helm chart.
 - GitHub Actions CI, GitHub Pages documentation, and GHCR release publishing.
 
@@ -170,6 +171,7 @@ See docs/user-guide/blast-radius-demo.md.
 - Blast-radius demo: docs/user-guide/blast-radius-demo.md
 - Live demo metric validation: `make demo-metrics-live`
 - Scale testing: docs/user-guide/scale-testing.md
+- Live scale benchmark reports: `make scale-benchmark`
 
 
 - Website: https://memoliyasti.github.io/kbeacon/

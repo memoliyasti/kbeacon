@@ -1,11 +1,28 @@
-# KBeacon scale fixture
+# Scale fixtures and benchmarks
 
-This directory documents the generated scale fixture used for local benchmarking.
+This directory documents KBeacon scale testing helpers.
 
-Generate manifests with:
+## Deterministic fixture generator
 
-    ./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 100 500
+```bash
+./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 25 100
+```
 
-The generated manifests are intentionally written to `/tmp` by default and are not committed.
+The generator writes Kubernetes manifests and an `expected-summary.json` file. It is useful for dry-run validation and for creating repeatable live workloads.
 
-See `docs/user-guide/scale-testing.md` for the full guide.
+## Live benchmark report
+
+Run against a live KBeacon Agent API:
+
+```bash
+kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+make scale-benchmark
+```
+
+For larger levels:
+
+```bash
+KBEACON_SCALE_LEVELS="100 1000 5000" make scale-benchmark
+```
+
+Reports are written to `/tmp/kbeacon-scale-benchmark/reports/<timestamp>/` by default and are not committed to the repository.

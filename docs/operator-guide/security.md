@@ -15,7 +15,7 @@ KBeacon uses read-only Kubernetes access and does not export Secret values. It s
 
 ## Private registry tokens
 
-Use a classic GitHub PAT with read:packages only for Kubernetes image pulls from private GHCR packages. Do not reuse maintainer admin tokens for clusters. Rotate any token that has been pasted into a terminal transcript, issue, pull request, chat, or documentation.
+The official KBeacon GHCR image is public and does not require a Kubernetes image pull Secret. For private forks or private registries, use a narrowly scoped pull credential, do not reuse maintainer admin tokens for clusters, and rotate any token that has been pasted into a terminal transcript, issue, pull request, chat, or documentation.
 
 ## Metadata sensitivity
 

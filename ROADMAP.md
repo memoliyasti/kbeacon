@@ -14,6 +14,9 @@ Implemented today:
 - Helm chart.
 - Low-privilege mode without Secret object reads.
 - Edge metric cardinality guard.
+- API filtering and bounded pagination.
+- Metadata fallback from existing workload labels.
+- Live scale benchmark report harness.
 - GitHub Actions CI, release workflow, and documentation website.
 
 ## Near-term priorities
@@ -22,10 +25,11 @@ Implemented today:
 
 - Keep README, website, Helm reference, OpenAPI, and examples aligned with real behavior.
 - Add more end-to-end examples for common Secret patterns.
-- Improve private GHCR installation guidance.
 - Keep Minikube as a local development workflow, not as the production install path.
 
 ### Safety and operability
+
+- Release and security hardening: SBOM, provenance/attestation documentation, checksum verification, branch protection recommendations, and token hygiene.
 
 - Continue tightening least-privilege RBAC examples.
 - Add more tests for low-privilege and namespace-scoped installs.

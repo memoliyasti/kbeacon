@@ -1,62 +1,90 @@
 # Scale testing
 
-KBeacon includes a deterministic scale fixture generator for local performance and cardinality checks.
+KBeacon includes deterministic scale tooling for two separate purposes:
 
-The generator creates:
+1. fixture generation for repeatable manifests;
+2. live benchmark reporting against a running Agent.
 
-- one namespace;
-- a configurable number of Kubernetes Secrets;
-- a configurable number of Deployments;
-- three Secret references per Deployment: `env.secretKeyRef`, `envFrom.secretRef`, and `volumes.secret`.
+The scale tools are intentionally local-development utilities. They are not run as part of normal CI because large fixture levels can create many Kubernetes objects.
 
-## Generate a small fixture
+## Generate a fixture
 
-    make scale-generate
+Generate 25 Secrets and 100 workloads:
 
-The default output directory is:
+```bash
+./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 25 100
+```
 
-    /tmp/kbeacon-scale-fixture
+The generator writes:
 
-## Dry-run generated manifests
+- `namespace.yaml`
+- `secrets.yaml`
+- `workloads.yaml`
+- `expected-summary.json`
 
-    make scale-dry-run
+Dry-run the generated manifests:
 
-## Generate a custom fixture
+```bash
+make scale-dry-run
+```
 
-    ./hack/generate-scale-fixture.sh /tmp/kbeacon-scale-fixture kbeacon-scale 100 500
+## Live benchmark report
 
-Arguments are:
+The live benchmark requires a running KBeacon Agent and a reachable local Agent API.
 
-1. output directory;
-2. namespace;
-3. Secret count;
-4. workload count.
+Start a port-forward:
 
-## Apply manually
+```bash
+kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+```
 
-    kubectl apply -f /tmp/kbeacon-scale-fixture/namespace.yaml
-    kubectl apply -f /tmp/kbeacon-scale-fixture/secrets.yaml
-    kubectl apply -f /tmp/kbeacon-scale-fixture/workloads.yaml
+Run a small benchmark:
 
-## Observe KBeacon
+```bash
+make scale-benchmark
+```
 
-After applying the fixture, observe:
+Run explicit levels, for example 100, 1k, and 5k workloads:
 
-    kbeacon_cluster_dependency_count
-    kbeacon_cluster_secret_count
-    kbeacon_cluster_workload_count
-    kbeacon_graph_update_duration_seconds
-    process_resident_memory_bytes
+```bash
+KBEACON_SCALE_LEVELS="100 1000 5000" make scale-benchmark
+```
 
-For high-cardinality Prometheus environments, test with edge metrics disabled:
+The benchmark harness:
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --set cluster.name=prod-eu-1 \
-      --set metrics.edge.enabled=false
+- generates one namespace per level;
+- applies deterministic Secret and workload manifests;
+- waits until `/api/v1/workloads?namespace=<level>` reports the expected workload count;
+- measures API response time for `/api/v1/config`, `/api/v1/secrets`, `/api/v1/workloads`, and `/api/v1/dependency-map`;
+- counts emitted `/metrics` samples;
+- records graph rebuild average from direct metrics;
+- records Prometheus p95 graph rebuild latency when `PROMETHEUS_URL` is reachable;
+- records best-effort `kubectl top pod` memory when metrics-server is available;
+- writes JSON and Markdown reports under `/tmp/kbeacon-scale-benchmark/reports/<timestamp>/`.
 
-## Clean up
+Useful environment variables:
 
-    make scale-delete
+| Variable | Default | Description |
+| --- | --- | --- |
+| `KBEACON_URL` | `http://127.0.0.1:8081` | Local Agent API URL. |
+| `PROMETHEUS_URL` | `http://127.0.0.1:9090` | Optional Prometheus API URL. |
+| `KBEACON_SCALE_LEVELS` | `100 1000` | Space-separated workload counts. |
+| `KBEACON_SCALE_SECRET_RATIO` | `4` | Approximate workloads-per-Secret ratio. |
+| `KBEACON_SCALE_RETAIN` | `false` | Keep generated namespaces after each level. |
+| `KBEACON_SCALE_BENCHMARK_OUT` | `/tmp/kbeacon-scale-benchmark` | Report output root. |
 
-This removes the generated namespace `kbeacon-scale`.
+## Reading results
+
+The Markdown summary contains one row per level:
+
+- generated workload count;
+- generated Secret count;
+- expected edge count;
+- observed workload count;
+- observed dependency-map edge count;
+- list and dependency-map API latency;
+- metric sample count;
+- graph rebuild average and optional Prometheus p95;
+- optional pod memory.
+
+Benchmark numbers depend on the Kubernetes runtime, node size, Prometheus scrape interval, and whether `metrics.edge.enabled` is enabled. Use the same cluster shape and values when comparing runs.

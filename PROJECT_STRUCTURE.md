@@ -31,6 +31,7 @@ kbeacon/
     prometheus/                  # Scrape, remote_write, recording and alert rules
     api/                         # Example API responses
     demo-blast-radius/           # Runnable Secret blast-radius demo
+    scale/                       # Scale fixture and benchmark documentation
   cmd/kbeacon-agent/             # KBeacon Agent entrypoint
   internal/
     config/                      # Runtime config loading and defaults

@@ -18,3 +18,7 @@ The release workflow publishes:
 Images are published to:
 
     ghcr.io/memoliyasti/kbeacon
+
+## Image visibility
+
+Official KBeacon GHCR packages are public by default. Kubernetes clusters do not need an image pull Secret for the default image. Use imagePullSecrets only for private forks or private registries.

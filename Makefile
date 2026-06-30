@@ -10,11 +10,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-delete stale-check release-metadata-check package clean dashboards-lint
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint stale-check release-metadata-check
+validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
 
 ci: validate-ci
 
@@ -92,6 +92,12 @@ scale-dry-run: scale-generate
 	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/namespace.yaml > /tmp/kbeacon-scale-dry-run.txt
 	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/secrets.yaml >> /tmp/kbeacon-scale-dry-run.txt
 	kubectl apply --dry-run=client --validate=false -f /tmp/kbeacon-scale-fixture/workloads.yaml >> /tmp/kbeacon-scale-dry-run.txt
+
+scale-benchmark-lint:
+	bash -n hack/benchmark-scale.sh
+
+scale-benchmark: scale-benchmark-lint
+	./hack/benchmark-scale.sh
 
 scale-delete:
 	kubectl delete namespace kbeacon-scale --ignore-not-found

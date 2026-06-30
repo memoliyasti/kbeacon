@@ -270,3 +270,9 @@ KBeacon can map existing workload labels into KBeacon metadata fields.
           - criticality
 
 KBeacon annotations have higher precedence than label fallback. Use annotations when a workload needs an explicit override.
+
+## Scale benchmark
+
+KBeacon includes a live scale benchmark harness for local and staging clusters. See `docs/user-guide/scale-testing.md` and run:
+
+    make scale-benchmark

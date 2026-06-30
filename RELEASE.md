@@ -51,6 +51,6 @@ For release `v0.2.2`, the workflow publishes:
     ghcr.io/memoliyasti/kbeacon:latest
     ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
 
-## Private GHCR packages
+## Official GHCR package visibility
 
-If the package is private, Kubernetes clusters need an image pull secret with `read:packages` permission.
+Official KBeacon GHCR packages for this repository are expected to be public. Kubernetes clusters do not need an image pull Secret for the default image. Use `imagePullSecrets` only for private forks or private registries.
