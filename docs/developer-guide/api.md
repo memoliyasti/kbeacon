@@ -1,3 +1,4 @@
+
 # API
 
 The Agent exposes a read-only HTTP API.
@@ -37,6 +38,16 @@ Most API responses use this envelope:
       "data": {}
     }
 
+List endpoints and `/api/v1/dependency-map` also include `pagination`:
+
+    {
+      "limit": 100,
+      "offset": 0,
+      "total": 250,
+      "returned": 100,
+      "nextOffset": 100
+    }
+
 Errors use:
 
     {
@@ -46,6 +57,18 @@ Errors use:
         "message": "Workload not found in dependency graph"
       }
     }
+
+Invalid query values use `400 invalid_query`.
+
+## Filtering and pagination
+
+`/api/v1/secrets` supports `namespace`, `ownerTeam`, `criticality`, `exists`, `secretName`, `limit`, and `offset`.
+
+`/api/v1/workloads` supports `namespace`, `ownerTeam`, `criticality`, `workloadKind`, `workloadName`, `discoveryMode`, `limit`, and `offset`.
+
+`/api/v1/dependency-map` supports edge filtering with `namespace`, `workloadNamespace`, `secretNamespace`, `workloadKind`, `workloadName`, `secretName`, `ownerTeam`, `criticality`, `resolved`, `discoveryMode`, `limit`, and `offset`.
+
+`limit` defaults to `100` and is capped at `1000`.
 
 ## Implementation notes
 

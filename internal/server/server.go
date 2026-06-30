@@ -2,12 +2,19 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/memoliyasti/kbeacon/internal/graph"
+)
+
+const (
+	defaultLimit = 100
+	maxLimit     = 1000
 )
 
 type Options struct {
@@ -23,6 +30,19 @@ type Options struct {
 type Server struct {
 	options Options
 	mux     *http.ServeMux
+}
+
+type paginationRequest struct {
+	Limit  int
+	Offset int
+}
+
+type paginationResponse struct {
+	Limit      int  `json:"limit"`
+	Offset     int  `json:"offset"`
+	Total      int  `json:"total"`
+	Returned   int  `json:"returned"`
+	NextOffset *int `json:"nextOffset,omitempty"`
 }
 
 func New(options Options) http.Handler {
@@ -101,10 +121,23 @@ func (s *Server) discovery(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) listSecrets(w http.ResponseWriter, r *http.Request) {
-	items := s.options.Graph.ListSecrets()
 	q := r.URL.Query()
 
+	pageRequest, err := parsePagination(q)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+
+	exists, hasExists, err := boolQueryParam(q, "exists")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+
+	items := s.options.Graph.ListSecrets()
 	filtered := make([]graph.SecretSummary, 0, len(items))
+
 	for _, item := range items {
 		if v := q.Get("namespace"); v != "" && item.Ref.Namespace != v {
 			continue
@@ -115,17 +148,32 @@ func (s *Server) listSecrets(w http.ResponseWriter, r *http.Request) {
 		if v := q.Get("criticality"); v != "" && item.Criticality != v {
 			continue
 		}
+		if v := q.Get("secretName"); v != "" && item.Ref.Name != v {
+			continue
+		}
+		if hasExists && item.Exists != exists {
+			continue
+		}
+
 		filtered = append(filtered, item)
 	}
 
-	s.writeEnvelope(w, filtered)
+	paged, pagination := paginate(filtered, pageRequest)
+	s.writeEnvelopeWithPagination(w, paged, pagination)
 }
 
 func (s *Server) listWorkloads(w http.ResponseWriter, r *http.Request) {
-	items := s.options.Graph.ListWorkloads()
 	q := r.URL.Query()
 
+	pageRequest, err := parsePagination(q)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+
+	items := s.options.Graph.ListWorkloads()
 	filtered := make([]graph.WorkloadSummary, 0, len(items))
+
 	for _, item := range items {
 		if v := q.Get("namespace"); v != "" && item.Ref.Namespace != v {
 			continue
@@ -139,14 +187,81 @@ func (s *Server) listWorkloads(w http.ResponseWriter, r *http.Request) {
 		if v := q.Get("workloadKind"); v != "" && !strings.EqualFold(item.Ref.Kind, v) {
 			continue
 		}
+		if v := q.Get("workloadName"); v != "" && item.Ref.Name != v {
+			continue
+		}
+		if v := q.Get("discoveryMode"); v != "" && !strings.EqualFold(string(item.DiscoveryMode), v) {
+			continue
+		}
+
 		filtered = append(filtered, item)
 	}
 
-	s.writeEnvelope(w, filtered)
+	paged, pagination := paginate(filtered, pageRequest)
+	s.writeEnvelopeWithPagination(w, paged, pagination)
 }
 
-func (s *Server) dependencyMap(w http.ResponseWriter, _ *http.Request) {
-	s.writeEnvelope(w, s.options.Graph.DependencyMap())
+func (s *Server) dependencyMap(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	pageRequest, err := parsePagination(q)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+
+	resolved, hasResolved, err := boolQueryParam(q, "resolved")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+
+	depMap := s.options.Graph.DependencyMap()
+	filteredEdges := make([]graph.DependencyEdge, 0, len(depMap.Edges))
+
+	for _, edge := range depMap.Edges {
+		if v := q.Get("namespace"); v != "" && edge.Workload.Namespace != v && edge.Secret.Namespace != v {
+			continue
+		}
+		if v := q.Get("workloadNamespace"); v != "" && edge.Workload.Namespace != v {
+			continue
+		}
+		if v := q.Get("secretNamespace"); v != "" && edge.Secret.Namespace != v {
+			continue
+		}
+		if v := q.Get("workloadKind"); v != "" && !strings.EqualFold(edge.Workload.Kind, v) {
+			continue
+		}
+		if v := q.Get("workloadName"); v != "" && edge.Workload.Name != v {
+			continue
+		}
+		if v := q.Get("secretName"); v != "" && edge.Secret.Name != v {
+			continue
+		}
+		if v := q.Get("ownerTeam"); v != "" && edge.OwnerTeam != v {
+			continue
+		}
+		if v := q.Get("criticality"); v != "" && edge.Criticality != v {
+			continue
+		}
+		if v := q.Get("discoveryMode"); v != "" && !strings.EqualFold(string(edge.DiscoveryMode), v) {
+			continue
+		}
+		if hasResolved && edge.Resolved != resolved {
+			continue
+		}
+
+		filteredEdges = append(filteredEdges, edge)
+	}
+
+	pagedEdges, pagination := paginate(filteredEdges, pageRequest)
+
+	out := graph.DependencyMap{
+		Nodes: nodesForEdges(depMap.Nodes, pagedEdges),
+		Edges: pagedEdges,
+	}
+
+	s.writeEnvelopeWithPagination(w, out, pagination)
 }
 
 func (s *Server) secretSubresource(w http.ResponseWriter, r *http.Request) {
@@ -221,6 +336,106 @@ func (s *Server) writeEnvelope(w http.ResponseWriter, data any) {
 		"generatedAt": s.options.Now().UTC().Format(time.RFC3339),
 		"data":        data,
 	})
+}
+
+func (s *Server) writeEnvelopeWithPagination(w http.ResponseWriter, data any, pagination paginationResponse) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"apiVersion":  "kbeacon.io/v1",
+		"cluster":     s.options.Cluster,
+		"generatedAt": s.options.Now().UTC().Format(time.RFC3339),
+		"pagination":  pagination,
+		"data":        data,
+	})
+}
+
+func parsePagination(values url.Values) (paginationRequest, error) {
+	out := paginationRequest{
+		Limit:  defaultLimit,
+		Offset: 0,
+	}
+
+	if raw := strings.TrimSpace(values.Get("limit")); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 1 {
+			return out, fmt.Errorf("limit must be a positive integer")
+		}
+		if parsed > maxLimit {
+			parsed = maxLimit
+		}
+		out.Limit = parsed
+	}
+
+	if raw := strings.TrimSpace(values.Get("offset")); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 0 {
+			return out, fmt.Errorf("offset must be a non-negative integer")
+		}
+		out.Offset = parsed
+	}
+
+	return out, nil
+}
+
+func boolQueryParam(values url.Values, key string) (bool, bool, error) {
+	raw := strings.TrimSpace(values.Get(key))
+	if raw == "" {
+		return false, false, nil
+	}
+
+	switch strings.ToLower(raw) {
+	case "true", "1", "yes", "y", "on":
+		return true, true, nil
+	case "false", "0", "no", "n", "off":
+		return false, true, nil
+	default:
+		return false, true, fmt.Errorf("%s must be a boolean", key)
+	}
+}
+
+func paginate[T any](items []T, request paginationRequest) ([]T, paginationResponse) {
+	total := len(items)
+
+	start := request.Offset
+	if start > total {
+		start = total
+	}
+
+	end := start + request.Limit
+	if end > total {
+		end = total
+	}
+
+	var nextOffset *int
+	if end < total {
+		next := end
+		nextOffset = &next
+	}
+
+	return items[start:end], paginationResponse{
+		Limit:      request.Limit,
+		Offset:     request.Offset,
+		Total:      total,
+		Returned:   end - start,
+		NextOffset: nextOffset,
+	}
+}
+
+func nodesForEdges(nodes []graph.DependencyMapNode, edges []graph.DependencyEdge) []graph.DependencyMapNode {
+	needed := map[string]struct{}{}
+
+	for _, edge := range edges {
+		needed["workload:"+graph.WorkloadID(edge.Workload)] = struct{}{}
+		needed["secret:"+graph.SecretID(edge.Secret)] = struct{}{}
+	}
+
+	out := make([]graph.DependencyMapNode, 0, len(needed))
+	for _, node := range nodes {
+		if _, ok := needed[node.ID]; ok {
+			out = append(out, node)
+		}
+	}
+
+	return out
 }
 
 func splitPath(path string) []string {

@@ -55,7 +55,7 @@ KBeacon is early-stage but functional. The current implementation includes:
 - Namespace include and exclude filtering.
 - Resource watcher enablement.
 - In-memory dependency graph cache.
-- Read-only REST API.
+- Read-only REST API with filtering and bounded pagination.
 - Prometheus metrics.
 - Grafana dashboard JSON.
 - Prometheus alerting and recording rule examples.
@@ -168,7 +168,8 @@ See docs/user-guide/blast-radius-demo.md.
 ## Documentation
 
 - Blast-radius demo: docs/user-guide/blast-radius-demo.md
-- Live demo metric validation: `make demo-metrics-live`\n- Scale testing: docs/user-guide/scale-testing.md
+- Live demo metric validation: `make demo-metrics-live`
+- Scale testing: docs/user-guide/scale-testing.md
 
 
 - Website: https://memoliyasti.github.io/kbeacon/

@@ -79,7 +79,71 @@ func newTestServer() http.Handler {
 	})
 }
 
+func newRichTestServer() http.Handler {
+	cache := graph.NewCache("test-cluster")
+	now := time.Unix(1000, 0).UTC()
+
+	paymentsAPI := graph.WorkloadRef{Cluster: "test-cluster", Namespace: "payments", APIVersion: "apps/v1", Kind: "Deployment", Name: "payments-api"}
+	paymentJob := graph.WorkloadRef{Cluster: "test-cluster", Namespace: "payments", APIVersion: "batch/v1", Kind: "Job", Name: "payment-reconciler"}
+	reportsAPI := graph.WorkloadRef{Cluster: "test-cluster", Namespace: "reports", APIVersion: "apps/v1", Kind: "Deployment", Name: "reports-api"}
+
+	paymentsDB := graph.SecretRef{Cluster: "test-cluster", Namespace: "payments", Name: "payments-db"}
+	legacyToken := graph.SecretRef{Cluster: "test-cluster", Namespace: "payments", Name: "legacy-payment-token"}
+	platformCA := graph.SecretRef{Cluster: "test-cluster", Namespace: "shared", Name: "platform-ca"}
+
+	cache.ApplySnapshot(
+		[]graph.SecretInput{
+			{Ref: paymentsDB, Type: "Opaque", OwnerTeam: "payments-platform", Criticality: "critical", ResourceVersion: "1", CreationTimestamp: now},
+			{Ref: platformCA, Type: "Opaque", OwnerTeam: "platform", Criticality: "high", ResourceVersion: "1", CreationTimestamp: now},
+		},
+		[]graph.WorkloadInput{
+			{
+				Ref:           paymentsAPI,
+				OwnerTeam:     "payments-platform",
+				Service:       "payments",
+				Environment:   "prod",
+				Criticality:   "critical",
+				DiscoveryMode: graph.DiscoveryModeHybrid,
+				Edges: []graph.DependencyEdge{
+					{Workload: paymentsAPI, Secret: paymentsDB, DiscoveryMode: graph.DiscoveryModeInfer, Sources: []graph.DependencySource{{Type: "env.secretKeyRef", Path: "env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]", Container: "api", EnvVar: "DB_PASSWORD"}}},
+					{Workload: paymentsAPI, Secret: legacyToken, DiscoveryMode: graph.DiscoveryModeExplicit, Sources: []graph.DependencySource{{Type: "annotation", Path: "metadata.annotations[kbeacon.io/watch-secrets]", Annotation: "kbeacon.io/watch-secrets"}}},
+				},
+			},
+			{
+				Ref:           paymentJob,
+				OwnerTeam:     "payments-platform",
+				Service:       "payments",
+				Environment:   "prod",
+				Criticality:   "high",
+				DiscoveryMode: graph.DiscoveryModeInfer,
+				Edges: []graph.DependencyEdge{
+					{Workload: paymentJob, Secret: platformCA, DiscoveryMode: graph.DiscoveryModeInfer, Sources: []graph.DependencySource{{Type: "volumes.secret", Path: "spec.volumes[ca].secret.secretName"}}},
+				},
+			},
+			{
+				Ref:           reportsAPI,
+				OwnerTeam:     "data-platform",
+				Service:       "reports",
+				Environment:   "prod",
+				Criticality:   "medium",
+				DiscoveryMode: graph.DiscoveryModeExplicit,
+				Edges: []graph.DependencyEdge{
+					{Workload: reportsAPI, Secret: paymentsDB, DiscoveryMode: graph.DiscoveryModeExplicit, Sources: []graph.DependencySource{{Type: "annotation", Path: "metadata.annotations[kbeacon.io/watch-secrets]", Annotation: "kbeacon.io/watch-secrets"}}},
+				},
+			},
+		},
+		now,
+	)
+
+	return New(Options{Cluster: "test-cluster", Version: "test", Commit: "test", Now: func() time.Time { return now }, Graph: cache})
+}
+
 func getJSON(t *testing.T, h http.Handler, path string) map[string]any {
+	t.Helper()
+	return getJSONStatus(t, h, path, http.StatusOK)
+}
+
+func getJSONStatus(t *testing.T, h http.Handler, path string, status int) map[string]any {
 	t.Helper()
 
 	req := httptest.NewRequest(http.MethodGet, path, nil)
@@ -87,8 +151,8 @@ func getJSON(t *testing.T, h http.Handler, path string) map[string]any {
 
 	h.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("GET %s returned status %d body=%s", path, rec.Code, rec.Body.String())
+	if rec.Code != status {
+		t.Fatalf("GET %s returned status %d, expected %d, body=%s", path, rec.Code, status, rec.Body.String())
 	}
 
 	var out map[string]any
@@ -97,6 +161,16 @@ func getJSON(t *testing.T, h http.Handler, path string) map[string]any {
 	}
 
 	return out
+}
+
+func pagination(t *testing.T, out map[string]any) map[string]any {
+	t.Helper()
+
+	p, ok := out["pagination"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected pagination object, got %#v", out["pagination"])
+	}
+	return p
 }
 
 func TestDependencyMapResponseShape(t *testing.T) {
@@ -203,6 +277,112 @@ func TestListFilters(t *testing.T) {
 	workloads := getJSON(t, h, "/api/v1/workloads?workloadKind=deployment")
 	if got := len(workloads["data"].([]any)); got != 1 {
 		t.Fatalf("expected case-insensitive workloadKind filter to match, got %d", got)
+	}
+}
+
+func TestSecretsPaginationAndFilters(t *testing.T) {
+	h := newRichTestServer()
+
+	out := getJSON(t, h, "/api/v1/secrets?limit=1&offset=1")
+	data := out["data"].([]any)
+	if len(data) != 1 {
+		t.Fatalf("expected one paged secret, got %d", len(data))
+	}
+
+	page := pagination(t, out)
+	if page["limit"].(float64) != 1 || page["offset"].(float64) != 1 || page["total"].(float64) != 3 || page["returned"].(float64) != 1 {
+		t.Fatalf("unexpected pagination: %#v", page)
+	}
+	if page["nextOffset"].(float64) != 2 {
+		t.Fatalf("expected nextOffset 2, got %#v", page)
+	}
+
+	unresolved := getJSON(t, h, "/api/v1/secrets?exists=false")
+	unresolvedItems := unresolved["data"].([]any)
+	if len(unresolvedItems) != 1 {
+		t.Fatalf("expected one unresolved secret, got %d", len(unresolvedItems))
+	}
+
+	ref := unresolvedItems[0].(map[string]any)["ref"].(map[string]any)
+	if ref["name"] != "legacy-payment-token" {
+		t.Fatalf("expected legacy-payment-token, got %#v", ref)
+	}
+
+	paymentsDB := getJSON(t, h, "/api/v1/secrets?secretName=payments-db&ownerTeam=payments-platform")
+	if got := len(paymentsDB["data"].([]any)); got != 1 {
+		t.Fatalf("expected one payments-db secret, got %d", got)
+	}
+}
+
+func TestWorkloadsPaginationAndFilters(t *testing.T) {
+	h := newRichTestServer()
+
+	out := getJSON(t, h, "/api/v1/workloads?namespace=payments&workloadKind=deployment&workloadName=payments-api&discoveryMode=hybrid")
+	items := out["data"].([]any)
+	if len(items) != 1 {
+		t.Fatalf("expected one filtered workload, got %d", len(items))
+	}
+
+	item := items[0].(map[string]any)
+	if item["ownerTeam"] != "payments-platform" {
+		t.Fatalf("expected payments-platform owner team, got %#v", item)
+	}
+
+	capped := getJSON(t, h, "/api/v1/workloads?limit=5000")
+	page := pagination(t, capped)
+	if page["limit"].(float64) != maxLimit {
+		t.Fatalf("expected capped limit %d, got %#v", maxLimit, page)
+	}
+}
+
+func TestDependencyMapPaginationAndFilters(t *testing.T) {
+	h := newRichTestServer()
+
+	out := getJSON(t, h, "/api/v1/dependency-map?secretName=payments-db&resolved=true&limit=10")
+	data := out["data"].(map[string]any)
+
+	edges := data["edges"].([]any)
+	if len(edges) != 2 {
+		t.Fatalf("expected two resolved payments-db edges, got %d: %#v", len(edges), edges)
+	}
+
+	nodes := data["nodes"].([]any)
+	if len(nodes) != 3 {
+		t.Fatalf("expected three nodes for two edges sharing one secret, got %d: %#v", len(nodes), nodes)
+	}
+
+	page := pagination(t, out)
+	if page["total"].(float64) != 2 || page["returned"].(float64) != 2 {
+		t.Fatalf("unexpected dependency-map pagination: %#v", page)
+	}
+
+	unresolved := getJSON(t, h, "/api/v1/dependency-map?resolved=false")
+	unresolvedData := unresolved["data"].(map[string]any)
+	unresolvedEdges := unresolvedData["edges"].([]any)
+	if len(unresolvedEdges) != 1 {
+		t.Fatalf("expected one unresolved edge, got %d: %#v", len(unresolvedEdges), unresolvedEdges)
+	}
+
+	edge := unresolvedEdges[0].(map[string]any)
+	secret := edge["secret"].(map[string]any)
+	if secret["name"] != "legacy-payment-token" {
+		t.Fatalf("expected legacy-payment-token unresolved edge, got %#v", edge)
+	}
+}
+
+func TestInvalidPaginationAndBooleanFiltersReturn400(t *testing.T) {
+	h := newRichTestServer()
+
+	out := getJSONStatus(t, h, "/api/v1/secrets?limit=abc", http.StatusBadRequest)
+	errObj := out["error"].(map[string]any)
+	if errObj["code"] != "invalid_query" {
+		t.Fatalf("expected invalid_query, got %#v", errObj)
+	}
+
+	out = getJSONStatus(t, h, "/api/v1/dependency-map?resolved=maybe", http.StatusBadRequest)
+	errObj = out["error"].(map[string]any)
+	if errObj["code"] != "invalid_query" {
+		t.Fatalf("expected invalid_query, got %#v", errObj)
 	}
 }
 

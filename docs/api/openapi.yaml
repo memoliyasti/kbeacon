@@ -74,6 +74,10 @@ paths:
         - $ref: "#/components/parameters/Namespace"
         - $ref: "#/components/parameters/OwnerTeam"
         - $ref: "#/components/parameters/Criticality"
+        - $ref: "#/components/parameters/Exists"
+        - $ref: "#/components/parameters/SecretName"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
       responses:
         "200":
           description: Secret list.
@@ -99,11 +103,11 @@ paths:
         - $ref: "#/components/parameters/Namespace"
         - $ref: "#/components/parameters/OwnerTeam"
         - $ref: "#/components/parameters/Criticality"
-        - name: workloadKind
-          in: query
-          schema:
-            type: string
-          description: Case-insensitive workload kind filter, for example Deployment.
+        - $ref: "#/components/parameters/WorkloadKind"
+        - $ref: "#/components/parameters/WorkloadName"
+        - $ref: "#/components/parameters/DiscoveryModeQuery"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
       responses:
         "200":
           description: Workload list.
@@ -125,6 +129,19 @@ paths:
     get:
       summary: Get current dependency graph
       operationId: getDependencyMap
+      parameters:
+        - $ref: "#/components/parameters/Namespace"
+        - $ref: "#/components/parameters/WorkloadNamespace"
+        - $ref: "#/components/parameters/SecretNamespace"
+        - $ref: "#/components/parameters/WorkloadKind"
+        - $ref: "#/components/parameters/WorkloadName"
+        - $ref: "#/components/parameters/SecretName"
+        - $ref: "#/components/parameters/OwnerTeam"
+        - $ref: "#/components/parameters/Criticality"
+        - $ref: "#/components/parameters/Resolved"
+        - $ref: "#/components/parameters/DiscoveryModeQuery"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
       responses:
         "200":
           description: Dependency map.
@@ -250,12 +267,71 @@ components:
           - high
           - critical
       description: Exact criticality filter.
-    PathNamespace:
-      name: namespace
-      in: path
-      required: true
+    Exists:
+      name: exists
+      in: query
+      schema:
+        type: boolean
+      description: Exact Secret existence filter. Unresolved or unobservable references use false.
+    Resolved:
+      name: resolved
+      in: query
+      schema:
+        type: boolean
+      description: Exact dependency edge resolution filter.
+    SecretName:
+      name: secretName
+      in: query
       schema:
         type: string
+      description: Exact Secret name filter.
+    WorkloadName:
+      name: workloadName
+      in: query
+      schema:
+        type: string
+      description: Exact workload name filter.
+    WorkloadKind:
+      name: workloadKind
+      in: query
+      schema:
+        type: string
+      description: Case-insensitive workload kind filter, for example Deployment.
+    WorkloadNamespace:
+      name: workloadNamespace
+      in: query
+      schema:
+        type: string
+      description: Exact workload namespace filter for dependency-map edges.
+    SecretNamespace:
+      name: secretNamespace
+      in: query
+      schema:
+        type: string
+      description: Exact Secret namespace filter for dependency-map edges.
+    DiscoveryModeQuery:
+      name: discoveryMode
+      in: query
+      schema:
+        $ref: "#/components/schemas/DiscoveryMode"
+      description: Exact discovery mode filter.
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 100
+        maximum: 1000
+      description: Maximum items or edges to return. Values above 1000 are capped to 1000.
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Zero-based result offset.
 
   responses:
     Error:
@@ -327,7 +403,24 @@ components:
         generatedAt:
           type: string
           format: date-time
+        pagination:
+          $ref: "#/components/schemas/Pagination"
         data: {}
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        returned:
+          type: integer
+        nextOffset:
+          type: integer
+      additionalProperties: false
 
     ErrorEnvelope:
       type: object
