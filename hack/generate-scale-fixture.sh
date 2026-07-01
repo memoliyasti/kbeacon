@@ -115,6 +115,7 @@ printf "%s\n" "  \"namespace\": \"${NAMESPACE}\"," >> "${OUT_DIR}/expected-summa
 printf "%s\n" "  \"secretCount\": ${SECRET_COUNT}," >> "${OUT_DIR}/expected-summary.json"
 printf "%s\n" "  \"workloadCount\": ${WORKLOAD_COUNT}," >> "${OUT_DIR}/expected-summary.json"
 printf "%s\n" "  \"expectedDependencyEdges\": ${expected_edges}," >> "${OUT_DIR}/expected-summary.json"
+printf "%s\n" "  \"expected_edges\": ${expected_edges}," >> "${OUT_DIR}/expected-summary.json"
 printf "%s\n" "  \"edgesPerWorkload\": 3" >> "${OUT_DIR}/expected-summary.json"
 printf "%s\n" "}" >> "${OUT_DIR}/expected-summary.json"
 

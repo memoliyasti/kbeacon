@@ -248,7 +248,7 @@ for workloads in ${LEVELS}; do
   echo "===== scale level workloads=${workloads} secrets=${secrets} namespace=${namespace} ====="
   ./hack/generate-scale-fixture.sh "${fixture_dir}" "${namespace}" "${secrets}" "${workloads}" | tee "${level_dir}/fixture.log"
 
-  expected_edges="$(jq -r '.expectedEdges // .expected_edges // 0' "${fixture_dir}/expected-summary.json" 2>/dev/null || echo 0)"
+  expected_edges="$(jq -r '.expectedEdges // .expectedDependencyEdges // .expected_edges // .expectedEdges // .expectedDependencyEdges // .expected_edges // .expectedEdges // .expected_dependency_edges // 0' "${fixture_dir}/expected-summary.json" 2>/dev/null || echo 0)"
 
   if [[ "${APPLY}" == "true" ]]; then
     kubectl apply -f "${fixture_dir}/namespace.yaml" | tee "${level_dir}/apply.log"
