@@ -1,53 +1,108 @@
-# KBeacon Annotation Reference
+# Annotations Reference
 
-KBeacon annotations are optional metadata controls for discovery, ownership, and risk classification.
+KBeacon annotations provide explicit workload dependency modeling and ownership metadata on top of standard Kubernetes workload specs.
 
-All annotations use the `kbeacon.io/` prefix.
+Annotations are optional. KBeacon can infer most Secret references from Pod specs, and it can derive ownership metadata from existing labels when metadata label fallback is enabled.
 
-## Implemented annotations
+Use annotations when a workload needs an explicit override, a non-standard dependency, or metadata that should not be inferred from labels.
 
-| Annotation | Scope | Values | Default | Description |
-| --- | --- | --- | --- | --- |
-| `kbeacon.io/enabled` | Workload | `true`, `false` | `true` | Enables or disables discovery for a workload. |
-| `kbeacon.io/discovery-mode` | Workload | `infer`, `explicit`, `hybrid`, `disabled` | Agent default | Selects discovery behavior. |
-| `kbeacon.io/watch-secrets` | Workload | CSV Secret refs | empty | Explicit Secret dependency list. |
-| `kbeacon.io/watch-secrets-json` | Workload | JSON array of Secret ref strings | empty | Structured explicit dependencies. |
-| `kbeacon.io/ignore-secrets` | Workload | CSV Secret refs | empty | Removes matching inferred or explicit dependencies. |
-| `kbeacon.io/owner-team` | Workload, Secret | team slug | empty | Ownership metadata. |
-| `kbeacon.io/service` | Workload | service slug | empty | Service/application grouping. |
-| `kbeacon.io/environment` | Workload | env slug | empty | Environment metadata. |
-| `kbeacon.io/criticality` | Workload, Secret | `low`, `medium`, `high`, `critical` | `unknown` | Operational criticality. |
+## Supported annotation keys
 
-## Discovery modes
+| Annotation | Applies to | Purpose |
+| --- | --- | --- |
+| `kbeacon.io/enabled` | Workloads | Enable or disable KBeacon discovery for the workload. |
+| `kbeacon.io/discovery-mode` | Workloads | Override the default discovery mode. |
+| `kbeacon.io/watch-secrets` | Workloads | Add explicit Secret dependencies with comma-separated references. |
+| `kbeacon.io/watch-secrets-json` | Workloads | Add explicit Secret dependencies with a JSON string array. |
+| `kbeacon.io/ignore-secrets` | Workloads | Suppress selected inferred or explicit Secret dependencies. |
+| `kbeacon.io/owner-team` | Workloads and Secrets | Ownership metadata. |
+| `kbeacon.io/service` | Workloads | Service or application metadata. |
+| `kbeacon.io/environment` | Workloads | Environment metadata. |
+| `kbeacon.io/criticality` | Workloads and Secrets | Criticality metadata. |
 
-For operational examples and mode selection guidance, see [Discovery modes](../user-guide/discovery-modes.md).
+## Workload coverage
 
+Workload annotations are interpreted for normalized workloads discovered by KBeacon:
 
-### `infer`
+- `Pod`;
+- `Deployment`;
+- `StatefulSet`;
+- `DaemonSet`;
+- `Job`;
+- `CronJob`.
 
-KBeacon discovers dependencies from Pod specs:
+For controller workloads, annotations can be placed on the workload object. Pod template annotations can also be read when `discovery.readPodTemplateAnnotations=true`.
 
-- `env.valueFrom.secretKeyRef`
-- `envFrom.secretRef`
-- `volumes.secret`
-- `imagePullSecrets`
+When both object annotations and Pod template annotations are present, object-level annotations are the preferred source for workload-level intent.
 
-### `explicit`
+## Secret metadata annotations
 
-KBeacon uses only explicit annotations:
+Secret annotations are used only as metadata. KBeacon does not read, export, or store Secret values.
 
-- `kbeacon.io/watch-secrets`
-- `kbeacon.io/watch-secrets-json`
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/criticality: critical
+```
 
-### `hybrid`
+Secret metadata can affect API responses, metric labels, dashboard grouping, and impact scoring. Secret data and stringData are never exported.
 
-KBeacon combines inferred and explicit dependencies with deterministic deduplication.
+## Enable or disable discovery
 
-### `disabled`
+`kbeacon.io/enabled` is a workload-level switch.
 
-KBeacon returns no dependency edges for the annotated workload.
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/enabled: "false"
+```
 
-## `kbeacon.io/watch-secrets` grammar
+Behavior:
+
+| Value | Behavior |
+| --- | --- |
+| absent | Use the configured default discovery behavior. |
+| `"true"` | Allow discovery for the workload. |
+| `"false"` | Ignore the workload and emit no dependency edges for it. |
+
+Use this annotation to suppress discovery for infrastructure helper workloads, noisy test workloads, or objects that should not appear in dependency views.
+
+## Discovery mode override
+
+`kbeacon.io/discovery-mode` overrides `discovery.defaultMode` for one workload.
+
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/discovery-mode: hybrid
+```
+
+Supported values:
+
+| Mode | Behavior |
+| --- | --- |
+| `infer` | Discover Secret references from Kubernetes workload specs. |
+| `explicit` | Use only explicit KBeacon dependency annotations. |
+| `hybrid` | Combine inferred and explicit dependencies. |
+| `disabled` | Ignore the workload. |
+
+`hybrid` is the recommended default for most workloads.
+
+## Explicit Secret references
+
+Use explicit dependency annotations when a Secret dependency is not visible in a standard Pod spec field.
+
+Common examples:
+
+- application configuration references a Secret by name;
+- a controller or sidecar resolves a Secret dynamically;
+- a third-party resource is represented through a workload annotation;
+- dependency ownership is known by the platform team even when it is not inferable.
+
+## Reference grammar
+
+Explicit Secret references use this grammar:
 
 ```text
 secret
@@ -56,102 +111,151 @@ namespace/secret
 namespace/secret#key
 ```
 
-Example:
+Rules:
+
+- `secret` refers to a Secret in the workload namespace;
+- `namespace/secret` models a cross-namespace dependency;
+- `#key` is accepted for readability and compatibility, but KBeacon impact and graph aggregation are Secret-object level;
+- comma-separated annotations should not include empty trailing entries.
+
+## `kbeacon.io/watch-secrets`
+
+Comma-separated explicit dependency list.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/discovery-mode: hybrid
-    kbeacon.io/watch-secrets: "db-credentials#password,jwt-signing-key,shared/platform-ca"
-    kbeacon.io/owner-team: payments-platform
-    kbeacon.io/criticality: critical
+    kbeacon.io/watch-secrets: payments-db,shared/platform-ca,legacy-token#token
 ```
+
+This annotation is easy to read and works well for short dependency lists.
 
 ## `kbeacon.io/watch-secrets-json`
 
-The current implementation accepts a JSON array of strings using the same grammar as `kbeacon.io/watch-secrets`.
+JSON string array explicit dependency list.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/watch-secrets-json: '["db-credentials#password","shared/platform-ca"]'
+    kbeacon.io/watch-secrets-json: |
+      ["payments-db","shared/platform-ca","legacy-token#token"]
 ```
 
-Object-form JSON is planned but not implemented yet.
+Use the JSON form when values are generated by automation or when comma-separated strings become difficult to manage.
 
-## `kbeacon.io/ignore-secrets`
+The supported JSON contract is an array of string references. Object-form dependency definitions are not part of the current implemented annotation contract.
 
-Use this when inference discovers a Secret that should not be treated as an application dependency.
+## Ignoring selected Secrets
+
+`kbeacon.io/ignore-secrets` suppresses selected dependencies after discovery.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/ignore-secrets: "image-pull-secret,sidecar-token"
+    kbeacon.io/ignore-secrets: default-token,shared/noisy-secret
 ```
 
-## Existing label fallback
+Use this annotation carefully. It removes matching Secret references from the workload dependency graph and can hide real blast-radius relationships.
 
-KBeacon metadata annotations are optional.
+Typical use cases:
 
-For workload ownership and classification, KBeacon first checks `kbeacon.io/*` annotations. If those annotations are absent, it can read existing workload labels configured through `discovery.metadataLabels`.
+- suppressing known platform-managed references that are not useful for team dashboards;
+- excluding test-only or generated references;
+- reducing noise during phased adoption.
 
-Default label keys include common platform conventions such as:
+## Ownership metadata
 
-- `app.kubernetes.io/team`
-- `team`
-- `technical-owner`
-- `business-owner`
-- `app.kubernetes.io/name`
-- `service`
-- `app.kubernetes.io/environment`
-- `environment`
-- `priority`
-- `tier`
-- `slo-tier`
+Workload metadata annotations are optional but useful for grouping dashboards, alerts, and API responses.
 
-This lets teams adopt KBeacon without rolling out metadata-only annotation changes to application Pods.
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/service: payments-api
+    kbeacon.io/environment: prod
+    kbeacon.io/criticality: critical
+```
 
-## Ownership and criticality
+Recommended conventions:
 
-KBeacon derives Secret metadata as follows:
+| Field | Recommended value style | Example |
+| --- | --- | --- |
+| `owner-team` | stable platform or application team id | `payments-platform` |
+| `service` | stable service or application id | `payments-api` |
+| `environment` | deployment environment | `prod` |
+| `criticality` | one of `unknown`, `low`, `medium`, `high`, `critical` | `critical` |
 
-1. Direct Secret annotation when present.
-2. Affected workload metadata when a Secret has exactly one owner team.
-3. Maximum criticality from affected workloads.
-4. Built-in fallback: `unknown`.
+## Annotation and label precedence
 
-Example:
+KBeacon supports workload metadata label fallback through `discovery.metadataLabels`.
+
+Precedence for ownership and classification metadata:
+
+1. KBeacon annotations.
+2. Workload object labels.
+3. Pod template labels when pod template metadata is enabled.
+
+Use annotations for explicit overrides. Use label fallback for broad adoption across workloads that already have standard ownership labels.
+
+## Inferred dependency sources
+
+Annotations are not required for standard Kubernetes Secret references.
+
+KBeacon can infer dependencies from:
+
+- `env.valueFrom.secretKeyRef`;
+- `envFrom.secretRef`;
+- `volumes.secret`;
+- `imagePullSecrets`.
+
+Explicit annotations are merged with inferred dependencies in `hybrid` mode.
+
+## Example workload annotation block
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api
-  namespace: kbeacon-demo
+  name: payments-api
+  namespace: payments
   annotations:
-    kbeacon.io/owner-team: platform
-    kbeacon.io/criticality: high
+    kbeacon.io/enabled: "true"
+    kbeacon.io/discovery-mode: hybrid
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/service: payments-api
+    kbeacon.io/environment: prod
+    kbeacon.io/criticality: critical
+    kbeacon.io/watch-secrets: shared/platform-ca,legacy-payment-token
 ```
 
-If `Deployment/api` depends on `Secret/app-db-secret`, the Secret impact response can inherit:
+## Security considerations
 
-```json
-{
-  "ownerTeam": "platform",
-  "criticality": "high"
-}
-```
+KBeacon annotations must not contain Secret values.
 
-## Not implemented yet
+Safe annotation content:
 
-These annotations are reserved in design material but are not currently interpreted by the Agent:
+- Secret names;
+- Secret namespaces;
+- ownership metadata;
+- service metadata;
+- environment metadata;
+- criticality metadata.
 
-- namespace-level annotation inheritance;
-- `kbeacon.io/include-image-pull-secrets`;
-- `kbeacon.io/dependency-purpose`;
-- `kbeacon.io/external-id`;
-- `kbeacon.io/change-risk`;
-- `kbeacon.io/notes`;
-- object-form `kbeacon.io/watch-secrets-json`.
+Avoid placing credentials, tokens, connection strings, or raw configuration payloads in annotations. Kubernetes annotations are broadly visible to users and controllers that can read object metadata.
 
-Use `docs/technical-design.md` for long-term design intent.
+## Validation guidance
+
+Recommended checks when adding or changing annotations:
+
+- confirm the workload appears in the Agent API workload list;
+- confirm expected Secret dependencies appear in dependency-map or workload dependency responses;
+- confirm ignored references are intentionally absent;
+- review Prometheus labels for owner team and criticality metadata;
+- keep annotation values stable enough for dashboard grouping and alert routing.
+
+## Related documentation
+
+- Discovery modes: `docs/user-guide/discovery-modes.md`
+- Configuration: `docs/user-guide/configuration.md`
+- Metrics reference: `docs/reference/metrics.md`
+- API contract: `docs/api/openapi.yaml`

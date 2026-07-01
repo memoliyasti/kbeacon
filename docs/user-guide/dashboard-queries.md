@@ -1,159 +1,118 @@
 # Dashboard queries
 
-## Scrape label portability
+This page documents the PromQL patterns used by KBeacon Grafana dashboards.
 
-KBeacon domain metrics include a `cluster` label. The Prometheus `job` label depends on whether you use ServiceMonitor, Service annotations, or static scrape config. Use Grafana variables such as `$cluster` and `$job` instead of hard-coding a single job name.
+The dashboards are Prometheus-first. KBeacon discovers the current dependency graph, Prometheus or Grafana Mimir stores metric samples, and Grafana renders operational views.
 
+## Query model
 
-This page collects PromQL snippets used by the KBeacon dashboards and alerting examples.
+KBeacon dashboard queries should be portable across Prometheus integration styles.
 
-KBeacon dashboards are intentionally Prometheus first. The Agent discovers the graph, Prometheus stores the current and historical metric samples, and Grafana renders the operational view.
+Recommended query conventions:
+
+- use `$datasource` for the Grafana datasource;
+- use `$cluster` for KBeacon domain identity;
+- use `$job` only as a scrape-job selector;
+- use namespace and owner-team variables to narrow high-cardinality panels;
+- avoid assuming one hard-coded Prometheus job label;
+- keep `honor_labels=true` where possible so KBeacon labels are preserved.
+
+Common dashboard variables:
+
+| Variable | Purpose | Example source |
+| --- | --- | --- |
+| `$job` | Scrape job selector. | `label_values(kbeacon_build_info, job)` |
+| `$cluster` | Logical KBeacon cluster selector. | `label_values(kbeacon_cluster_dependency_count{job=~"$job"}, cluster)` |
+| `$namespace` | Namespace selector for workload or Secret panels. | `label_values(kbeacon_secret_affected_workload_count{job=~"$job",cluster=~"$cluster"}, namespace)` |
+| `$owner_team` | Owner team selector. | `label_values(kbeacon_secret_impact_score{job=~"$job",cluster=~"$cluster"}, owner_team)` |
+| `$criticality` | Criticality selector. | custom or metric label values |
+| `$resolved` | Dependency resolution selector. | custom values such as `true,false` |
+| `$discovery_mode` | Discovery mode selector. | custom or metric label values |
+| `$window` | Rate or increase window. | custom values such as `5m,15m,1h,6h,24h` |
 
 ## Agent health
 
-    up{job=~"$job"}
+Use Prometheus scrape health to verify that the Agent target is reachable.
 
-Use this to confirm Prometheus can scrape the Agent.
+```promql
+up{job=~"$job"}
+```
+
+For multi-cluster views, group by scrape and cluster labels when available.
+
+```promql
+max by (job, instance) (up{job=~"$job"})
+```
 
 ## Graph size
 
-    kbeacon_cluster_dependency_count{cluster=~"$cluster"}
-    kbeacon_cluster_secret_count{cluster=~"$cluster"}
-    kbeacon_cluster_workload_count{cluster=~"$cluster"}
+Current dependency edge count by cluster.
 
-These metrics show the current graph size by cluster.
+```promql
+kbeacon_cluster_dependency_count{job=~"$job",cluster=~"$cluster"}
+```
+
+Current observed Secret count by cluster.
+
+```promql
+kbeacon_cluster_secret_count{job=~"$job",cluster=~"$cluster"}
+```
+
+Current observed workload count by cluster.
+
+```promql
+kbeacon_cluster_workload_count{job=~"$job",cluster=~"$cluster"}
+```
 
 ## Highest impact Secrets
 
-    topk(20, kbeacon_secret_impact_score{cluster=~"$cluster"})
+Use impact score to identify Secrets that need additional review before rotation.
 
-Use this panel to find Secrets that should receive extra review before rotation.
+```promql
+topk(20, kbeacon_secret_impact_score{job=~"$job",cluster=~"$cluster",namespace=~"$namespace",owner_team=~"$owner_team"})
+```
 
 ## Secrets with broad fan-out
 
-    topk(20, kbeacon_secret_affected_workload_count{cluster=~"$cluster"})
+Use affected workload count to find widely referenced Secrets.
 
-This highlights Secrets referenced by many workloads.
+```promql
+topk(20, kbeacon_secret_affected_workload_count{job=~"$job",cluster=~"$cluster",namespace=~"$namespace",owner_team=~"$owner_team"})
+```
 
 ## Unresolved Secret references
 
-    kbeacon_unresolved_secret_references{cluster=~"$cluster"} > 0
+Unresolved references indicate missing or unobservable Secrets.
 
-This catches workloads that reference missing Secrets or Secrets that are not observable in low-privilege mode.
+```promql
+kbeacon_unresolved_secret_references{job=~"$job",cluster=~"$cluster",namespace=~"$namespace"} > 0
+```
+
+In low-privilege mode, unobservable Secret objects are represented as unresolved because the Agent cannot confirm existence.
 
 ## Workload dependency count
 
-    topk(20, kbeacon_workload_dependency_count{cluster=~"$cluster"})
+Use this query to identify workloads with many Secret dependencies.
 
-This helps identify workloads with many Secret dependencies.
+```promql
+topk(20, kbeacon_workload_dependency_count{job=~"$job",cluster=~"$cluster",namespace=~"$namespace",owner_team=~"$owner_team"})
+```
 
 ## Detailed dependency edges
 
-    kbeacon_dependency_edges{cluster=~"$cluster"}
-
-`kbeacon_dependency_edges` is the detailed edge metric. It includes workload and Secret names as labels. Keep it enabled for small and medium clusters when you want graph panels and troubleshooting detail.
-
-For large clusters or shared Prometheus environments, disable detailed edge metrics:
-
-    helm upgrade --install kbeacon ./charts/kbeacon --namespace kbeacon-system --set cluster.name=prod-eu-1 --set metrics.edge.enabled=false
-
-Aggregate metrics and the Agent API remain available when detailed edge metrics are disabled.
-
-## Graph rebuild latency
-
-    histogram_quantile(0.95, sum by (cluster, le) (rate(kbeacon_graph_update_duration_seconds_bucket{cluster=~"$cluster"}[5m])))
-
-Use this to understand how long graph rebuilds take after Kubernetes watch events.
-
-## Watch event rate
-
-    sum by (cluster, resource, event) (rate(kbeacon_kubernetes_watch_events_total{cluster=~"$cluster"}[5m]))
-
-Use this to see informer event pressure by resource type.
-
-## Cache sync status
-
-    min by (cluster, resource) (kbeacon_cache_sync_status{cluster=~"$cluster"})
-
-This should stay at `1` for enabled informers. Disabled resources are not emitted in this metric.
-
-## Demo validation
-
-The blast-radius demo includes a live metrics check:
-
-    make demo-metrics-live
-
-The dashboard JSON files can be validated locally with:
-
-    make dashboards-lint
-
-## Prometheus label handling
-
-KBeacon metrics use labels such as `namespace`, `secret_name`, and `workload_name`. When using Prometheus Operator, the chart sets `serviceMonitor.honorLabels=true` by default so KBeacon metric labels are preserved instead of being renamed to `exported_namespace` by target labels.
-
-If your organization disables `honorLabels`, query Secret and workload namespace labels through the exported labels generated by Prometheus, for example `exported_namespace`.
-
-## Dependency graph panel
-
-The `Dependency graph` panel uses Grafana Node Graph and the detailed edge metric.
-
-Use this query in table and instant mode:
+The edge metric is used for troubleshooting tables and graph panels.
 
 ```promql
-label_join(
-  label_join(
-    label_join(
-      label_join(
-        label_join(
-          label_join(
-            kbeacon_dependency_edges{job=~"$job",cluster=~"$cluster",workload_namespace=~"$namespace",owner_team=~"$owner_team"},
-            "source",
-            "/",
-            "workload_kind",
-            "workload_namespace",
-            "workload_name"
-          ),
-          "target",
-          "/",
-          "secret_namespace",
-          "secret_name"
-        ),
-        "id",
-        " -> ",
-        "source",
-        "target"
-      ),
-      "mainstat",
-      " / ",
-      "discovery_mode",
-      "resolved"
-    ),
-    "detail__owner_team",
-    "",
-    "owner_team"
-  ),
-  "detail__criticality",
-  "",
-  "criticality"
-)
+kbeacon_dependency_edges{job=~"$job",cluster=~"$cluster",workload_namespace=~"$namespace",owner_team=~"$owner_team"}
 ```
 
-The query creates the fields Grafana Node Graph expects:
+`kbeacon_dependency_edges` is high-cardinality because it includes workload and Secret names. Use dashboard filters before expanding large clusters.
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Unique edge identifier. |
-| `source` | Workload node id. |
-| `target` | Secret node id. |
-| `mainstat` | Discovery mode and resolved state. |
-| `detail__owner_team` | Edge owner team detail. |
-| `detail__criticality` | Edge criticality detail. |
+## Dependency Graph Explorer Node Graph query
 
-This panel depends on `kbeacon_dependency_edges`. Keep `metrics.edge.enabled=true` when you want graph visualization. Disable it only when cardinality is more important than edge-level graph panels.
+Grafana Node Graph panels need `source`, `target`, and `id` fields.
 
-## Standalone Dependency Graph Explorer dashboard
-
-The standalone `KBeacon / Dependency Graph Explorer` dashboard uses the same Node Graph field pattern as the embedded dependency graph panel, with additional filters:
+Use this query in instant table mode for the standalone `KBeacon / Dependency Graph Explorer` dashboard.
 
 ```promql
 label_join(
@@ -194,4 +153,98 @@ label_join(
 )
 ```
 
-Use the dashboard variables to narrow the graph before exploring large clusters. Start with a namespace or owner team filter, then expand the selection as needed.
+Generated fields:
+
+| Field | Meaning |
+| --- | --- |
+| `source` | Workload node id built from kind, namespace, and workload name. |
+| `target` | Secret node id built from Secret namespace and name. |
+| `id` | Unique edge id built from source and target. |
+| `mainstat` | Compact edge status from discovery mode and resolved state. |
+| `detail__owner_team` | Owner team shown as edge detail. |
+| `detail__criticality` | Criticality shown as edge detail. |
+
+The Node Graph query requires `metrics.edge.enabled=true`.
+
+## Discovery mode distribution
+
+Use this query to understand whether dependencies are inferred, explicit, or hybrid.
+
+```promql
+sum by (cluster, discovery_mode, resolved) (
+  kbeacon_dependency_edges{job=~"$job",cluster=~"$cluster",workload_namespace=~"$namespace",owner_team=~"$owner_team"}
+)
+```
+
+## Secret change activity
+
+Observed Secret metadata updates during the selected window.
+
+```promql
+increase(kbeacon_secret_changes_total{job=~"$job",cluster=~"$cluster",namespace=~"$namespace"}[$window])
+```
+
+Age of the last observed Secret change.
+
+```promql
+time() - kbeacon_secret_last_changed_timestamp_seconds{job=~"$job",cluster=~"$cluster",namespace=~"$namespace"}
+```
+
+## Graph rebuild latency
+
+Use this query to monitor p95 graph rebuild duration.
+
+```promql
+histogram_quantile(
+  0.95,
+  sum by (cluster, le) (
+    rate(kbeacon_graph_update_duration_seconds_bucket{job=~"$job",cluster=~"$cluster"}[$window])
+  )
+)
+```
+
+## Kubernetes watch event rate
+
+Use this query to inspect informer event pressure.
+
+```promql
+sum by (cluster, resource, event) (
+  rate(kbeacon_kubernetes_watch_events_total{job=~"$job",cluster=~"$cluster"}[$window])
+)
+```
+
+## Cache sync status
+
+Enabled informers should report cache sync status as `1`.
+
+```promql
+min by (cluster, resource) (
+  kbeacon_cache_sync_status{job=~"$job",cluster=~"$cluster"}
+)
+```
+
+Disabled resources are not emitted in `kbeacon_cache_sync_status`.
+
+## Edge metric disabled profile
+
+When `metrics.edge.enabled=false`, do not use panels that depend directly on `kbeacon_dependency_edges`.
+
+Safe aggregate metrics include:
+
+- `kbeacon_cluster_dependency_count`;
+- `kbeacon_cluster_secret_count`;
+- `kbeacon_cluster_workload_count`;
+- `kbeacon_secret_affected_workload_count`;
+- `kbeacon_secret_impact_score`;
+- `kbeacon_workload_dependency_count`;
+- `kbeacon_unresolved_secret_references`.
+
+The read-only Agent API remains available for edge-level inspection when edge metrics are disabled.
+
+## Related documentation
+
+- Dashboard guide: `docs/user-guide/dashboards.md`
+- Metrics reference: `docs/reference/metrics.md`
+- Prometheus operations: `docs/operations/prometheus.md`
+- Alerting guide: `docs/user-guide/alerting.md`
+- Example rules: `examples/prometheus/rules.yaml`

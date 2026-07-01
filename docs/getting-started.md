@@ -1,61 +1,130 @@
-
 # Getting started
 
-## Install with Helm
+KBeacon helps platform, SRE, DevOps, and security engineering teams understand Kubernetes Secret blast radius.
 
-KBeacon publishes a public GHCR image for this repository. Kubernetes does not need an image pull Secret for the default install.
+It builds a current workload-to-Secret dependency graph from Kubernetes workload metadata, exposes Prometheus metrics, provides a read-only Agent API, and ships Grafana dashboards.
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.3
+## Start with the operating model
 
-## Verify the Agent
+KBeacon is intentionally deployed as one lightweight Agent per Kubernetes cluster.
 
-    kubectl -n kbeacon-system rollout status deploy/kbeacon
-    kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
+The Agent:
 
-Port-forward the Agent API.
+- watches selected Kubernetes resources with read-only permissions;
+- extracts workload-to-Secret references;
+- keeps the current dependency graph in memory;
+- exposes metrics for Prometheus or Grafana Mimir;
+- exposes a read-only API for inspection and automation;
+- renders optional Grafana dashboard ConfigMaps through Helm.
 
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+KBeacon does not export Kubernetes Secret values.
 
-Query the Agent.
+## Choose a deployment profile
 
-    curl -sS http://127.0.0.1:8081/readyz | jq
-    curl -sS http://127.0.0.1:8081/api/v1/config | jq
-    curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
-    curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
+Most teams should start by choosing one of these profiles.
 
-## Prometheus scraping
+| Profile | Use when | Key values |
+| --- | --- | --- |
+| Standard cluster-wide | Platform team owns cluster-level observability and can read Secret metadata. | `rbac.scope=cluster`, `resourcesToWatch.core.secrets=true` |
+| Low privilege | Security policy does not allow the Agent to read Secret objects. | `resourcesToWatch.core.secrets=false` |
+| Namespace scoped | Tenants or teams run KBeacon only for selected namespaces. | `rbac.scope=namespace`, `discovery.namespaces.include` |
+| Dashboard enabled | Grafana discovers dashboard ConfigMaps by label. | `dashboards.enabled=true` |
+| Cardinality constrained | Prometheus cardinality budget is strict. | `metrics.edge.enabled=false` |
 
-KBeacon exposes metrics at `/metrics`.
+The full installation profile guide is in `docs/user-guide/installation.md`.
 
-Prometheus Operator users should prefer ServiceMonitor.
+## Minimal values
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set serviceMonitor.enabled=true
+A production values file should start with a stable cluster identity.
 
-Clusters that use Prometheus annotation discovery can enable Service annotations instead.
+```yaml
+cluster:
+  name: prod-eu-1
+  environment: prod
+  region: eu
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set prometheus.scrapeAnnotations.enabled=true
+The cluster name is emitted in Prometheus metrics, Agent API responses, generated Agent configuration, and Grafana dashboard variables.
 
-Clusters that manage scrape config centrally can scrape the Service directly.
+## Image source
 
-    kbeacon.kbeacon-system.svc.cluster.local:8080
+The default release image is published to GitHub Container Registry.
 
-## Local Minikube workflow
+```yaml
+image:
+  repository: ghcr.io/memoliyasti/kbeacon
+  tag: "0.2.3"
+  pullPolicy: IfNotPresent
+```
 
-Minikube is kept as a development and smoke-test workflow. It is not the production installation path.
+The project GHCR package is intended to be public. For production environments that require immutable artifacts, use `image.digest`.
 
-    ./hack/local-dev/deploy-incluster-minikube.sh
-    ./hack/local-dev/configure-prometheus-incluster.sh
-    ./hack/local-dev/smoke-incluster.sh
+## Discovery basics
+
+KBeacon supports four workload discovery modes.
+
+| Mode | Behavior |
+| --- | --- |
+| `infer` | Discover Secret references from Kubernetes workload specs. |
+| `explicit` | Use only KBeacon dependency annotations. |
+| `hybrid` | Combine inferred and explicit dependencies. |
+| `disabled` | Ignore the workload. |
+
+The default mode is `hybrid`.
+
+KBeacon currently extracts dependencies from:
+
+- `env.valueFrom.secretKeyRef`;
+- `envFrom.secretRef`;
+- `volumes.secret`;
+- `imagePullSecrets`;
+- `kbeacon.io/watch-secrets`;
+- `kbeacon.io/watch-secrets-json`.
+
+Discovery behavior is documented in `docs/user-guide/discovery-modes.md` and `docs/reference/annotations.md`.
+
+## Observability path
+
+KBeacon exposes metrics at `/metrics` on the Agent HTTP port.
+
+Prometheus integration can be configured through:
+
+- Prometheus Operator `ServiceMonitor`;
+- Service scrape annotations;
+- centrally managed scrape configuration.
+
+Grafana dashboards are optional and are rendered through Helm when `dashboards.enabled=true`.
+
+Dashboard documentation is available in `docs/user-guide/dashboards.md`.
+
+## Security baseline
+
+KBeacon is designed around a conservative operating model:
+
+- read-only Kubernetes permissions;
+- no mutation of Secrets or workloads;
+- no Secret value export in metrics, logs, or API responses;
+- optional low-privilege mode without Secret object reads;
+- internal or controlled access for the Agent API.
+
+Secret names and dependency metadata may still be sensitive. Protect Prometheus, Grafana, logs, and Agent API access accordingly.
+
+## Recommended reading order
+
+1. `docs/user-guide/installation.md`
+2. `docs/user-guide/configuration.md`
+3. `docs/user-guide/discovery-modes.md`
+4. `docs/reference/annotations.md`
+5. `docs/reference/metrics.md`
+6. `docs/user-guide/dashboards.md`
+7. `docs/api/openapi.yaml`
+
+## Validation
+
+Before promoting a values profile, validate chart rendering, RBAC mode, dashboard JSON, Prometheus rules, and release metadata.
+
+The repository validation entry point is:
+
+```bash
+make validate-ci
+```

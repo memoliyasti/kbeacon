@@ -1,207 +1,100 @@
 # Discovery modes
 
-KBeacon supports four discovery modes: `infer`, `explicit`, `hybrid`, and `disabled`.
+KBeacon discovery modes control how workload-to-Secret dependencies are extracted from Kubernetes resources.
 
-Discovery mode answers this question:
+The mode can be set globally through Helm values and overridden per workload with annotations.
 
-> How should KBeacon find the Secrets used by this workload?
+Discovery modes affect dependency extraction only. They do not change Kubernetes Secret type, RBAC, or whether Secret objects are readable.
 
-It is different from Kubernetes Secret `type`. A Secret can be `Opaque`, `kubernetes.io/tls`, or `kubernetes.io/dockerconfigjson`; discovery mode controls how KBeacon finds references to that Secret.
+## Mode summary
 
-## Recommended default
-
-Use `hybrid` for most workloads.
-
-`hybrid` lets KBeacon discover normal Kubernetes Secret references automatically and also lets teams add annotations for references that cannot be inferred from a Pod spec.
-
-KBeacon metadata annotations are not required for normal Pod-spec inference. Ownership, service, environment, and criticality can be read from existing workload labels through `discovery.metadataLabels`.
-
-```yaml
-metadata:
-  annotations:
-    kbeacon.io/discovery-mode: hybrid
-```
-
-## Mode comparison
-
-| Mode | What KBeacon uses | Best for |
+| Mode | Behavior | Typical use case |
 | --- | --- | --- |
-| `infer` | Kubernetes Pod spec fields only | Standard Deployments, Jobs, Pods, and workloads with normal Secret references. |
-| `explicit` | KBeacon annotations only | Non-standard applications, generated manifests, or dependencies hidden from Pod spec fields. |
-| `hybrid` | Pod spec fields plus KBeacon annotations | Default production mode for most teams. |
-| `disabled` | Nothing | Workloads that should be ignored by KBeacon. |
+| `infer` | Discover dependencies only from standard Kubernetes workload specs. | Workloads that use normal Pod Secret references. |
+| `explicit` | Use only KBeacon explicit dependency annotations. | Workloads where dependencies are not visible in Pod specs. |
+| `hybrid` | Combine inferred and explicit dependencies. | Recommended default for most clusters. |
+| `disabled` | Ignore the workload. | Exclude noisy, irrelevant, or intentionally hidden workloads. |
 
-## `infer`
+## Global default mode
 
-In `infer` mode, KBeacon reads Kubernetes workload specs and discovers Secret references from implemented Pod fields.
-
-Implemented inferred sources:
-
-- `env.valueFrom.secretKeyRef`
-- `envFrom.secretRef`
-- `volumes.secret`
-- `imagePullSecrets`
-
-Example:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-  namespace: payments
-  annotations:
-    kbeacon.io/discovery-mode: infer
-spec:
-  template:
-    spec:
-      containers:
-        - name: api
-          image: busybox:1.36
-          env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: payments-db
-                  key: password
-          envFrom:
-            - secretRef:
-                name: payments-config
-          volumeMounts:
-            - name: tls
-              mountPath: /etc/tls
-              readOnly: true
-      volumes:
-        - name: tls
-          secret:
-            secretName: payments-tls
-      imagePullSecrets:
-        - name: regcred
-```
-
-KBeacon will discover dependencies to:
-
-- `payments-db`
-- `payments-config`
-- `payments-tls`
-- `regcred`, when `discovery.includeImagePullSecrets=true`
-
-## `explicit`
-
-In `explicit` mode, KBeacon ignores inferred Pod spec Secret references and uses only explicit annotations.
-
-Use this when the dependency exists operationally but is not visible in normal Pod spec fields.
-
-Example:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: worker
-  namespace: payments
-  annotations:
-    kbeacon.io/discovery-mode: explicit
-    kbeacon.io/watch-secrets: "payments-db#password,shared/platform-ca"
-    kbeacon.io/owner-team: payments-platform
-    kbeacon.io/criticality: high
-spec:
-  template:
-    spec:
-      containers:
-        - name: worker
-          image: busybox:1.36
-          command: ["sh", "-c", "sleep 3600"]
-```
-
-KBeacon will report only the Secrets declared through `kbeacon.io/watch-secrets`.
-
-## `hybrid`
-
-In `hybrid` mode, KBeacon combines inferred and explicit dependencies.
-
-Example:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: api
-  namespace: payments
-  annotations:
-    kbeacon.io/discovery-mode: hybrid
-    kbeacon.io/watch-secrets: "shared/platform-ca"
-    kbeacon.io/owner-team: payments-platform
-    kbeacon.io/criticality: high
-spec:
-  template:
-    spec:
-      containers:
-        - name: api
-          image: busybox:1.36
-          env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: payments-db
-                  key: password
-```
-
-KBeacon will report:
-
-- `payments-db`, discovered from `env.valueFrom.secretKeyRef`
-- `shared/platform-ca`, discovered from annotation
-
-If the same Secret is found from multiple places, KBeacon merges the edge deterministically instead of reporting duplicate dependency edges.
-
-## `disabled`
-
-Use `disabled` when a workload should not produce dependency edges.
-
-```yaml
-metadata:
-  annotations:
-    kbeacon.io/discovery-mode: disabled
-```
-
-This is useful for noisy infrastructure workloads, temporary debug Pods, or workloads where dependency metadata should not be emitted.
-
-## Secret type versus discovery source
-
-Kubernetes Secret `type` describes the Secret object. KBeacon discovery mode describes how a workload references the Secret.
-
-| Secret usage | Common Secret type | How KBeacon sees it |
-| --- | --- | --- |
-| Database password | `Opaque` | `env.secretKeyRef`, `envFrom.secretRef`, `volumes.secret`, or explicit annotation |
-| TLS certificate | `kubernetes.io/tls` or `Opaque` | `volumes.secret` or explicit annotation |
-| Registry credential | `kubernetes.io/dockerconfigjson` | `imagePullSecrets` |
-| Generated Secret from External Secrets Operator | Usually `Opaque` | The resulting Kubernetes Secret and workload reference are visible; ExternalSecret CRD mapping is future work |
-| CSI SecretProviderClass material | Provider-specific | Direct SecretProviderClass support is future work |
-
-KBeacon does not read or export Secret values. It uses Secret names, namespaces, metadata, and workload references.
-
-## Managing `imagePullSecrets`
-
-`imagePullSecrets` are enabled by default because registry credential rotations can affect workload rollouts.
-
-Disable globally:
+The global default mode is configured through Helm values.
 
 ```yaml
 discovery:
-  includeImagePullSecrets: false
+  defaultMode: hybrid
 ```
 
-Or keep global inference enabled and ignore a specific Secret on a workload:
+`hybrid` is the recommended default because it preserves automatic Kubernetes discovery while allowing explicit modeling for non-standard references.
+
+## Per-workload override
+
+Workloads can override the global default with `kbeacon.io/discovery-mode`.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/ignore-secrets: "regcred"
+    kbeacon.io/discovery-mode: explicit
 ```
 
-## Explicit Secret reference grammar
+Discovery can also be disabled for a workload with either `kbeacon.io/enabled: "false"` or `kbeacon.io/discovery-mode: disabled`.
 
-`kbeacon.io/watch-secrets` accepts comma-separated values.
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/enabled: "false"
+```
+
+## Inferred discovery
+
+Inferred discovery reads standard Kubernetes Secret references from workload Pod specs.
+
+Implemented inferred sources:
+
+| Source | Kubernetes field | Notes |
+| --- | --- | --- |
+| Environment variable Secret key reference | `env.valueFrom.secretKeyRef` | Records the referenced Secret object and source path. |
+| Environment import from Secret | `envFrom.secretRef` | Records the referenced Secret object. |
+| Secret volume | `volumes.secret` | Records the referenced Secret object and volume source. |
+| Image pull Secret | `imagePullSecrets` | Controlled by `discovery.includeImagePullSecrets`. |
+
+Container coverage is controlled by discovery configuration.
+
+```yaml
+discovery:
+  includeInitContainers: true
+  includeEphemeralContainers: true
+  includeImagePullSecrets: true
+```
+
+When a referenced Secret key is present in a Kubernetes field, KBeacon may retain it in API source details. Metrics aggregate at Secret-object level and intentionally avoid Secret key labels.
+
+## Explicit discovery
+
+Explicit discovery uses KBeacon annotations instead of inferred Pod spec references.
+
+Supported explicit dependency annotations:
+
+- `kbeacon.io/watch-secrets`
+- `kbeacon.io/watch-secrets-json`
+
+Comma-separated form:
+
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/watch-secrets: payments-db,shared/platform-ca,legacy-payment-token#token
+```
+
+JSON string array form:
+
+```yaml
+metadata:
+  annotations:
+    kbeacon.io/watch-secrets-json: |
+      ["payments-db","shared/platform-ca","legacy-payment-token#token"]
+```
+
+Explicit Secret reference grammar:
 
 ```text
 secret
@@ -210,59 +103,113 @@ namespace/secret
 namespace/secret#key
 ```
 
-Examples:
+Use explicit discovery when the dependency exists outside standard Pod spec fields, for example dynamic application configuration, controller-managed references, or platform-owned operational knowledge.
+
+## Hybrid discovery
+
+Hybrid discovery combines inferred and explicit dependencies.
+
+In hybrid mode:
+
+- standard Pod spec references are discovered automatically;
+- explicit annotation references are added to the same workload;
+- duplicate workload-to-Secret edges are merged;
+- if a Secret is found by both inferred and explicit paths, the merged edge is represented as hybrid in graph data.
+
+Hybrid mode is appropriate for most workloads because it supports both Kubernetes-native references and explicit dependency modeling.
+
+## Disabled mode
+
+Disabled mode excludes a workload from dependency extraction.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/watch-secrets: "db-credentials#password,jwt-signing-key,shared/platform-ca"
+    kbeacon.io/discovery-mode: disabled
 ```
 
-The current implementation of `kbeacon.io/watch-secrets-json` accepts a JSON array of strings using the same grammar:
+Use disabled mode carefully. It removes the workload from dependency views and can hide real blast-radius relationships.
+
+Common use cases:
+
+- short-lived test workloads;
+- noisy platform helper workloads;
+- workloads that should not be represented in team dashboards;
+- phased adoption where a namespace is enabled but selected workloads are excluded.
+
+## Ignoring selected Secrets
+
+`kbeacon.io/ignore-secrets` suppresses selected references after discovery.
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/watch-secrets-json: '["db-credentials#password","shared/platform-ca"]'
+    kbeacon.io/ignore-secrets: default-token,shared/noisy-secret
 ```
 
-## Ignore list
+This applies after inferred and explicit discovery. It should be used only for intentional noise reduction.
 
-`kbeacon.io/ignore-secrets` removes matching dependencies after inference and explicit annotation parsing.
+## Namespace selection
+
+Namespace filters apply before workload discovery.
+
+```yaml
+discovery:
+  namespaces:
+    include: []
+    exclude:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+```
+
+Behavior:
+
+- `include: []` means all namespaces are eligible unless excluded;
+- a non-empty `include` list acts as an allow-list;
+- `exclude` takes precedence over `include`.
+
+Use namespace selection to align discovery with tenancy boundaries and platform ownership.
+
+## Workload metadata and ownership
+
+Discovery modes determine dependency extraction. Ownership metadata is resolved separately.
+
+KBeacon can read ownership and classification from annotations:
 
 ```yaml
 metadata:
   annotations:
-    kbeacon.io/ignore-secrets: "regcred,sidecar-token"
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/service: payments-api
+    kbeacon.io/environment: prod
+    kbeacon.io/criticality: critical
 ```
 
-Use it for Secret references that are technically present but not useful as application dependency signals.
+When metadata label fallback is enabled, KBeacon can also read existing Kubernetes labels.
 
-## Choosing a mode
+Precedence:
 
-| Scenario | Recommended mode |
-| --- | --- |
-| Normal application with `env`, `envFrom`, or Secret volumes | `hybrid` |
-| Strictly annotation-managed dependency map | `explicit` |
-| No annotations allowed and all dependencies are standard Pod fields | `infer` |
-| Debug or system workload that should be ignored | `disabled` |
-| Mixed standard Secret refs plus platform-owned shared Secrets | `hybrid` |
+1. KBeacon annotations.
+2. Workload object labels.
+3. Pod template labels when pod template metadata is read.
 
-## Current limitations
+## Pod template annotations
 
-The current Agent does not directly infer dependencies from:
+Controller workloads can define annotations on the workload object or the Pod template.
 
-- Ingress TLS configuration
-- ExternalSecret CRDs
-- SecretProviderClass resources
-- Strimzi `KafkaConnector`
-- Confluent `Connector`
+```yaml
+discovery:
+  readPodTemplateAnnotations: true
+```
 
-Use explicit annotations for these cases until native support is implemented.
+Object-level annotations are the preferred place for workload-level KBeacon intent. Pod template annotations are useful when teams already manage metadata in the template.
 
-## Low-privilege discovery
+## Low-privilege interaction
 
-Discovery modes work even when Secret watching is disabled:
+Discovery modes do not grant or remove Secret RBAC.
+
+Low-privilege mode is controlled by resource watcher configuration.
 
 ```yaml
 resourcesToWatch:
@@ -270,24 +217,69 @@ resourcesToWatch:
     secrets: false
 ```
 
-This does not disable workload discovery. It only prevents KBeacon from observing Secret objects. Inferred and explicit dependency edges are still created, but they are reported as unresolved because Secret existence cannot be confirmed.
+When Secret object watching is disabled:
 
-Use this when security policy allows workload reads but not Secret reads.
+- workloads are still discovered according to their discovery mode;
+- workload-to-Secret references are still extracted;
+- referenced Secrets are represented as unobservable;
+- dependency edges use `resolved=false`;
+- Secret type and Secret change metadata are unavailable.
 
-## Validation
+## Choosing a mode
 
-After deploying a workload, check discovered dependencies through the Agent API:
+Recommended decision model:
 
-```bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+| Situation | Recommended mode |
+| --- | --- |
+| Standard Kubernetes workloads with Secret references in Pod specs. | `hybrid` or `infer` |
+| Workloads with both Pod spec references and additional hidden dependencies. | `hybrid` |
+| Workloads whose dependencies are only known through annotations or external knowledge. | `explicit` |
+| Workloads that should not appear in KBeacon outputs. | `disabled` |
+| Early adoption across a cluster with mixed workloads. | `hybrid` globally, selective overrides per workload |
 
-curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
-curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
-curl -sS http://127.0.0.1:8081/api/v1/dependency-map | jq
+## Example hybrid workload
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  namespace: payments
+  annotations:
+    kbeacon.io/discovery-mode: hybrid
+    kbeacon.io/owner-team: payments-platform
+    kbeacon.io/service: payments-api
+    kbeacon.io/environment: prod
+    kbeacon.io/criticality: critical
+    kbeacon.io/watch-secrets: shared/platform-ca,legacy-payment-token
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payments-db
+                  key: password
 ```
 
-Or query Prometheus:
+This workload produces inferred dependency edges for Pod spec Secret references and explicit dependency edges for annotation references.
 
-```promql
-kbeacon_dependency_edges{workload_namespace="payments"}
-```
+## Validation guidance
+
+Recommended checks when changing discovery behavior:
+
+- confirm workloads appear or disappear as expected in the Agent API;
+- confirm inferred and explicit dependency edges are present in dependency-map responses;
+- verify ignored references are intentionally absent;
+- review `kbeacon_dependency_edges` labels when edge metrics are enabled;
+- validate dashboard filters for namespace, owner team, criticality, and discovery mode.
+
+## Related documentation
+
+- Annotation reference: `docs/reference/annotations.md`
+- Configuration: `docs/user-guide/configuration.md`
+- Metrics reference: `docs/reference/metrics.md`
+- API contract: `docs/api/openapi.yaml`

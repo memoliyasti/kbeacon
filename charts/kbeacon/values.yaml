@@ -1,46 +1,102 @@
+## @section Global overrides
 
+## @param nameOverride Override the chart name.
 nameOverride: ""
+
+## @param fullnameOverride Override the fully qualified release name.
 fullnameOverride: ""
 
+## @section Image
+
 image:
+  ## @param image.repository Container image repository.
   repository: ghcr.io/memoliyasti/kbeacon
+
+  ## @param image.tag Container image tag. Ignored when image.digest is set.
   tag: "0.2.3"
+
+  ## @param image.digest Optional image digest for immutable deployments.
   digest: ""
+
+  ## @param image.pullPolicy Kubernetes image pull policy.
   pullPolicy: IfNotPresent
 
+## @param replicaCount Number of KBeacon Agent replicas. KBeacon is designed to run as one agent per cluster.
 replicaCount: 1
 
+## @param imagePullSecrets Optional image pull secrets for private registries.
 imagePullSecrets: []
 
+## @section Cluster identity
+
 cluster:
+  ## @param cluster.name Required logical cluster name emitted in metrics and API responses.
   name: ""
+
+  ## @param cluster.environment Optional environment label for generated Agent config.
   environment: ""
+
+  ## @param cluster.region Optional region label for generated Agent config.
   region: ""
 
+## @section Logging
+
 log:
+  ## @param log.level Agent log level. Supported values: debug, info, warn, error.
   level: info
 
+## @section Agent configuration source
+
 config:
+  ## @param config.create Render the chart-managed Agent ConfigMap.
   create: true
+
+  ## @param config.existingConfigMap Existing ConfigMap name to use instead of the chart-managed ConfigMap.
   existingConfigMap: ""
+
+## @section Agent runtime
 
 agent:
   http:
+    ## @param agent.http.port HTTP port for health, metrics, and read-only API endpoints.
     port: 8080
+
+  ## @param agent.shutdownGracePeriod Grace period used for HTTP shutdown.
   shutdownGracePeriod: 15s
 
+## @section Health probes
+
 health:
+  ## @param health.livenessPath HTTP liveness probe path.
   livenessPath: /healthz
+
+  ## @param health.readinessPath HTTP readiness probe path.
   readinessPath: /readyz
 
+## @section Discovery
+
 discovery:
+  ## @param discovery.defaultMode Default workload discovery mode. Supported values: infer, explicit, hybrid, disabled.
   defaultMode: hybrid
+
+  ## @param discovery.includeImagePullSecrets Discover dependencies from spec.imagePullSecrets.
   includeImagePullSecrets: true
+
+  ## @param discovery.includeInitContainers Discover Secret references from init containers.
   includeInitContainers: true
+
+  ## @param discovery.includeEphemeralContainers Discover Secret references from ephemeral containers.
   includeEphemeralContainers: true
+
+  ## @param discovery.readPodTemplateAnnotations Read KBeacon annotations from Pod templates when workload object annotations are absent.
   readPodTemplateAnnotations: true
+
+  ## Existing workload label fallback for ownership and classification metadata.
   metadataLabels:
+    ## @param discovery.metadataLabels.enabled Enable metadata fallback from Kubernetes labels.
     enabled: true
+
+    ## @param discovery.metadataLabels.ownerTeam Label keys checked for owner team metadata.
     ownerTeam:
       - app.kubernetes.io/team
       - team
@@ -50,123 +106,265 @@ discovery:
       - technicalOwner
       - business-owner
       - businessOwner
+
+    ## @param discovery.metadataLabels.service Label keys checked for service/application metadata.
     service:
       - app.kubernetes.io/name
       - app
       - service
       - service-name
       - serviceName
+
+    ## @param discovery.metadataLabels.environment Label keys checked for environment metadata.
     environment:
       - app.kubernetes.io/environment
       - environment
       - env
       - stage
+
+    ## @param discovery.metadataLabels.criticality Label keys checked for criticality metadata.
     criticality:
       - app.kubernetes.io/criticality
       - criticality
       - priority
       - tier
       - slo-tier
+
+  ## Namespace selection for watched Kubernetes resources.
   namespaces:
+    ## @param discovery.namespaces.include Namespace allow-list. Empty means all namespaces are eligible unless excluded.
     include: []
+
+    ## @param discovery.namespaces.exclude Namespace deny-list. Exclude wins over include.
     exclude:
       - kube-system
       - kube-public
       - kube-node-lease
+
+  ## @param discovery.resyncInterval Kubernetes informer resync interval.
   resyncInterval: 10h
+
   reconcile:
+    ## @param discovery.reconcile.debounce Debounce window for graph rebuilds after watch events.
     debounce: 250ms
+
+## @section Kubernetes resources to watch
 
 resourcesToWatch:
   core:
+    ## @param resourcesToWatch.core.secrets Watch Kubernetes Secret objects. Disable for low-privilege mode.
     secrets: true
+
+    ## @param resourcesToWatch.core.pods Watch standalone Pods.
     pods: true
+
   apps:
+    ## @param resourcesToWatch.apps.deployments Watch Deployments.
     deployments: true
+
+    ## @param resourcesToWatch.apps.statefulSets Watch StatefulSets.
     statefulSets: true
+
+    ## @param resourcesToWatch.apps.daemonSets Watch DaemonSets.
     daemonSets: true
+
   batch:
+    ## @param resourcesToWatch.batch.jobs Watch Jobs.
     jobs: true
+
+    ## @param resourcesToWatch.batch.cronJobs Watch CronJobs.
     cronJobs: true
+
+## @section Metrics
 
 metrics:
   edge:
-    enabled: true
-  runtime:
+    ## @param metrics.edge.enabled Emit high-cardinality edge metric kbeacon_dependency_edges.
     enabled: true
 
+  runtime:
+    ## @param metrics.runtime.enabled Emit runtime, informer, and graph update metrics.
+    enabled: true
+
+## @section Service
+
 service:
+  ## @param service.type Kubernetes Service type.
   type: ClusterIP
+
+  ## @param service.port Service port.
   port: 8080
+
+  ## @param service.annotations Additional annotations for the Service.
   annotations: {}
+
+  ## @param service.labels Additional labels for the Service.
   labels: {}
+
+## @section Prometheus scrape annotations
 
 prometheus:
   scrapeAnnotations:
+    ## @param prometheus.scrapeAnnotations.enabled Add prometheus.io scrape annotations to the Service.
     enabled: false
+
+    ## @param prometheus.scrapeAnnotations.target Annotation target. Currently supported: service.
     target: service
+
+    ## @param prometheus.scrapeAnnotations.path Metrics path for annotation-based Prometheus discovery.
     path: /metrics
+
+    ## @param prometheus.scrapeAnnotations.port Metrics port for annotation-based Prometheus discovery.
     port: "8080"
 
+## @section Prometheus Operator ServiceMonitor
+
 serviceMonitor:
+  ## @param serviceMonitor.enabled Render a ServiceMonitor. Requires Prometheus Operator CRDs.
   enabled: false
+
+  ## @param serviceMonitor.labels Additional ServiceMonitor labels, usually used by Prometheus Operator selectors.
   labels: {}
+
+  ## @param serviceMonitor.annotations Additional ServiceMonitor annotations.
   annotations: {}
+
+  ## @param serviceMonitor.interval Scrape interval.
   interval: 30s
+
+  ## @param serviceMonitor.scrapeTimeout Scrape timeout.
   scrapeTimeout: 10s
+
+  ## @param serviceMonitor.honorLabels Preserve KBeacon metric labels such as namespace and secret_name.
   honorLabels: true
+
+  ## @param serviceMonitor.metricRelabelings Prometheus metric relabeling rules.
   metricRelabelings: []
+
+  ## @param serviceMonitor.relabelings Prometheus target relabeling rules.
   relabelings: []
 
+## @section RBAC
+
 rbac:
+  ## @param rbac.create Create Kubernetes RBAC resources.
   create: true
+
+  ## @param rbac.scope RBAC scope. Supported values: cluster, namespace.
   scope: cluster
+
+  ## @param rbac.extraRules Additional RBAC rules appended to the generated Role or ClusterRole.
   extraRules: []
 
+## @section Service account
+
 serviceAccount:
+  ## @param serviceAccount.create Create a ServiceAccount.
   create: true
+
+  ## @param serviceAccount.name Existing ServiceAccount name. Empty uses the chart fullname.
   name: ""
+
+  ## @param serviceAccount.annotations Additional ServiceAccount annotations.
   annotations: {}
+
+## @section Grafana dashboards
 
 dashboards:
+  ## @param dashboards.enabled Render Grafana dashboard ConfigMaps.
   enabled: false
+
+  ## @param dashboards.labels Labels applied to dashboard ConfigMaps for Grafana sidecar discovery.
   labels:
     grafana_dashboard: "1"
+
+  ## @param dashboards.annotations Additional dashboard ConfigMap annotations.
   annotations: {}
 
+## @section NetworkPolicy
+
 networkPolicy:
+  ## @param networkPolicy.enabled Render an ingress NetworkPolicy for the Agent Pod.
   enabled: false
+
   ingress:
+    ## @param networkPolicy.ingress.from Optional NetworkPolicy ingress peers.
     from: []
 
+## @section Pod security context
+
 podSecurityContext:
+  ## @param podSecurityContext.runAsNonRoot Run the pod as non-root.
   runAsNonRoot: true
+
+  ## @param podSecurityContext.runAsUser Pod user ID.
   runAsUser: 65532
+
+  ## @param podSecurityContext.runAsGroup Pod group ID.
   runAsGroup: 65532
+
+  ## @param podSecurityContext.fsGroup Filesystem group ID.
   fsGroup: 65532
 
+## @section Container security context
+
 securityContext:
+  ## @param securityContext.allowPrivilegeEscalation Disable privilege escalation.
   allowPrivilegeEscalation: false
+
+  ## @param securityContext.readOnlyRootFilesystem Use a read-only root filesystem.
   readOnlyRootFilesystem: true
+
   capabilities:
+    ## @param securityContext.capabilities.drop Linux capabilities to drop.
     drop:
       - ALL
 
+## @section Resources
+
 resources:
   requests:
+    ## @param resources.requests.cpu CPU request.
     cpu: 50m
+
+    ## @param resources.requests.memory Memory request.
     memory: 128Mi
+
   limits:
+    ## @param resources.limits.cpu CPU limit.
     cpu: 500m
+
+    ## @param resources.limits.memory Memory limit.
     memory: 512Mi
 
+## @section Scheduling and extensibility
+
+## @param nodeSelector Node selector for the Agent Pod.
 nodeSelector: {}
+
+## @param tolerations Tolerations for the Agent Pod.
 tolerations: []
+
+## @param affinity Affinity rules for the Agent Pod.
 affinity: {}
+
+## @param priorityClassName PriorityClass name for the Agent Pod.
 priorityClassName: ""
+
+## @param podAnnotations Additional Pod annotations.
 podAnnotations: {}
+
+## @param podLabels Additional Pod labels.
 podLabels: {}
+
+## @param extraArgs Additional command-line arguments for the Agent container.
 extraArgs: []
+
+## @param extraEnv Additional environment variables for the Agent container.
 extraEnv: []
+
+## @param extraVolumes Additional volumes for the Agent Pod.
 extraVolumes: []
+
+## @param extraVolumeMounts Additional volume mounts for the Agent container.
 extraVolumeMounts: []

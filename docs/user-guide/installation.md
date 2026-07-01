@@ -1,72 +1,223 @@
-
 # Installation
 
-## Helm chart
+KBeacon is packaged as a Helm chart and runs as one read-only Agent Deployment per Kubernetes cluster.
 
-KBeacon publishes a public GHCR image for this repository. The default install does not require an image pull Secret.
+The recommended production pattern is to manage deployment through version-controlled Helm values rather than long command-line overrides.
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.3
+## Deployment prerequisites
 
-## Digest pinning
+KBeacon requires:
 
-For production, you can pin the image by digest.
+- a Kubernetes cluster;
+- Helm-compatible deployment tooling;
+- read-only RBAC for the Kubernetes resources selected in `resourcesToWatch`;
+- a Prometheus scrape path if metrics are required;
+- optional Grafana dashboard discovery when dashboard ConfigMaps are enabled.
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.digest=sha256:<digest>
+## Release image
 
-## Private registry or forked image
+The default image is published to GitHub Container Registry:
 
-Only use `imagePullSecrets` when you publish your own private image or deploy from a private registry.
+```yaml
+image:
+  repository: ghcr.io/memoliyasti/kbeacon
+  tag: "0.2.3"
+  pullPolicy: IfNotPresent
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set image.repository=<private-registry>/<namespace>/kbeacon \
-      --set image.tag=<tag> \
-      --set imagePullSecrets[0].name=<registry-pull-secret>
+The project GHCR package is intended to be public. The default deployment path does not require an image pull Secret.
 
-## Low-privilege install
+For production, prefer digest pinning when your deployment process supports it:
 
-Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret objects.
+```yaml
+image:
+  repository: ghcr.io/memoliyasti/kbeacon
+  digest: sha256:<digest>
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set resourcesToWatch.core.secrets=false
+When `image.digest` is set, the chart renders `repository@digest` and ignores `image.tag`.
 
-KBeacon will still discover workload references from Pod specs and explicit annotations, but referenced Secrets are marked as unobservable.
+## Required cluster identity
 
-## Prometheus scraping
+`cluster.name` is required and should be stable for the lifetime of the logical cluster.
 
-Prometheus Operator users should prefer ServiceMonitor.
+```yaml
+cluster:
+  name: prod-eu-1
+  environment: prod
+  region: eu
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set serviceMonitor.enabled=true
+The cluster name is emitted in metrics, API responses, generated Agent configuration, and dashboard variables.
 
-Clusters that use annotation-based Prometheus discovery can enable Service annotations.
+## Standard deployment profile
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set prometheus.scrapeAnnotations.enabled=true
+The default profile runs cluster-wide discovery with all implemented Kubernetes resource watchers enabled.
 
-## Local development
+```yaml
+rbac:
+  create: true
+  scope: cluster
 
-Use Minikube only for local development and smoke tests.
+resourcesToWatch:
+  core:
+    secrets: true
+    pods: true
+  apps:
+    deployments: true
+    statefulSets: true
+    daemonSets: true
+  batch:
+    jobs: true
+    cronJobs: true
+```
 
-    ./hack/local-dev/deploy-incluster-minikube.sh
+Use this profile when the Agent is allowed to observe Secret metadata and workload specifications across the cluster.
+
+## Namespace-scoped profile
+
+Namespace-scoped deployment renders namespace-local RBAC and should be paired with an explicit namespace allow-list.
+
+```yaml
+rbac:
+  scope: namespace
+
+discovery:
+  namespaces:
+    include:
+      - payments
+```
+
+Use this profile when each namespace or tenant has an independently managed Agent deployment.
+
+## Low-privilege profile
+
+KBeacon can run without reading Kubernetes Secret objects.
+
+```yaml
+resourcesToWatch:
+  core:
+    secrets: false
+```
+
+In this profile:
+
+- workload-to-Secret references are still discovered from workload specs and annotations;
+- referenced Secrets are represented as unobservable;
+- API responses and metrics use `exists=false` and `resolved=false` for unobserved Secret objects;
+- Secret type, Secret annotation metadata, and Secret change counters are unavailable.
+
+Use this profile when cluster policy does not allow observability components to read Secret objects.
+
+## Prometheus integration
+
+KBeacon exposes metrics on the Agent HTTP port at `/metrics`.
+
+Prometheus Operator profile:
+
+```yaml
+serviceMonitor:
+  enabled: true
+  labels:
+    release: kube-prometheus-stack
+  honorLabels: true
+```
+
+Annotation-based scrape profile:
+
+```yaml
+prometheus:
+  scrapeAnnotations:
+    enabled: true
+    target: service
+    path: /metrics
+    port: "8080"
+```
+
+Centralized Prometheus configurations can scrape the chart-rendered Service directly.
+
+## Grafana dashboards
+
+Dashboard ConfigMaps are optional.
+
+```yaml
+dashboards:
+  enabled: true
+  labels:
+    grafana_dashboard: "1"
+```
+
+Enable this only when your Grafana deployment discovers dashboard ConfigMaps by label.
+
+Included dashboards:
+
+- `KBeacon / Cluster Overview`
+- `KBeacon / Secret Dependency Map`
+- `KBeacon / Team Overview`
+- `KBeacon / Dependency Graph Explorer`
+
+The Dependency Graph Explorer requires `metrics.edge.enabled=true`.
+
+## Metrics cardinality profile
+
+The detailed edge metric powers edge-level troubleshooting and graph dashboards.
+
+```yaml
+metrics:
+  edge:
+    enabled: true
+```
+
+For very large clusters or strict cardinality budgets, disable detailed edge metrics:
+
+```yaml
+metrics:
+  edge:
+    enabled: false
+```
+
+Aggregate metrics and the read-only Agent API remain available.
+
+## Security posture
+
+The chart defaults to a non-root, read-only container security posture.
+
+```yaml
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+```
+
+KBeacon uses read-only Kubernetes permissions and does not export Kubernetes Secret values. Secret names and dependency metadata may still be sensitive and should be protected in Prometheus, Grafana, logs, and Agent API access.
+
+## Validation
+
+Validate rendered manifests before promoting values into production.
+
+Recommended validation coverage:
+
+- chart linting;
+- default manifest rendering;
+- low-privilege manifest rendering;
+- namespace-scoped RBAC rendering;
+- dashboard JSON validation when dashboards are enabled;
+- Prometheus rule validation when alerting rules are used.
+
+The repository validation target covers these checks through `make validate-ci`.
+
+## Next steps
+
+- Configuration reference: `docs/user-guide/configuration.md`
+- Helm values reference: `docs/reference/helm.md`
+- Metrics reference: `docs/reference/metrics.md`
+- Dashboard guide: `docs/user-guide/dashboards.md`
+- Security guide: `docs/operator-guide/security.md`

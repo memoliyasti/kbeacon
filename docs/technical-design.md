@@ -4225,7 +4225,7 @@ Recommended project practices:
 - use minimal/distroless runtime image;
 - run as non-root;
 - produce release checksums;
-- use Apache-2.0 license headers.
+- use MIT license headers.
 
 ---
 

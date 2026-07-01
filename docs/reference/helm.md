@@ -1,278 +1,379 @@
+# Helm Reference
 
-# KBeacon Helm Reference
+KBeacon is deployed through the `charts/kbeacon` Helm chart as one read-only Agent Deployment per Kubernetes cluster.
 
-KBeacon deploys as one lightweight Deployment and one Service.
+This page documents the implemented chart values and the operational profiles they enable.
 
-The chart does not install KBeacon CRDs, an operator, admission webhooks, databases, queues, or a UI.
+## Chart scope
 
-## Minimal install
+The chart renders Kubernetes primitives only:
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1
+- `Deployment`
+- `Service`
+- `ServiceAccount`
+- `Role` / `RoleBinding` or `ClusterRole` / `ClusterRoleBinding`
+- optional `ServiceMonitor`
+- optional Grafana dashboard `ConfigMap`
+- optional `NetworkPolicy`
 
+The chart does not install KBeacon CRDs, an operator, admission webhooks, databases, queues, or a custom UI.
 
-## Public image
+## Required value
 
-The default image for this repository is public and does not require a Kubernetes image pull Secret.
+`cluster.name` is required for normal deployments.
 
-    image:
-      repository: ghcr.io/memoliyasti/kbeacon
-      tag: "0.2.3"
+```yaml
+cluster:
+  name: prod-eu-1
+```
 
-Use `imagePullSecrets` only when deploying your own private image or private registry.
+The value is used as the logical cluster identity in:
 
-    imagePullSecrets:
-      - name: registry-pull-secret
+- Prometheus metric labels;
+- Agent API responses;
+- generated Agent configuration;
+- dashboard variables.
 
-## Low-privilege mode
+## Image configuration
 
-Disable Secret object watching when cluster policy does not allow the Agent ServiceAccount to read Kubernetes Secrets.
+Default image values:
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set resourcesToWatch.core.secrets=false
+```yaml
+image:
+  repository: ghcr.io/memoliyasti/kbeacon
+  tag: "0.2.3"
+  digest: ""
+  pullPolicy: IfNotPresent
+```
 
-In this mode:
+Use `image.digest` for immutable production deployments. When a digest is set, the chart renders `repository@digest` and ignores `image.tag`.
 
-- the chart does not render Secret RBAC rules;
-- the Agent does not start the Secret informer;
-- workload-to-Secret edges are still discovered from Pod specs and annotations;
-- referenced Secrets are represented with `exists=false`;
-- dependency edges have `resolved=false`;
-- Secret type, Secret annotations, change timestamps, and change counters are unavailable.
+`imagePullSecrets` is available for private or mirrored registries:
 
-## Namespace-scoped install
+```yaml
+imagePullSecrets:
+  - name: registry-pull-secret
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace payments \
-      --set cluster.name=prod-eu-1 \
-      --set rbac.scope=namespace \
-      --set discovery.namespaces.include="{payments}"
+The default project GHCR package is intended to be public and does not require an image pull Secret.
 
-`rbac.scope` must be either `cluster` or `namespace`.
+## Cluster and runtime metadata
 
-## Prometheus Operator ServiceMonitor
+```yaml
+cluster:
+  name: prod-eu-1
+  environment: prod
+  region: eu
 
-Enable the ServiceMonitor only if Prometheus Operator CRDs are installed.
+log:
+  level: info
+```
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set serviceMonitor.enabled=true \
-      --set serviceMonitor.labels.release=kube-prometheus-stack
+`cluster.environment` and `cluster.region` are reserved metadata fields in the generated Agent configuration.
 
-## Prometheus scrape annotations
+## Agent runtime
 
-Some Prometheus installations scrape Services with `prometheus.io/*` annotations. Enable KBeacon Service annotations only when your Prometheus configuration supports annotation discovery.
+```yaml
+agent:
+  http:
+    port: 8080
+  shutdownGracePeriod: 15s
 
-    helm upgrade --install kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --create-namespace \
-      --set cluster.name=prod-eu-1 \
-      --set prometheus.scrapeAnnotations.enabled=true
+health:
+  livenessPath: /healthz
+  readinessPath: /readyz
+```
 
-Rendered Service annotations:
+The Agent exposes health, metrics, and read-only API endpoints on the configured HTTP port.
 
-    prometheus.io/scrape: "true"
-    prometheus.io/path: "/metrics"
-    prometheus.io/port: "8080"
+## Discovery configuration
 
-ServiceMonitor remains the recommended integration for Prometheus Operator clusters.
+```yaml
+discovery:
+  defaultMode: hybrid
+  includeImagePullSecrets: true
+  includeInitContainers: true
+  includeEphemeralContainers: true
+  readPodTemplateAnnotations: true
+  namespaces:
+    include: []
+    exclude:
+      - kube-system
+      - kube-public
+      - kube-node-lease
+  resyncInterval: 10h
+  reconcile:
+    debounce: 250ms
+```
 
-## Standard Prometheus scrape target
+Supported discovery modes:
 
-Without Prometheus Operator, scrape the Service directly.
-
-    scrape_configs:
-      - job_name: kbeacon-agent
-        honor_labels: true
-        metrics_path: /metrics
-        static_configs:
-          - targets:
-              - kbeacon.kbeacon-system.svc.cluster.local:8080
-            labels:
-              cluster: prod-eu-1
-              app: kbeacon
-              component: agent
-
-## Implemented values
-
-### cluster
-
-    cluster:
-      name: prod-eu-1
-      environment: prod
-      region: eu
-
-`cluster.name` is required. `environment` and `region` are metadata fields reserved for configuration consistency.
-
-### image
-
-    image:
-      repository: ghcr.io/memoliyasti/kbeacon
-      tag: "0.2.3"
-      digest: ""
-      pullPolicy: IfNotPresent
-
-When `image.digest` is set, the chart renders `repository@digest` instead of `repository:tag`.
-
-### discovery
-
-    discovery:
-      defaultMode: hybrid
-      includeImagePullSecrets: true
-      includeInitContainers: true
-      includeEphemeralContainers: true
-      readPodTemplateAnnotations: true
-      namespaces:
-        include: []
-        exclude:
-          - kube-system
-          - kube-public
-          - kube-node-lease
-      resyncInterval: 10h
-      reconcile:
-        debounce: 250ms
-
-Supported discovery modes: `infer`, `explicit`, `hybrid`, `disabled`.
+| Mode | Behavior |
+| --- | --- |
+| `infer` | Discover Secret references from workload Pod specs. |
+| `explicit` | Use only KBeacon explicit dependency annotations. |
+| `hybrid` | Combine inferred and explicit dependencies. |
+| `disabled` | Ignore matching workloads. |
 
 Namespace behavior:
 
 - `include: []` means all namespaces are eligible unless excluded.
 - non-empty `include` acts as an allow-list.
-- `exclude` overrides `include`.
+- `exclude` takes precedence over `include`.
 
-### resourcesToWatch
+## Metadata label fallback
 
-    resourcesToWatch:
-      core:
-        secrets: true
-        pods: true
-      apps:
-        deployments: true
-        statefulSets: true
-        daemonSets: true
-      batch:
-        jobs: true
-        cronJobs: true
+KBeacon can map existing Kubernetes workload labels into ownership and classification fields.
 
-Implemented watchers:
+```yaml
+discovery:
+  metadataLabels:
+    enabled: true
+    ownerTeam:
+      - app.kubernetes.io/team
+      - team
+      - owner-team
+      - ownerTeam
+      - technical-owner
+      - technicalOwner
+      - business-owner
+      - businessOwner
+    service:
+      - app.kubernetes.io/name
+      - app
+      - service
+      - service-name
+      - serviceName
+    environment:
+      - app.kubernetes.io/environment
+      - environment
+      - env
+      - stage
+    criticality:
+      - app.kubernetes.io/criticality
+      - criticality
+      - priority
+      - tier
+      - slo-tier
+```
 
-| Value path | Implemented |
+KBeacon annotations have higher precedence than label fallback.
+
+## Resource watchers
+
+```yaml
+resourcesToWatch:
+  core:
+    secrets: true
+    pods: true
+  apps:
+    deployments: true
+    statefulSets: true
+    daemonSets: true
+  batch:
+    jobs: true
+    cronJobs: true
+```
+
+Implemented watcher values:
+
+| Value path | Resource |
 | --- | --- |
-| `resourcesToWatch.core.secrets` | yes |
-| `resourcesToWatch.core.pods` | yes |
-| `resourcesToWatch.apps.deployments` | yes |
-| `resourcesToWatch.apps.statefulSets` | yes |
-| `resourcesToWatch.apps.daemonSets` | yes |
-| `resourcesToWatch.batch.jobs` | yes |
-| `resourcesToWatch.batch.cronJobs` | yes |
+| `resourcesToWatch.core.secrets` | `Secret` |
+| `resourcesToWatch.core.pods` | `Pod` |
+| `resourcesToWatch.apps.deployments` | `Deployment` |
+| `resourcesToWatch.apps.statefulSets` | `StatefulSet` |
+| `resourcesToWatch.apps.daemonSets` | `DaemonSet` |
+| `resourcesToWatch.batch.jobs` | `Job` |
+| `resourcesToWatch.batch.cronJobs` | `CronJob` |
 
-Disabled resources appear in `/readyz` as optional and are not emitted in `kbeacon_cache_sync_status`.
+Disabled resources are not started as informers. They are represented as optional in readiness status.
 
-### metrics
+## Low-privilege profile
 
-    metrics:
-      edge:
-        enabled: true
-      runtime:
-        enabled: true
+Low-privilege mode disables Secret object watching:
 
-`metrics.edge.enabled=false` disables only the high-cardinality `kbeacon_dependency_edges` metric family. Aggregate graph metrics and the Agent API remain available.
+```yaml
+resourcesToWatch:
+  core:
+    secrets: false
+```
 
-`metrics.runtime.enabled=false` disables runtime recorder and runtime collector metrics. Graph metrics remain available.
+In this profile:
 
-### prometheus.scrapeAnnotations
+- the chart does not render Secret RBAC rules;
+- the Agent does not start the Secret informer;
+- workload-to-Secret references are still discovered from workload specs and annotations;
+- referenced Secrets are represented with `exists=false`;
+- dependency edges are marked `resolved=false`;
+- Secret type and change metadata are unavailable.
 
-    prometheus:
-      scrapeAnnotations:
-        enabled: false
-        target: service
-        path: /metrics
-        port: "8080"
+## Metrics
 
-When enabled with `target: service`, the chart adds Prometheus scrape annotations to the KBeacon Service. This does not change application workloads.
+```yaml
+metrics:
+  edge:
+    enabled: true
+  runtime:
+    enabled: true
+```
 
-### dashboards
+`metrics.edge.enabled=false` disables the high-cardinality `kbeacon_dependency_edges` metric family. Aggregate graph metrics and the Agent API remain available.
 
-    dashboards:
-      enabled: false
-      labels:
-        grafana_dashboard: "1"
+`metrics.runtime.enabled=false` disables runtime collector and recorder metrics. Graph metrics remain available.
+
+## Service
+
+```yaml
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+  labels: {}
+```
+
+The Service exposes the Agent HTTP port inside the cluster.
+
+## Prometheus integration
+
+Prometheus Operator integration:
+
+```yaml
+serviceMonitor:
+  enabled: false
+  labels: {}
+  annotations: {}
+  interval: 30s
+  scrapeTimeout: 10s
+  honorLabels: true
+  metricRelabelings: []
+  relabelings: []
+```
+
+Annotation-based Prometheus discovery:
+
+```yaml
+prometheus:
+  scrapeAnnotations:
+    enabled: false
+    target: service
+    path: /metrics
+    port: "8080"
+```
+
+`serviceMonitor.honorLabels=true` preserves KBeacon metric labels such as `namespace`, `secret_name`, and `workload_name`.
+
+## RBAC
+
+```yaml
+rbac:
+  create: true
+  scope: cluster
+  extraRules: []
+```
+
+Supported scopes:
+
+| Scope | Rendered objects |
+| --- | --- |
+| `cluster` | `ClusterRole` and `ClusterRoleBinding` |
+| `namespace` | `Role` and `RoleBinding` |
+
+RBAC rules are generated from `resourcesToWatch`. Disabled resources do not receive RBAC rules.
+
+## Service account
+
+```yaml
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+```
+
+Set `serviceAccount.create=false` and `serviceAccount.name` when using an externally managed ServiceAccount.
+
+## Grafana dashboards
+
+```yaml
+dashboards:
+  enabled: false
+  labels:
+    grafana_dashboard: "1"
+  annotations: {}
+```
 
 When enabled, the chart renders dashboard ConfigMaps from `charts/kbeacon/dashboards/`.
 
-### config
+Included dashboards:
 
-    config:
-      create: true
-      existingConfigMap: ""
+- `KBeacon / Cluster Overview`
+- `KBeacon / Secret Dependency Map`
+- `KBeacon / Team Overview`
+- `KBeacon / Dependency Graph Explorer`
 
-Set `config.create=false` and `config.existingConfigMap=<name>` only when supplying an externally managed Agent config with the same schema as the chart-generated config.
+The Dependency Graph Explorer requires `metrics.edge.enabled=true`.
 
-## Validation
+## NetworkPolicy
 
-Render default chart:
+```yaml
+networkPolicy:
+  enabled: false
+  ingress:
+    from: []
+```
 
-    helm template kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --set cluster.name=ci
+When enabled, the chart renders an ingress-only NetworkPolicy for the Agent HTTP port.
 
-Render low-privilege mode:
+## Pod and container security
 
-    helm template kbeacon ./charts/kbeacon \
-      --namespace kbeacon-system \
-      --set cluster.name=ci \
-      --set resourcesToWatch.core.secrets=false
+```yaml
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
 
-Render namespace-scoped RBAC:
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+```
 
-    helm template kbeacon ./charts/kbeacon \
-      --namespace payments \
-      --set cluster.name=ci \
-      --set rbac.scope=namespace \
-      --set discovery.namespaces.include="{payments}"
+## Resources
 
-## Prometheus label handling
+```yaml
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
 
-KBeacon metrics use labels such as `namespace`, `secret_name`, and `workload_name`. When using Prometheus Operator, the chart sets `serviceMonitor.honorLabels=true` by default so KBeacon metric labels are preserved instead of being renamed to `exported_namespace` by target labels.
+## Scheduling and extensibility
 
-If your organization disables `honorLabels`, query Secret and workload namespace labels through the exported labels generated by Prometheus, for example `exported_namespace`.
+```yaml
+nodeSelector: {}
+tolerations: []
+affinity: {}
+priorityClassName: ""
+podAnnotations: {}
+podLabels: {}
+extraArgs: []
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+```
 
+## External configuration
 
-### discovery.metadataLabels
+```yaml
+config:
+  create: true
+  existingConfigMap: ""
+```
 
-KBeacon can map existing workload labels into KBeacon metadata fields.
-
-    discovery:
-      metadataLabels:
-        enabled: true
-        ownerTeam:
-          - app.kubernetes.io/team
-          - team
-          - technical-owner
-          - business-owner
-        service:
-          - app.kubernetes.io/name
-          - service
-        environment:
-          - app.kubernetes.io/environment
-          - environment
-          - env
-        criticality:
-          - priority
-          - tier
-          - criticality
-
-KBeacon annotations have higher precedence than label fallback. Use annotations when a workload needs an explicit override.
-
-## Scale benchmark
-
-KBeacon includes a live scale benchmark harness for local and staging clusters. See `docs/user-guide/scale-testing.md` and run:
-
-    make scale-benchmark
+Set `config.create=false` and `config.existingConfigMap` only when supplying an externally managed Agent config with the same schema as the chart-generated config.
