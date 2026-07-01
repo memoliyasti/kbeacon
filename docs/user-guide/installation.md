@@ -10,7 +10,7 @@ KBeacon publishes a public GHCR image for this repository. The default install d
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2
+      --set image.tag=0.2.3
 
 ## Digest pinning
 

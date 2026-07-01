@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.3
+
+- Added API filtering and bounded pagination controls.
+- Added workload metadata label fallback.
+- Added Prometheus scrape annotations and preserved KBeacon metric labels in ServiceMonitor.
+- Added scale benchmark reporting and expected dependency edge reporting.
+- Added Grafana Node Graph dependency panels and the standalone Dependency Graph Explorer dashboard.
+- Kept Agent behavior compatible with the v0.2 release line.
+
+
 ## Unreleased
 
 - Added Prometheus scrape annotations and preserved KBeacon metric labels in ServiceMonitor by default.

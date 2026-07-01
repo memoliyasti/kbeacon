@@ -19,7 +19,7 @@ The default image for this repository is public and does not require a Kubernete
 
     image:
       repository: ghcr.io/memoliyasti/kbeacon
-      tag: "0.2.2"
+      tag: "0.2.3"
 
 Use `imagePullSecrets` only when deploying your own private image or private registry.
 
@@ -115,7 +115,7 @@ Without Prometheus Operator, scrape the Service directly.
 
     image:
       repository: ghcr.io/memoliyasti/kbeacon
-      tag: "0.2.2"
+      tag: "0.2.3"
       digest: ""
       pullPolicy: IfNotPresent
 

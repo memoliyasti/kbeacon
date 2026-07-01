@@ -98,7 +98,7 @@ Install the Helm chart:
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2
+      --set image.tag=0.2.3
 
 The default GHCR image is public and does not require a Kubernetes image pull Secret.
 
@@ -111,7 +111,7 @@ If cluster policy does not allow the Agent to read Kubernetes Secret objects, di
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
+      --set image.tag=0.2.3 \
       --set resourcesToWatch.core.secrets=false
 
 KBeacon still discovers workload-to-Secret references, but referenced Secrets are reported as `exists=false` and dependency edges as `resolved=false` because Secret existence is unobservable.
@@ -127,7 +127,7 @@ For large clusters or shared Prometheus environments, disable detailed edge metr
       --create-namespace \
       --set cluster.name=prod-eu-1 \
       --set image.repository=ghcr.io/memoliyasti/kbeacon \
-      --set image.tag=0.2.2 \
+      --set image.tag=0.2.3 \
       --set metrics.edge.enabled=false
 
 Aggregate metrics and the Agent API remain available.
@@ -201,8 +201,8 @@ See docs/user-guide/blast-radius-demo.md.
 
 Release tags use semantic versioning:
 
-    git tag -a v0.2.2 -m "KBeacon v0.2.2"
-    git push origin v0.2.2
+    git tag -a v0.2.3 -m "KBeacon v0.2.3"
+    git push origin v0.2.3
 
 The release workflow publishes:
 
