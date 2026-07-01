@@ -77,6 +77,19 @@ Labels:
 kbeacon_dependency_edges{workload_namespace="kbeacon-demo"}
 ```
 
+#### Node Graph dashboard usage
+
+Grafana Node Graph panels require this metric.
+
+The built-in `Dependency graph` panel uses `kbeacon_dependency_edges` to construct:
+
+- workload nodes from `workload_kind`, `workload_namespace`, and `workload_name`;
+- Secret nodes from `secret_namespace` and `secret_name`;
+- edges from the active workload-to-Secret dependency series;
+- edge details from `discovery_mode`, `resolved`, `owner_team`, and `criticality`.
+
+If `metrics.edge.enabled=false`, `kbeacon_dependency_edges` is not emitted and Node Graph panels that depend on edge-level data will be empty. Aggregate metrics and API endpoints continue to work.
+
 ### `kbeacon_workload_dependency_count`
 
 Type: gauge

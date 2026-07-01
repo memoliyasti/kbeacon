@@ -19,4 +19,17 @@ if [ "${metric_count}" -lt 3 ]; then
   exit 1
 fi
 
+
+# Dependency graph panel validation.
+for dashboard in dashboards/kbeacon-secret-dependency-map.json charts/kbeacon/dashboards/kbeacon-secret-dependency-map.json; do
+  if ! jq -e ".panels[] | select(.type == \"nodeGraph\" and .title == \"Dependency graph\") | .targets[0].expr | contains(\"kbeacon_dependency_edges\") and contains(\"source\") and contains(\"target\") and contains(\"detail__owner_team\") and contains(\"detail__criticality\")" "$dashboard" >/dev/null; then
+    echo "missing or invalid Dependency graph nodeGraph panel in $dashboard" >&2
+    exit 1
+  fi
+done
+
+if ! cmp -s dashboards/kbeacon-secret-dependency-map.json charts/kbeacon/dashboards/kbeacon-secret-dependency-map.json; then
+  echo "dashboard and chart dashboard copies differ" >&2
+  exit 1
+fi
 echo "dashboard validation passed: files=$(printf "%s\n" ${files} | wc -l | tr -d " ") unique_metrics=${metric_count}"
