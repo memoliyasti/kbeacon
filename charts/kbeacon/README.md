@@ -126,3 +126,14 @@ Example values:
           - criticality
 
 KBeacon annotations still win when both annotations and labels are present.
+
+## Included dashboards
+
+When `dashboards.enabled=true`, the chart renders these Grafana dashboard JSON files into the dashboard ConfigMap:
+
+- `kbeacon-cluster-overview.json`
+- `kbeacon-secret-dependency-map.json`
+- `kbeacon-dependency-graph-explorer.json`
+- `kbeacon-team-overview.json`
+
+`KBeacon / Dependency Graph Explorer` is a standalone Node Graph dashboard for visual workload-to-Secret exploration. It requires `metrics.edge.enabled=true` because it uses `kbeacon_dependency_edges`.

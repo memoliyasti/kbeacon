@@ -32,4 +32,33 @@ if ! cmp -s dashboards/kbeacon-secret-dependency-map.json charts/kbeacon/dashboa
   echo "dashboard and chart dashboard copies differ" >&2
   exit 1
 fi
+
+# Dependency Graph Explorer dashboard validation.
+GRAPH_DASHBOARD="dashboards/kbeacon-dependency-graph-explorer.json"
+GRAPH_CHART_DASHBOARD="charts/kbeacon/dashboards/kbeacon-dependency-graph-explorer.json"
+
+if [ ! -f "${GRAPH_DASHBOARD}" ] || [ ! -f "${GRAPH_CHART_DASHBOARD}" ]; then
+  echo "missing Dependency Graph Explorer dashboard files" >&2
+  exit 1
+fi
+
+if ! cmp -s "${GRAPH_DASHBOARD}" "${GRAPH_CHART_DASHBOARD}"; then
+  echo "Dependency Graph Explorer dashboard and chart copy differ" >&2
+  exit 1
+fi
+
+if ! grep -q "kbeacon-dependency-graph-explorer.json" charts/kbeacon/templates/dashboard-configmap.yaml; then
+  echo "dashboard ConfigMap template does not render Dependency Graph Explorer" >&2
+  exit 1
+fi
+
+if ! jq -e ".title == \"KBeacon / Dependency Graph Explorer\" and .uid == \"kbeacon-dependency-graph-explorer\"" "${GRAPH_DASHBOARD}" >/dev/null; then
+  echo "invalid Dependency Graph Explorer dashboard metadata" >&2
+  exit 1
+fi
+
+if ! jq -e ".panels[] | select(.type == \"nodeGraph\" and .title == \"Dependency Graph Explorer\") | .targets[0].expr | contains(\"kbeacon_dependency_edges\") and contains(\"source\") and contains(\"target\") and contains(\"detail__owner_team\") and contains(\"detail__criticality\")" "${GRAPH_DASHBOARD}" >/dev/null; then
+  echo "missing or invalid Dependency Graph Explorer nodeGraph panel" >&2
+  exit 1
+fi
 echo "dashboard validation passed: files=$(printf "%s\n" ${files} | wc -l | tr -d " ") unique_metrics=${metric_count}"

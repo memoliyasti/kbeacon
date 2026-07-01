@@ -17,6 +17,8 @@ data:
 {{ .Files.Get "dashboards/kbeacon-cluster-overview.json" | indent 4 }}
   kbeacon-secret-dependency-map.json: |-
 {{ .Files.Get "dashboards/kbeacon-secret-dependency-map.json" | indent 4 }}
+  kbeacon-dependency-graph-explorer.json: |-
+{{ .Files.Get "dashboards/kbeacon-dependency-graph-explorer.json" | indent 4 }}
   kbeacon-team-overview.json: |-
 {{ .Files.Get "dashboards/kbeacon-team-overview.json" | indent 4 }}
 {{- end }}

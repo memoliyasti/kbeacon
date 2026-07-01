@@ -34,3 +34,23 @@ This panel renders workload-to-Secret relationships as connected nodes:
 The panel requires `metrics.edge.enabled=true` because it is backed by the high-cardinality `kbeacon_dependency_edges` metric family. If detailed edge metrics are disabled, aggregate dashboard panels continue to work, but the graph panel will be empty.
 
 Use the existing `$cluster`, `$job`, `$namespace`, and `$owner_team` variables to narrow the graph before using it in larger clusters.
+
+## Dependency Graph Explorer dashboard
+
+KBeacon also ships a standalone Grafana dashboard named `KBeacon / Dependency Graph Explorer`.
+
+This dashboard is intended for visual blast-radius exploration instead of table-first analysis. It includes:
+
+- summary stat panels for active edges, unresolved references, high/critical Secrets, and max impact score;
+- a large Grafana Node Graph panel named `Dependency Graph Explorer`;
+- filters for cluster, scrape job, namespace, owner team, criticality, resolution state, discovery mode, and time window;
+- supporting tables for highest impact Secrets, unresolved Secret references, and raw edge details.
+
+The Node Graph panel renders workloads and Secrets as connected nodes. It uses `kbeacon_dependency_edges` to build graph edges, so `metrics.edge.enabled=true` is required.
+
+Enable it with the same dashboard ConfigMap switch:
+
+    helm upgrade --install kbeacon ./charts/kbeacon \
+      --namespace kbeacon-system \
+      --set cluster.name=prod-eu-1 \
+      --set dashboards.enabled=true

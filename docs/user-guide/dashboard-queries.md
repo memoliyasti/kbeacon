@@ -150,3 +150,48 @@ The query creates the fields Grafana Node Graph expects:
 | `detail__criticality` | Edge criticality detail. |
 
 This panel depends on `kbeacon_dependency_edges`. Keep `metrics.edge.enabled=true` when you want graph visualization. Disable it only when cardinality is more important than edge-level graph panels.
+
+## Standalone Dependency Graph Explorer dashboard
+
+The standalone `KBeacon / Dependency Graph Explorer` dashboard uses the same Node Graph field pattern as the embedded dependency graph panel, with additional filters:
+
+```promql
+label_join(
+  label_join(
+    label_join(
+      label_join(
+        label_join(
+          label_join(
+            kbeacon_dependency_edges{job=~"$job",cluster=~"$cluster",workload_namespace=~"$namespace",owner_team=~"$owner_team",criticality=~"$criticality",resolved=~"$resolved",discovery_mode=~"$discovery_mode"},
+            "source",
+            "/",
+            "workload_kind",
+            "workload_namespace",
+            "workload_name"
+          ),
+          "target",
+          "/",
+          "secret_namespace",
+          "secret_name"
+        ),
+        "id",
+        " -> ",
+        "source",
+        "target"
+      ),
+      "mainstat",
+      " / ",
+      "discovery_mode",
+      "resolved"
+    ),
+    "detail__owner_team",
+    "",
+    "owner_team"
+  ),
+  "detail__criticality",
+  "",
+  "criticality"
+)
+```
+
+Use the dashboard variables to narrow the graph before exploring large clusters. Start with a namespace or owner team filter, then expand the selection as needed.
