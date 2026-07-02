@@ -10,11 +10,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
+.PHONY: validate validate-ci ci fmt test build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test build helm-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
+validate-ci: fmt test build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
 
 ci: validate-ci
 
@@ -35,6 +35,15 @@ docker-build:
 
 helm-lint:
 	$(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME)
+
+helm-schema-lint:
+	$(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME)
+	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set discovery.defaultMode=invalid >/tmp/kbeacon-schema-invalid-mode.txt 2>&1
+	grep -q "discovery/defaultMode" /tmp/kbeacon-schema-invalid-mode.txt
+	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set log.level=verbose >/tmp/kbeacon-schema-invalid-log.txt 2>&1
+	grep -q "log/level" /tmp/kbeacon-schema-invalid-log.txt
+	! $(HELM) lint ./charts/kbeacon >/tmp/kbeacon-schema-missing-cluster.txt 2>&1
+	grep -q "cluster/name" /tmp/kbeacon-schema-missing-cluster.txt
 
 helm-template:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set dashboards.enabled=true > /tmp/kbeacon-rendered.yaml

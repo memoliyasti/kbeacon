@@ -177,3 +177,15 @@ KBeacon never exports Kubernetes Secret values. Secret names and dependency meta
 ## Values reference
 
 The full values contract is documented inline in `values.yaml` and in `docs/reference/helm.md`.
+
+## Values schema
+
+The chart includes `values.schema.json` for Helm values validation.
+
+The schema validates required cluster identity, enum-style options such as `rbac.scope`, `discovery.defaultMode`, and `log.level`, and the structure of common chart configuration blocks.
+
+Run schema validation with:
+
+```bash
+make helm-schema-lint
+```
