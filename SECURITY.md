@@ -72,3 +72,13 @@ The project uses Go modules, Docker images, Helm charts, GitHub Actions, GitHub 
 ## Non-goals
 
 KBeacon is not a Secret scanner, Secret manager, vulnerability scanner, or policy engine. It does not validate Secret strength, encryption, rotation correctness, or compliance status.
+
+## Automated security checks
+
+The repository runs automated security checks for:
+
+- Go vulnerability reachability with `govulncheck`;
+- secret leak detection with Gitleaks;
+- filesystem vulnerability and misconfiguration scanning with Trivy.
+
+These checks are intended to complement, not replace, code review and dependency review. Secret names and operational metadata can still be sensitive even when Secret values are not exposed.

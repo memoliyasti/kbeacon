@@ -14,6 +14,7 @@ Describe the change and why it is needed.
 ## Validation
 
 - [ ] `make validate-ci`
+- [ ] Security workflow passes when applicable.
 - [ ] `make demo-dry-run`
 
 - [ ] `go fmt ./...`
