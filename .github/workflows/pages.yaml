@@ -1,38 +1,30 @@
 name: pages
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - docs/**
-      - examples/**
-      - hack/**
-      - mkdocs.yml
-      - requirements-docs.txt
-      - README.md
-      - CONTRIBUTING.md
-      - CODE_OF_CONDUCT.md
-      - SECURITY.md
-      - .github/workflows/pages.yaml
-  workflow_dispatch:
+      - "docs/**"
+      - "examples/**"
+      - "hack/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/pages.yaml"
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: build and deploy site
+  build:
+    name: build site
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -58,7 +50,24 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
+          retention-days: 1
 
+  deploy:
+    name: deploy site
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v5
+        with:
+          timeout: 1200000
