@@ -14,21 +14,23 @@ on:
       - ".github/workflows/pages.yaml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: pages
+  group: pages-branch-deploy
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: build site
+  deploy:
+    name: build and publish gh-pages branch
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -43,31 +45,16 @@ jobs:
       - name: Build site
         run: mkdocs build --strict
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
-          retention-days: 1
-
-  deploy:
-    name: deploy site
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs:
-      - build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-        with:
-          timeout: 1200000
+      - name: Publish site to gh-pages branch
+        run: |
+          mkdocs gh-deploy \
+            --force \
+            --clean \
+            --remote-name origin \
+            --remote-branch gh-pages \
+            --config-file mkdocs.yml
