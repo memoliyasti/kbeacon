@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added ServiceAccount imagePullSecrets fallback discovery for workloads that omit Pod-level `imagePullSecrets`.
+
 ## v0.2.4
 
 ### Changed

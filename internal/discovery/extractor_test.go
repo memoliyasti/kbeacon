@@ -266,3 +266,95 @@ func TestWorkloadMetadataAnnotationsOverrideLabels(t *testing.T) {
 		t.Fatalf("expected annotation criticality to win, got %q", input.Criticality)
 	}
 }
+
+func TestWorkloadFromDeploymentUsesServiceAccountImagePullSecretsFallback(t *testing.T) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "kbeacon-demo",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					ServiceAccountName: "builder",
+					Containers: []corev1.Container{
+						{
+							Name:    "api",
+							Command: []string{"sh", "-c", "sleep 3600"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	opts := DefaultOptions("minikube")
+	opts.ServiceAccountImagePullSecrets = map[string][]string{
+		ServiceAccountKey("kbeacon-demo", "builder"): []string{"builder-pull-secret"},
+	}
+
+	input := WorkloadFromDeployment(opts, deployment)
+
+	edgesBySecret := map[string]graph.DependencyEdge{}
+	for _, edge := range input.Edges {
+		edgesBySecret[graph.SecretID(edge.Secret)] = edge
+	}
+
+	edge, ok := edgesBySecret["kbeacon-demo/builder-pull-secret"]
+	if !ok {
+		t.Fatalf("missing ServiceAccount imagePullSecrets fallback edge; edges=%#v", input.Edges)
+	}
+
+	if edge.DiscoveryMode != graph.DiscoveryModeInfer {
+		t.Fatalf("expected fallback edge to be inferred, got %s", edge.DiscoveryMode)
+	}
+
+	if len(edge.Sources) != 1 || edge.Sources[0].Type != "serviceAccount.imagePullSecrets" {
+		t.Fatalf("unexpected fallback edge sources: %#v", edge.Sources)
+	}
+}
+
+func TestWorkloadFromDeploymentPrefersExplicitPodImagePullSecretsOverServiceAccountFallback(t *testing.T) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "kbeacon-demo",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					ServiceAccountName: "builder",
+					ImagePullSecrets: []corev1.LocalObjectReference{
+						{Name: "explicit-pull-secret"},
+					},
+					Containers: []corev1.Container{
+						{
+							Name:    "api",
+							Command: []string{"sh", "-c", "sleep 3600"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	opts := DefaultOptions("minikube")
+	opts.ServiceAccountImagePullSecrets = map[string][]string{
+		ServiceAccountKey("kbeacon-demo", "builder"): []string{"builder-pull-secret"},
+	}
+
+	input := WorkloadFromDeployment(opts, deployment)
+
+	edgesBySecret := map[string]graph.DependencyEdge{}
+	for _, edge := range input.Edges {
+		edgesBySecret[graph.SecretID(edge.Secret)] = edge
+	}
+
+	if _, ok := edgesBySecret["kbeacon-demo/explicit-pull-secret"]; !ok {
+		t.Fatalf("expected explicit Pod imagePullSecrets edge, got %#v", input.Edges)
+	}
+
+	if _, ok := edgesBySecret["kbeacon-demo/builder-pull-secret"]; ok {
+		t.Fatalf("did not expect ServiceAccount fallback when Pod spec imagePullSecrets is set; edges=%#v", input.Edges)
+	}
+}

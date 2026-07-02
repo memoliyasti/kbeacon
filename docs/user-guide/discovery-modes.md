@@ -283,3 +283,18 @@ Recommended checks when changing discovery behavior:
 - Configuration: `docs/user-guide/configuration.md`
 - Metrics reference: `docs/reference/metrics.md`
 - API contract: `docs/api/openapi.yaml`
+
+## ServiceAccount imagePullSecrets fallback
+
+In `infer` and `hybrid` modes, KBeacon can discover image pull Secret dependencies from ServiceAccounts.
+
+This fallback applies only when:
+
+- `discovery.includeImagePullSecrets=true`;
+- `resourcesToWatch.core.serviceAccounts=true`;
+- the workload does not define Pod-level `spec.imagePullSecrets`;
+- the referenced ServiceAccount has `imagePullSecrets`.
+
+The resulting dependency source type is `serviceAccount.imagePullSecrets`.
+
+Pod-level `imagePullSecrets` take precedence over ServiceAccount fallback references.

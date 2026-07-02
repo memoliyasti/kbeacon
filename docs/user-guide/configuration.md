@@ -313,3 +313,25 @@ Recommended checks:
 - dashboard JSON validation;
 - Prometheus rule validation;
 - `make validate-ci`.
+
+## ServiceAccount imagePullSecrets fallback
+
+Kubernetes Pods can reference registry pull Secrets directly through `spec.imagePullSecrets` or indirectly through their ServiceAccount.
+
+KBeacon handles both patterns when inferred image pull Secret discovery and ServiceAccount watching are enabled.
+
+```yaml
+discovery:
+  includeImagePullSecrets: true
+
+resourcesToWatch:
+  core:
+    serviceAccounts: true
+```
+
+Fallback behavior:
+
+- Pod-level `spec.imagePullSecrets` are discovered first.
+- If Pod-level `imagePullSecrets` are absent, KBeacon looks up the workload ServiceAccount.
+- Secrets from `serviceAccount.imagePullSecrets` are represented as inferred dependency edges.
+- The dependency source type is `serviceAccount.imagePullSecrets`.

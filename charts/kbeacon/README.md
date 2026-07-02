@@ -189,3 +189,26 @@ Run schema validation with:
 ```bash
 make helm-schema-lint
 ```
+
+## ServiceAccount imagePullSecrets fallback
+
+When `discovery.includeImagePullSecrets=true`, KBeacon discovers direct Pod-level `spec.imagePullSecrets` references.
+
+If a workload does not set Pod-level `imagePullSecrets`, KBeacon can fall back to the workload ServiceAccount and discover Secrets listed in `serviceAccount.imagePullSecrets`.
+
+This requires the ServiceAccount watcher and RBAC rule:
+
+```yaml
+resourcesToWatch:
+  core:
+    serviceAccounts: true
+```
+
+Disable this watcher only when ServiceAccount metadata should not be observed:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.core.serviceAccounts=false
+```

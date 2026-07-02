@@ -24,24 +24,26 @@ type Recorder interface {
 }
 
 type ResourceConfig struct {
-	Secrets      bool
-	Pods         bool
-	Deployments  bool
-	StatefulSets bool
-	DaemonSets   bool
-	Jobs         bool
-	CronJobs     bool
+	Secrets         bool
+	ServiceAccounts bool
+	Pods            bool
+	Deployments     bool
+	StatefulSets    bool
+	DaemonSets      bool
+	Jobs            bool
+	CronJobs        bool
 }
 
 func DefaultResourceConfig() ResourceConfig {
 	return ResourceConfig{
-		Secrets:      true,
-		Pods:         true,
-		Deployments:  true,
-		StatefulSets: true,
-		DaemonSets:   true,
-		Jobs:         true,
-		CronJobs:     true,
+		Secrets:         true,
+		ServiceAccounts: true,
+		Pods:            true,
+		Deployments:     true,
+		StatefulSets:    true,
+		DaemonSets:      true,
+		Jobs:            true,
+		CronJobs:        true,
 	}
 }
 
@@ -49,6 +51,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 	switch resource {
 	case "Secret":
 		return r.Secrets
+	case "ServiceAccount":
+		return r.ServiceAccounts
 	case "Pod":
 		return r.Pods
 	case "Deployment":
@@ -98,13 +102,14 @@ type Controller struct {
 	namespaceFilter  NamespaceFilter
 	factory          informers.SharedInformerFactory
 
-	secretInformer      coreinformers.SecretInformer
-	podInformer         coreinformers.PodInformer
-	deploymentInformer  appsinformers.DeploymentInformer
-	statefulSetInformer appsinformers.StatefulSetInformer
-	daemonSetInformer   appsinformers.DaemonSetInformer
-	jobInformer         batchinformers.JobInformer
-	cronJobInformer     batchinformers.CronJobInformer
+	secretInformer         coreinformers.SecretInformer
+	serviceAccountInformer coreinformers.ServiceAccountInformer
+	podInformer            coreinformers.PodInformer
+	deploymentInformer     appsinformers.DeploymentInformer
+	statefulSetInformer    appsinformers.StatefulSetInformer
+	daemonSetInformer      appsinformers.DaemonSetInformer
+	jobInformer            batchinformers.JobInformer
+	cronJobInformer        batchinformers.CronJobInformer
 
 	rebuildDebounce time.Duration
 	rebuildCh       chan string
@@ -182,6 +187,10 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 	if resources.Secrets {
 		c.secretInformer = factory.Core().V1().Secrets()
 		c.synced["Secret"] = false
+	}
+	if resources.ServiceAccounts {
+		c.serviceAccountInformer = factory.Core().V1().ServiceAccounts()
+		c.synced["ServiceAccount"] = false
 	}
 	if resources.Pods {
 		c.podInformer = factory.Core().V1().Pods()
@@ -308,6 +317,9 @@ func (c *Controller) registerHandlers() {
 	if c.secretInformer != nil {
 		c.registerResourceHandler("Secret", c.secretInformer.Informer())
 	}
+	if c.serviceAccountInformer != nil {
+		c.registerResourceHandler("ServiceAccount", c.serviceAccountInformer.Informer())
+	}
 	if c.podInformer != nil {
 		c.registerResourceHandler("Pod", c.podInformer.Informer())
 	}
@@ -397,6 +409,7 @@ func (c *Controller) rebuild(reason string) {
 
 	secrets := []graph.SecretInput{}
 	workloads := []graph.WorkloadInput{}
+	serviceAccountPullSecrets := map[string][]string{}
 
 	if c.secretInformer != nil {
 		secretObjects, err := c.secretInformer.Lister().List(labels.Everything())
@@ -414,6 +427,35 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.serviceAccountInformer != nil {
+		serviceAccounts, err := c.serviceAccountInformer.Lister().List(labels.Everything())
+		if err != nil {
+			c.logger.Error("list serviceaccounts failed", "error", err)
+			return
+		}
+
+		for _, serviceAccount := range serviceAccounts {
+			if !c.namespaceFilter.Include(serviceAccount.Namespace) {
+				continue
+			}
+
+			names := make([]string, 0, len(serviceAccount.ImagePullSecrets))
+			for _, ref := range serviceAccount.ImagePullSecrets {
+				if ref.Name == "" {
+					continue
+				}
+				names = append(names, ref.Name)
+			}
+
+			if len(names) > 0 {
+				serviceAccountPullSecrets[discovery.ServiceAccountKey(serviceAccount.Namespace, serviceAccount.Name)] = names
+			}
+		}
+	}
+
+	discoveryOptions := c.discoveryOptions
+	discoveryOptions.ServiceAccountImagePullSecrets = serviceAccountPullSecrets
+
 	if c.deploymentInformer != nil {
 		deployments, err := c.deploymentInformer.Lister().List(labels.Everything())
 		if err != nil {
@@ -425,7 +467,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(deployment.Namespace) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromDeployment(c.discoveryOptions, deployment))
+			workloads = append(workloads, discovery.WorkloadFromDeployment(discoveryOptions, deployment))
 		}
 	}
 
@@ -440,7 +482,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(statefulSet.Namespace) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromStatefulSet(c.discoveryOptions, statefulSet))
+			workloads = append(workloads, discovery.WorkloadFromStatefulSet(discoveryOptions, statefulSet))
 		}
 	}
 
@@ -455,7 +497,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(daemonSet.Namespace) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromDaemonSet(c.discoveryOptions, daemonSet))
+			workloads = append(workloads, discovery.WorkloadFromDaemonSet(discoveryOptions, daemonSet))
 		}
 	}
 
@@ -473,7 +515,7 @@ func (c *Controller) rebuild(reason string) {
 			if discovery.HasControllerOwner(pod.OwnerReferences) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromPod(c.discoveryOptions, pod))
+			workloads = append(workloads, discovery.WorkloadFromPod(discoveryOptions, pod))
 		}
 	}
 
@@ -491,7 +533,7 @@ func (c *Controller) rebuild(reason string) {
 			if discovery.HasControllerOwnerKind(job.OwnerReferences, "CronJob") {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromJob(c.discoveryOptions, job))
+			workloads = append(workloads, discovery.WorkloadFromJob(discoveryOptions, job))
 		}
 	}
 
@@ -506,7 +548,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(cronJob.Namespace) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromCronJob(c.discoveryOptions, cronJob))
+			workloads = append(workloads, discovery.WorkloadFromCronJob(discoveryOptions, cronJob))
 		}
 	}
 
@@ -605,7 +647,7 @@ func (c *Controller) enabledSyncs() []struct {
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
 }
 
 func stringSet(values []string) map[string]struct{} {

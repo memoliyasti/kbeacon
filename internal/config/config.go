@@ -82,8 +82,9 @@ type MetricsConfig struct {
 
 type ResourcesToWatchConfig struct {
 	Core struct {
-		Secrets bool `yaml:"secrets" json:"secrets"`
-		Pods    bool `yaml:"pods" json:"pods"`
+		Secrets         bool `yaml:"secrets" json:"secrets"`
+		ServiceAccounts bool `yaml:"serviceAccounts" json:"serviceAccounts"`
+		Pods            bool `yaml:"pods" json:"pods"`
 	} `yaml:"core" json:"core"`
 	Apps struct {
 		Deployments  bool `yaml:"deployments" json:"deployments"`
@@ -132,6 +133,7 @@ func Default() Config {
 	cfg.Metrics.Runtime.Enabled = true
 
 	cfg.ResourcesToWatch.Core.Secrets = true
+	cfg.ResourcesToWatch.Core.ServiceAccounts = true
 	cfg.ResourcesToWatch.Core.Pods = true
 	cfg.ResourcesToWatch.Apps.Deployments = true
 	cfg.ResourcesToWatch.Apps.StatefulSets = true

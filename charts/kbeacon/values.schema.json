@@ -236,6 +236,9 @@
             "secrets": {
               "type": "boolean"
             },
+            "serviceAccounts": {
+              "type": "boolean"
+            },
             "pods": {
               "type": "boolean"
             }

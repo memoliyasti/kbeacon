@@ -312,3 +312,19 @@ mkdocs build --strict
 - Metrics reference: `docs/reference/metrics.md`
 - Prometheus operations: `docs/operations/prometheus.md`
 - Dashboard guide: `docs/user-guide/dashboards.md`
+
+## ServiceAccount imagePullSecrets fallback troubleshooting
+
+If an expected registry pull Secret dependency is missing, check whether the workload uses Pod-level `imagePullSecrets` or ServiceAccount-level `imagePullSecrets`.
+
+```bash
+kubectl -n <namespace> get deploy <name> -o yaml
+kubectl -n <namespace> get serviceaccount <serviceaccount-name> -o yaml
+```
+
+For ServiceAccount fallback discovery, confirm:
+
+- `discovery.includeImagePullSecrets=true`;
+- `resourcesToWatch.core.serviceAccounts=true`;
+- the chart rendered ServiceAccount RBAC;
+- the workload Pod template does not define its own `imagePullSecrets`.

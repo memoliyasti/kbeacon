@@ -377,3 +377,21 @@ config:
 ```
 
 Set `config.create=false` and `config.existingConfigMap` only when supplying an externally managed Agent config with the same schema as the chart-generated config.
+
+### ServiceAccount imagePullSecrets fallback
+
+KBeacon discovers Pod-level `spec.imagePullSecrets` when `discovery.includeImagePullSecrets=true`.
+
+When a workload does not define Pod-level `imagePullSecrets`, KBeacon can use the workload ServiceAccount as a fallback and discover Secrets from `serviceAccount.imagePullSecrets`.
+
+The fallback requires ServiceAccount watch access:
+
+```yaml
+resourcesToWatch:
+  core:
+    serviceAccounts: true
+```
+
+With `resourcesToWatch.core.serviceAccounts=false`, the chart omits ServiceAccount RBAC and the Agent cannot discover ServiceAccount image pull Secret fallbacks.
+
+Pod-level `imagePullSecrets` take precedence. KBeacon does not add ServiceAccount fallback edges when the Pod spec already contains explicit image pull Secrets.

@@ -501,6 +501,7 @@ components:
             - envFrom.secretRef
             - volumes.secret
             - imagePullSecrets
+            - serviceAccount.imagePullSecrets
             - annotation
         path:
           type: string

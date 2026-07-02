@@ -155,6 +155,8 @@ resourcesToWatch:
     ## @param resourcesToWatch.core.secrets Watch Kubernetes Secret objects. Disable for low-privilege mode.
     secrets: true
 
+    ## @param resourcesToWatch.core.serviceAccounts Watch ServiceAccounts to discover imagePullSecrets fallback dependencies.
+    serviceAccounts: true
     ## @param resourcesToWatch.core.pods Watch standalone Pods.
     pods: true
 

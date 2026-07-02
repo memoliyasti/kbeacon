@@ -55,14 +55,15 @@ func DefaultMetadataLabelKeyConfig() MetadataLabelKeyConfig {
 }
 
 type Options struct {
-	Cluster                    string
-	DefaultMode                graph.DiscoveryMode
-	IncludeImagePullSecrets    bool
-	IncludeInitContainers      bool
-	IncludeEphemeralContainers bool
-	ReadPodTemplateAnnotations bool
-	MetadataLabelsEnabled      bool
-	MetadataLabelKeys          MetadataLabelKeyConfig
+	Cluster                        string
+	DefaultMode                    graph.DiscoveryMode
+	IncludeImagePullSecrets        bool
+	ServiceAccountImagePullSecrets map[string][]string
+	IncludeInitContainers          bool
+	IncludeEphemeralContainers     bool
+	ReadPodTemplateAnnotations     bool
+	MetadataLabelsEnabled          bool
+	MetadataLabelKeys              MetadataLabelKeyConfig
 }
 
 func DefaultOptions(cluster string) Options {
@@ -304,9 +305,46 @@ func inferPodSpecEdges(opts Options, workload graph.WorkloadRef, podSpec corev1.
 				},
 			))
 		}
+		if len(podSpec.ImagePullSecrets) == 0 {
+			serviceAccountName := serviceAccountNameForPodSpec(podSpec.ServiceAccountName)
+			for i, secretName := range serviceAccountImagePullSecretNames(opts, workload.Namespace, serviceAccountName) {
+				edges = append(edges, newEdge(
+					opts.Cluster,
+					workload,
+					workload.Namespace,
+					secretName,
+					false,
+					graph.DiscoveryModeInfer,
+					graph.DependencySource{
+						Type:          "serviceAccount.imagePullSecrets",
+						Path:          fmt.Sprintf("serviceAccount[%s].imagePullSecrets[%d].name", serviceAccountName, i),
+						ResourceField: "imagePullSecrets",
+					},
+				))
+			}
+		}
+
 	}
 
 	return edges
+}
+
+func ServiceAccountKey(namespace, name string) string {
+	return namespace + "/" + serviceAccountNameForPodSpec(name)
+}
+
+func serviceAccountNameForPodSpec(name string) string {
+	if strings.TrimSpace(name) == "" {
+		return "default"
+	}
+	return name
+}
+
+func serviceAccountImagePullSecretNames(opts Options, namespace, serviceAccountName string) []string {
+	if len(opts.ServiceAccountImagePullSecrets) == 0 {
+		return nil
+	}
+	return opts.ServiceAccountImagePullSecrets[ServiceAccountKey(namespace, serviceAccountName)]
 }
 
 func containerEdges(

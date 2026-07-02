@@ -30,6 +30,11 @@ rules:
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]
   {{- end }}
+  {{- if .Values.resourcesToWatch.core.serviceAccounts }}
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
   {{- if gt (len $appsResources) 0 }}
   - apiGroups: ["apps"]
     resources: {{ toJson $appsResources }}
@@ -74,6 +79,11 @@ rules:
   {{- if .Values.resourcesToWatch.core.secrets }}
   - apiGroups: [""]
     resources: ["secrets"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.core.serviceAccounts }}
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- if gt (len $appsResources) 0 }}

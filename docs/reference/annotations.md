@@ -259,3 +259,11 @@ Recommended checks when adding or changing annotations:
 - Configuration: `docs/user-guide/configuration.md`
 - Metrics reference: `docs/reference/metrics.md`
 - API contract: `docs/api/openapi.yaml`
+
+## ServiceAccount imagePullSecrets fallback
+
+ServiceAccount image pull Secret discovery is not annotation-driven.
+
+When inferred discovery is enabled, KBeacon can discover `serviceAccount.imagePullSecrets` as fallback dependencies for workloads that do not define Pod-level `imagePullSecrets`.
+
+Explicit KBeacon annotations remain useful for non-standard dependency relationships that are not visible in Pod specs or ServiceAccount metadata.
