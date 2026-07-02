@@ -69,6 +69,7 @@ nav:
   - Operator guide:
       - Releases: operator-guide/releases.md
       - Security: operator-guide/security.md
+      - Troubleshooting: operator-guide/troubleshooting.md
   - Operations:
       - Prometheus: operations/prometheus.md
   - Reference:
