@@ -162,7 +162,7 @@ Releases use semantic version tags and publish GitHub Release assets, Linux and 
 Current release line:
 
 ```text
-v0.2.3
+v0.2.4
 ```
 
 ## Community

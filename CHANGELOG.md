@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.4
+
+### Changed
+
+- Switched project license metadata to MIT.
+- Refreshed README, Helm chart README, installation, configuration, Prometheus, dashboard, annotation, metric, and discovery documentation.
+- Added professional inline Helm values documentation.
+- Updated chart metadata and release references for the v0.2.4 patch release.
+
+### Notes
+
+- Agent runtime behavior is compatible with v0.2.3.
 ## v0.2.3
 
 - Added API filtering and bounded pagination controls.
@@ -9,14 +21,6 @@
 - Added Grafana Node Graph dependency panels and the standalone Dependency Graph Explorer dashboard.
 - Kept Agent behavior compatible with the v0.2 release line.
 
-
-## Unreleased
-
-- Added Prometheus scrape annotations and preserved KBeacon metric labels in ServiceMonitor by default.
-- Added workload metadata fallback from existing Kubernetes labels.
-- Added API filtering and bounded pagination controls.
-- Added a live scale benchmark report harness.
-- Clarified official GHCR image guidance as public by default.
 
 
 ## v0.2.2

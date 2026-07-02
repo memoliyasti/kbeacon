@@ -41,7 +41,7 @@ Default image values:
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.2.3"
+  tag: "0.2.4"
   digest: ""
   pullPolicy: IfNotPresent
 ```
