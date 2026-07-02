@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -182,6 +183,7 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build and push release image
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -194,6 +196,22 @@ jobs:
           cache-to: type=gha,mode=max,scope=kbeacon-release-image
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Sign and verify release image
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          IMAGE_REF="${IMAGE_NAME}@${IMAGE_DIGEST}"
+          IDENTITY="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yaml@${GITHUB_REF}"
+          cosign sign --yes "${IMAGE_REF}"
+          cosign verify \
+            --certificate-identity "${IDENTITY}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${IMAGE_REF}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

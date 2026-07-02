@@ -82,3 +82,15 @@ The repository runs automated security checks for:
 - filesystem vulnerability and misconfiguration scanning with Trivy.
 
 These checks are intended to complement, not replace, code review and dependency review. Secret names and operational metadata can still be sensitive even when Secret values are not exposed.
+
+## Image signing
+
+KBeacon container images published by the repository workflows are signed with keyless Sigstore Cosign signing through GitHub Actions OIDC.
+
+Verify release images by digest and workflow identity before promoting them into controlled environments.
+
+Example release verification identity format:
+
+```text
+https://github.com/memoliyasti/kbeacon/.github/workflows/release.yaml@refs/tags/vX.Y.Z
+```

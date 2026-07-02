@@ -41,6 +41,7 @@ The release workflow publishes:
 - Helm chart package;
 - SHA256 checksums;
 - multi-arch container image for `linux/amd64` and `linux/arm64`.
+- keyless Sigstore Cosign signature for the published container image.
 
 ## Container image tags
 
