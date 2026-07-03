@@ -1,6 +1,8 @@
 SHELL := /usr/bin/env bash
 GO ?= go
 HELM ?= helm
+KIND ?= kind
+KUBECTL ?= kubectl
 PYTHON ?= python3
 MKDOCS ?= mkdocs
 IMAGE ?= ghcr.io/memoliyasti/kbeacon
@@ -10,11 +12,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test api-contract-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
+.PHONY: validate validate-ci ci fmt test api-contract-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test api-contract-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
+validate-ci: fmt test api-contract-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check kind-e2e-smoke-lint
 
 ci: validate-ci
 
@@ -159,3 +161,9 @@ package:
 clean:
 	rm -rf bin dist site .venv-docs kbeacon.zip
 	./hack/validate-api-parity.sh
+
+kind-e2e-smoke-lint:
+	bash -n hack/e2e-kind-smoke.sh
+
+kind-e2e-smoke: kind-e2e-smoke-lint
+	KIND=$(KIND) KUBECTL=$(KUBECTL) HELM=$(HELM) ./hack/e2e-kind-smoke.sh

@@ -237,3 +237,13 @@ Avoid exposing the Agent API through `NodePort` or `LoadBalancer` unless your en
 KBeacon v0.3.x runs as one Agent replica per cluster.
 
 Keep `replicaCount=1` for normal installs. Multi-replica operation is not supported until leader election is implemented, because each Agent replica independently watches Kubernetes and builds its own in-memory graph.
+
+## Kind E2E smoke test
+
+KBeacon includes a Kind-based end-to-end smoke test for the chart, RBAC, Kubernetes informers, projected Secret volume discovery, privacy redaction, and the read-only Agent API.
+
+Run it locally when docker, kind, kubectl, helm, and python3 are available:
+
+    make kind-e2e-smoke
+
+The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind cluster, installs the Helm chart, creates a small workload graph, and verifies the Agent API.

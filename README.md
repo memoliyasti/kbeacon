@@ -182,3 +182,13 @@ v0.3.1
 ## License
 
 MIT License. See `LICENSE` and `NOTICE`.
+
+## Kind E2E smoke test
+
+KBeacon includes a Kind-based end-to-end smoke test for the chart, RBAC, Kubernetes informers, projected Secret volume discovery, privacy redaction, and the read-only Agent API.
+
+Run it locally when docker, kind, kubectl, helm, and python3 are available:
+
+    make kind-e2e-smoke
+
+The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind cluster, installs the Helm chart, creates a small workload graph, and verifies the Agent API.
