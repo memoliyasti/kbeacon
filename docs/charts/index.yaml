@@ -6,7 +6,7 @@ entries:
       artifacthub.io/license: MIT
     apiVersion: v2
     appVersion: 0.3.0
-    created: "2026-07-03T09:20:57.108377+02:00"
+    created: "2026-07-03T08:22:09Z"
     description: Kubernetes-native Secret Dependency Intelligence Agent for Prometheus,
       Grafana, and Mimir
     digest: 5b1671e00e7026b8bebeb9d1dab3b3343d4cfbaf9805f0a02ed72113837cf1d3
@@ -28,4 +28,4 @@ entries:
     urls:
     - https://github.com/memoliyasti/kbeacon/releases/download/v0.3.0/kbeacon-0.3.0.tgz
     version: 0.3.0
-generated: "2026-07-03T09:20:57.107227+02:00"
+generated: "2026-07-03T08:22:09Z"
