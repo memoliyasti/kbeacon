@@ -560,7 +560,7 @@ Source type values:
 | `annotation_watch_secret` | Explicit annotation declares dependency. |
 | `strimzi_config_provider` | Strimzi config provider syntax references Secret. |
 | `confluent_mounted_secret` | Confluent connector mounted Secret reference. |
-| `future_ingress_tls` | Future Ingress TLS Secret dependency. |
+| `ingress.tls` | Ingress TLS Secret reference from `networking.k8s.io/v1` Ingress `spec.tls[].secretName`. |
 | `future_external_secret_target` | Future ExternalSecret target Secret. |
 | `future_secret_provider_class` | Future CSI SecretProviderClass dependency. |
 
@@ -4524,7 +4524,6 @@ Any persistent history feature must be optional and must not change the lightwei
 
 - External Secrets Operator support.
 - SecretProviderClass support.
-- Ingress TLS Secret support.
 - Modeling generated/mirrored Secrets.
 
 ### 25.5 v0.5: Grafana App Plugin preview
