@@ -10,11 +10,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test api-contract-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
+.PHONY: validate validate-ci ci fmt test api-contract-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-networkpolicy helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test api-contract-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
+validate-ci: fmt test api-contract-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-networkpolicy helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check
 
 ci: validate-ci
 
@@ -48,6 +48,11 @@ helm-schema-lint:
 	! $(HELM) lint ./charts/kbeacon >/tmp/kbeacon-schema-missing-cluster.txt 2>&1
 	grep -q "cluster/name" /tmp/kbeacon-schema-missing-cluster.txt
 
+	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set service.type=ExternalName >/tmp/kbeacon-schema-invalid-service-type.txt 2>&1
+	grep -Eq "service/type|service.type" /tmp/kbeacon-schema-invalid-service-type.txt
+	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set networkPolicy.ingress.from=invalid >/tmp/kbeacon-schema-invalid-networkpolicy-from.txt 2>&1
+	grep -Eq "networkPolicy/ingress/from|networkPolicy.ingress.from" /tmp/kbeacon-schema-invalid-networkpolicy-from.txt
+
 helm-template:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set dashboards.enabled=true > /tmp/kbeacon-rendered.yaml
 
@@ -62,6 +67,13 @@ helm-template-serviceaccount-disabled:
 helm-template-ingress-disabled:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set resourcesToWatch.networking.ingresses=false > /tmp/kbeacon-ingress-disabled-rendered.yaml
 	! grep -Fq "resources: [\"ingresses\"]" /tmp/kbeacon-ingress-disabled-rendered.yaml
+
+
+helm-template-networkpolicy:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set networkPolicy.enabled=true --set 'networkPolicy.ingress.from[0].podSelector.matchLabels.app=prometheus' > /tmp/kbeacon-networkpolicy-rendered.yaml
+	grep -q "kind: NetworkPolicy" /tmp/kbeacon-networkpolicy-rendered.yaml
+	grep -q "podSelector:" /tmp/kbeacon-networkpolicy-rendered.yaml
+	grep -q "app: prometheus" /tmp/kbeacon-networkpolicy-rendered.yaml
 
 helm-template-edge-disabled:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set metrics.edge.enabled=false > /tmp/kbeacon-edge-disabled-rendered.yaml

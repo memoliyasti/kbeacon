@@ -54,3 +54,9 @@ For stricter environments:
 - keep the Agent Service internal;
 - disable detailed edge metrics with `metrics.edge.enabled=false`;
 - use low-privilege mode with `resourcesToWatch.core.secrets=false` when Secret object reads are not allowed.
+
+## Network exposure
+
+KBeacon's API is read-only, but it still exposes Secret names, workload names, namespaces, ownership metadata, and dependency relationships. Treat it as internal platform metadata.
+
+Keep the chart's default `service.type=ClusterIP` unless you have an explicit network exposure design. Prefer NetworkPolicy, private ingress, VPN, or port-forwarding for access.

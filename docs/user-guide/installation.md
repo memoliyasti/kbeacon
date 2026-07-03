@@ -221,3 +221,13 @@ The repository validation target covers these checks through `make validate-ci`.
 - Metrics reference: `docs/reference/metrics.md`
 - Dashboard guide: `docs/user-guide/dashboards.md`
 - Security guide: `docs/operator-guide/security.md`
+
+## Internal Agent API access
+
+The default Service type is `ClusterIP`. This keeps the Agent API internal to the cluster.
+
+Use port-forwarding for ad hoc local access:
+
+    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+
+Avoid exposing the Agent API through `NodePort` or `LoadBalancer` unless your environment applies authentication, authorization, and network restrictions outside KBeacon.

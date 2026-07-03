@@ -109,7 +109,8 @@
             "port": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 65535
+              "maximum": 65535,
+              "description": "Container HTTP port exposed by the KBeacon Agent."
             }
           },
           "additionalProperties": false
@@ -316,14 +317,15 @@
           "enum": [
             "ClusterIP",
             "NodePort",
-            "LoadBalancer",
-            "ExternalName"
-          ]
+            "LoadBalancer"
+          ],
+          "description": "Kubernetes Service type for the KBeacon Agent Service. ClusterIP is recommended for normal installs."
         },
         "port": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 65535
+          "maximum": 65535,
+          "description": "Kubernetes Service port for the KBeacon Agent."
         },
         "annotations": {
           "type": "object",
@@ -480,7 +482,8 @@
       "type": "object",
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Render an ingress NetworkPolicy for the KBeacon Agent Pods."
         },
         "ingress": {
           "type": "object",
@@ -488,9 +491,9 @@
             "from": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": true
-              }
+                "type": "object"
+              },
+              "description": "List of Kubernetes NetworkPolicyPeer entries allowed to reach the KBeacon Agent."
             }
           },
           "additionalProperties": false

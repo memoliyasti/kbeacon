@@ -423,3 +423,24 @@ helm upgrade --install kbeacon ./charts/kbeacon \
 ```
 
 Ingress TLS edges use dependency source type `ingress.tls`.
+
+## Service exposure and NetworkPolicy
+
+The chart defaults to an internal `ClusterIP` Service. Keep `service.type=ClusterIP` for normal installs and use `kubectl port-forward`, an internal platform proxy, or an internal-only ingress path for controlled access.
+
+`NodePort` and `LoadBalancer` are schema-valid Kubernetes Service types, but they expose the read-only Agent API more broadly. Use them only with explicit network controls.
+
+When your cluster has a NetworkPolicy controller, enable `networkPolicy.enabled=true` and set `networkPolicy.ingress.from` to the Prometheus, Grafana, or platform namespaces and Pods that are allowed to reach the Agent.
+
+Example values:
+
+    service:
+      type: ClusterIP
+
+    networkPolicy:
+      enabled: true
+      ingress:
+        from:
+          - podSelector:
+              matchLabels:
+                app: prometheus
