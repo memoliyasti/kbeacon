@@ -14,23 +14,26 @@ on:
       - ".github/workflows/pages.yaml"
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pages-branch-deploy
-  cancel-in-progress: false
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: build and publish gh-pages branch
+  build-and-deploy:
+    name: build and deploy site
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -45,16 +48,23 @@ jobs:
       - name: Build site
         run: mkdocs build --strict
 
-      - name: Configure git author
+      - name: Verify Helm repository static files
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          test -s site/charts/index.yaml
+          test -s site/charts/artifacthub-repo.yml
+          grep -q "name: kbeacon" site/charts/index.yaml
+          grep -q "version: 0.3.0" site/charts/index.yaml
+          grep -q "kbeacon-0.3.0.tgz" site/charts/index.yaml
+          grep -q "owners:" site/charts/artifacthub-repo.yml
 
-      - name: Publish site to gh-pages branch
-        run: |
-          mkdocs gh-deploy \
-            --force \
-            --clean \
-            --remote-name origin \
-            --remote-branch gh-pages \
-            --config-file mkdocs.yml
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
