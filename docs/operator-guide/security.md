@@ -60,3 +60,13 @@ For stricter environments:
 KBeacon's API is read-only, but it still exposes Secret names, workload names, namespaces, ownership metadata, and dependency relationships. Treat it as internal platform metadata.
 
 Keep the chart's default `service.type=ClusterIP` unless you have an explicit network exposure design. Prefer NetworkPolicy, private ingress, VPN, or port-forwarding for access.
+
+## Secret key redaction
+
+KBeacon does not export Kubernetes Secret values, but Secret names, Secret key names, workload names, namespaces, and ownership metadata can still be sensitive.
+
+The first redaction control is `privacy.redaction.secretKeys`.
+
+When enabled, KBeacon redacts Secret key names in dependency source paths returned by the Agent API. For example, an inferred environment variable source path that would normally include `payments-db#password` is returned as `payments-db#<redacted>`.
+
+This option does not redact Secret names or namespaces because KBeacon's primary purpose is to show workload-to-Secret relationships. Keep the Agent API, Prometheus, Grafana, and logs internal to trusted platform users.

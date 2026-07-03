@@ -360,3 +360,15 @@ resourcesToWatch:
   networking:
     ingresses: false
 ```
+
+## Privacy and redaction
+
+Use `privacy.redaction.secretKeys=true` when Secret key names should not appear in Agent API source paths.
+
+Example:
+
+    privacy:
+      redaction:
+        secretKeys: true
+
+This changes source paths such as `env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]` to `env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#<redacted>]`.

@@ -195,6 +195,12 @@ metrics:
 
 ## @section Service
 
+
+privacy:
+  redaction:
+    ## @param privacy.redaction.secretKeys Redact Secret key names in dependency source paths returned by the Agent API.
+    secretKeys: false
+
 service:
   ## @param service.type Kubernetes Service type.
   type: ClusterIP

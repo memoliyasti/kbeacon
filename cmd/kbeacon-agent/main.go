@@ -38,6 +38,7 @@ func main() {
 		includeNamespacesRaw    = flag.String("include-namespaces", "", "Comma-separated namespace allow-list")
 		excludeNamespacesRaw    = flag.String("exclude-namespaces", "", "Comma-separated namespace deny-list")
 		includeImagePullSecrets = flag.Bool("include-image-pull-secrets", true, "Discover imagePullSecrets dependencies")
+		redactSecretKeys        = flag.Bool("redact-secret-keys", false, "Redact Secret key names in dependency source paths")
 	)
 	flag.Parse()
 
@@ -73,6 +74,9 @@ func main() {
 	}
 	if flagSet["include-image-pull-secrets"] {
 		cfg.Discovery.IncludeImagePullSecrets = *includeImagePullSecrets
+	}
+	if flagSet["redact-secret-keys"] {
+		cfg.Privacy.Redaction.SecretKeys = *redactSecretKeys
 	}
 
 	cfg.Normalize()
@@ -123,6 +127,7 @@ func main() {
 	discoveryOptions.IncludeInitContainers = cfg.Discovery.IncludeInitContainers
 	discoveryOptions.IncludeEphemeralContainers = cfg.Discovery.IncludeEphemeralContainers
 	discoveryOptions.ReadPodTemplateAnnotations = cfg.Discovery.ReadPodTemplateAnnotations
+	discoveryOptions.RedactSecretKeys = cfg.Privacy.Redaction.SecretKeys
 	discoveryOptions.MetadataLabelsEnabled = cfg.Discovery.MetadataLabels.Enabled
 	discoveryOptions.MetadataLabelKeys = discovery.MetadataLabelKeyConfig{
 		OwnerTeam:   cfg.Discovery.MetadataLabels.OwnerTeam,

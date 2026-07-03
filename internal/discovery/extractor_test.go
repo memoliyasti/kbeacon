@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/memoliyasti/kbeacon/internal/graph"
@@ -481,4 +482,71 @@ func TestWorkloadFromDeploymentExtractsProjectedSecretVolumeDependencies(t *test
 	}
 
 	t.Fatalf("expected projected Secret dependency edge, got %#v", input.Edges)
+}
+
+func TestWorkloadFromDeploymentRedactsSecretKeySourcePaths(t *testing.T) {
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "kbeacon-demo",
+			UID:       "deployment-uid",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name: "api",
+							Env: []corev1.EnvVar{
+								{
+									Name: "DB_PASSWORD",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "payments-db",
+											},
+											Key: "password",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	opts := DefaultOptions("minikube")
+	opts.RedactSecretKeys = true
+
+	input := WorkloadFromDeployment(opts, deployment)
+
+	for _, edge := range input.Edges {
+		if edge.Secret.Name != "payments-db" {
+			continue
+		}
+
+		if len(edge.Sources) != 1 {
+			t.Fatalf("expected one source, got %#v", edge.Sources)
+		}
+
+		sourcePath := edge.Sources[0].Path
+
+		if !strings.Contains(sourcePath, "<redacted>") {
+			t.Fatalf("expected redacted source path, got %q", sourcePath)
+		}
+
+		if strings.Contains(sourcePath, "password") {
+			t.Fatalf("source path leaked Secret key name: %q", sourcePath)
+		}
+
+		if !strings.Contains(sourcePath, "payments-db#") {
+			t.Fatalf("expected Secret name to remain visible, got %q", sourcePath)
+		}
+
+		return
+	}
+
+	t.Fatalf("expected payments-db dependency edge, got %#v", input.Edges)
 }

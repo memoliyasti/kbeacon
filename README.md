@@ -111,6 +111,7 @@ namespace/secret#key
 - Kubernetes permissions are read-only.
 - Secret object watching can be disabled for low-privilege environments.
 - Secret names and dependency metadata may still be sensitive and should be protected in Prometheus, Grafana, logs, and API access.
+- Secret key names in API source paths can be redacted with `privacy.redaction.secretKeys=true`.
 - The Agent API is intended for internal cluster or controlled platform access.
 
 ## Observability

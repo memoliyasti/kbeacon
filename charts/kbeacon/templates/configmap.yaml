@@ -29,4 +29,6 @@ data:
         enabled: {{ .Values.metrics.edge.enabled }}
       runtime:
         enabled: {{ .Values.metrics.runtime.enabled }}
+    privacy:
+{{ toYaml .Values.privacy | indent 6 }}
 {{- end }}

@@ -63,6 +63,7 @@ type Options struct {
 	IncludeInitContainers          bool
 	IncludeEphemeralContainers     bool
 	ReadPodTemplateAnnotations     bool
+	RedactSecretKeys               bool
 	MetadataLabelsEnabled          bool
 	MetadataLabelKeys              MetadataLabelKeyConfig
 }
@@ -319,18 +320,18 @@ func inferPodSpecEdges(opts Options, workload graph.WorkloadRef, podSpec corev1.
 	edges := []graph.DependencyEdge{}
 
 	for _, container := range podSpec.Containers {
-		edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "", false, container.Env, container.EnvFrom)...)
+		edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "", false, container.Env, container.EnvFrom, opts.RedactSecretKeys)...)
 	}
 
 	if opts.IncludeInitContainers {
 		for _, container := range podSpec.InitContainers {
-			edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "init", false, container.Env, container.EnvFrom)...)
+			edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "init", false, container.Env, container.EnvFrom, opts.RedactSecretKeys)...)
 		}
 	}
 
 	if opts.IncludeEphemeralContainers {
 		for _, container := range podSpec.EphemeralContainers {
-			edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "", true, container.Env, container.EnvFrom)...)
+			edges = append(edges, containerEdges(opts.Cluster, workload, container.Name, "", true, container.Env, container.EnvFrom, opts.RedactSecretKeys)...)
 		}
 	}
 
@@ -449,6 +450,7 @@ func containerEdges(
 	ephemeral bool,
 	env []corev1.EnvVar,
 	envFrom []corev1.EnvFromSource,
+	redactSecretKeys bool,
 ) []graph.DependencyEdge {
 	edges := []graph.DependencyEdge{}
 
@@ -460,7 +462,7 @@ func containerEdges(
 		selector := item.ValueFrom.SecretKeyRef
 		source := graph.DependencySource{
 			Type:      "env.secretKeyRef",
-			Path:      fmt.Sprintf("env[%s].valueFrom.secretKeyRef[%s#%s]", item.Name, selector.Name, selector.Key),
+			Path:      formatSecretKeyRefSourcePath(item.Name, selector.Name, selector.Key, redactSecretKeys),
 			Container: containerName,
 			EnvVar:    item.Name,
 		}
@@ -515,6 +517,14 @@ func containerEdges(
 	}
 
 	return edges
+}
+
+func formatSecretKeyRefSourcePath(envName, secretName, key string, redactSecretKeys bool) string {
+	if redactSecretKeys && key != "" {
+		key = "<redacted>"
+	}
+
+	return fmt.Sprintf("env[%s].valueFrom.secretKeyRef[%s#%s]", envName, secretName, key)
 }
 
 func explicitAnnotationEdges(cluster string, workload graph.WorkloadRef, annotations map[string]string) []graph.DependencyEdge {

@@ -52,6 +52,9 @@ metrics:
     enabled: true
   runtime:
     enabled: true
+privacy:
+  redaction:
+    secretKeys: true
 `), 0o600)
 	if err != nil {
 		t.Fatalf("write config: %v", err)
@@ -105,12 +108,17 @@ metrics:
 	if debounce.String() != "500ms" {
 		t.Fatalf("expected debounce 500ms, got %s", debounce)
 	}
+
+	if !cfg.Privacy.Redaction.SecretKeys {
+		t.Fatalf("expected Secret key redaction from YAML")
+	}
 }
 
 func TestLoadConfigEnvOverrides(t *testing.T) {
 	t.Setenv("KBEACON_CLUSTER_NAME", "env-cluster")
 	t.Setenv("KBEACON_INCLUDE_NAMESPACES", "team-a,team-b")
 	t.Setenv("KBEACON_EXCLUDE_NAMESPACES", "kube-system,kube-public")
+	t.Setenv("KBEACON_REDACT_SECRET_KEYS", "true")
 
 	cfg, err := Load("")
 	if err != nil {
@@ -127,5 +135,9 @@ func TestLoadConfigEnvOverrides(t *testing.T) {
 
 	if len(cfg.Discovery.Namespaces.Exclude) != 2 {
 		t.Fatalf("expected exclude namespaces from env, got %#v", cfg.Discovery.Namespaces.Exclude)
+	}
+
+	if !cfg.Privacy.Redaction.SecretKeys {
+		t.Fatalf("expected Secret key redaction from env")
 	}
 }

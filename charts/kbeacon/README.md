@@ -273,3 +273,13 @@ Supported source path:
     spec.volumes[].projected.sources[].secret.name
 
 KBeacon records these dependencies with source type `volumes.projected.sources.secret`. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.
+
+## Privacy and redaction
+
+Redact Secret key names in Agent API dependency source paths:
+
+    privacy:
+      redaction:
+        secretKeys: true
+
+Secret names and namespaces remain visible because they are part of the dependency graph.

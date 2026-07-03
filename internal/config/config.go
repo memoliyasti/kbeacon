@@ -20,6 +20,7 @@ type Config struct {
 	Agent            AgentConfig            `yaml:"agent" json:"agent"`
 	Discovery        DiscoveryConfig        `yaml:"discovery" json:"discovery"`
 	Metrics          MetricsConfig          `yaml:"metrics" json:"metrics"`
+	Privacy          PrivacyConfig          `yaml:"privacy" json:"privacy"`
 	ResourcesToWatch ResourcesToWatchConfig `yaml:"resourcesToWatch" json:"resourcesToWatch"`
 }
 
@@ -78,6 +79,14 @@ type MetricsConfig struct {
 	Runtime struct {
 		Enabled bool `yaml:"enabled" json:"enabled"`
 	} `yaml:"runtime" json:"runtime"`
+}
+
+type PrivacyConfig struct {
+	Redaction RedactionConfig `yaml:"redaction" json:"redaction"`
+}
+
+type RedactionConfig struct {
+	SecretKeys bool `yaml:"secretKeys" json:"secretKeys"`
 }
 
 type ResourcesToWatchConfig struct {
@@ -193,6 +202,11 @@ func (c *Config) ApplyEnv() {
 	if value := os.Getenv("KBEACON_INCLUDE_IMAGE_PULL_SECRETS"); value != "" {
 		if parsed, err := strconv.ParseBool(value); err == nil {
 			c.Discovery.IncludeImagePullSecrets = parsed
+		}
+	}
+	if value := os.Getenv("KBEACON_REDACT_SECRET_KEYS"); value != "" {
+		if parsed, err := strconv.ParseBool(value); err == nil {
+			c.Privacy.Redaction.SecretKeys = parsed
 		}
 	}
 }
