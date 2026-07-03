@@ -280,8 +280,8 @@ Public release images should pull without GHCR authentication.
 
 ```bash
 docker logout ghcr.io || true
-docker pull ghcr.io/memoliyasti/kbeacon:0.2.4
-docker pull ghcr.io/memoliyasti/kbeacon:v0.2.4
+docker pull ghcr.io/memoliyasti/kbeacon:0.3.0
+docker pull ghcr.io/memoliyasti/kbeacon:v0.3.0
 ```
 
 Images published after Cosign signing was enabled can be verified with the GitHub Actions OIDC identity used by the publishing workflow.
