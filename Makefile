@@ -151,3 +151,4 @@ package:
 
 clean:
 	rm -rf bin dist site .venv-docs kbeacon.zip
+	./hack/validate-api-parity.sh
