@@ -23,4 +23,4 @@ annotations:
   artifacthub.io/license: MIT
   artifacthub.io/signKey: |
     fingerprint: 4A140B3665CEC3173C9504BAA6A804C3C4B7158E
-    url: https://memoliyasti.github.io/kbeacon/charts/kbeacon-helm-signing-key.asc
+    url: https://raw.githubusercontent.com/memoliyasti/kbeacon/main/docs/charts/kbeacon-helm-signing-key.asc
