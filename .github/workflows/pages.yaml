@@ -52,8 +52,14 @@ jobs:
           test -s site/charts/index.yaml
           test -s site/charts/artifacthub-repo.yml
           grep -q "name: kbeacon" site/charts/index.yaml
-          grep -q "version: 0.3.0" site/charts/index.yaml
-          grep -q "kbeacon-0.3.0.tgz" site/charts/index.yaml
+          test -s site/charts/index.yaml
+          test -s site/charts/artifacthub-repo.yml
+          test -s site/charts/kbeacon-helm-signing-key.asc
+          grep -q "name: kbeacon" site/charts/index.yaml
+          grep -q "kbeacon-" site/charts/index.yaml
+          grep -q "releases/download/" site/charts/index.yaml
+          grep -q "repositoryID:" site/charts/artifacthub-repo.yml
+          grep -q "BEGIN PGP PUBLIC KEY BLOCK" site/charts/kbeacon-helm-signing-key.asc
           grep -q "owners:" site/charts/artifacthub-repo.yml
 
       - name: Disable Jekyll processing

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.3.1
+
+### Changed
+
+- Signed Helm chart packages now publish provenance files for Artifact Hub and Helm verification.
+- Updated Artifact Hub chart signing metadata to use the stable public signing key URL.
+
+### Notes
+
+- No Agent runtime behavior changes from v0.3.0.
+
+
 ## v0.3.0
 
 ### Added
