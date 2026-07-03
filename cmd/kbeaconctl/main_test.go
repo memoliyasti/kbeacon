@@ -87,15 +87,8 @@ func TestRunGetSecretsWithFilters(t *testing.T) {
 	}
 }
 
-func TestRunImpact(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/v1/secrets/payments/payments-db/impact" {
-			t.Fatalf("unexpected path: %s", r.URL.Path)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"data":{"summary":{"affectedWorkloadCount":2}}}`))
-	}))
+func TestRunImpactJSON(t *testing.T) {
+	server := impactTestServer(t)
 	defer server.Close()
 
 	var stdout bytes.Buffer
@@ -106,8 +99,56 @@ func TestRunImpact(t *testing.T) {
 		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
 	}
 
-	if !strings.Contains(stdout.String(), `"affectedWorkloadCount":2`) {
+	normalized := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(stdout.String())
+	if !strings.Contains(normalized, `"affectedWorkloadCount":1`) {
 		t.Fatalf("unexpected impact output: %q", stdout.String())
+	}
+}
+
+func TestRunImpactReportSubcommand(t *testing.T) {
+	server := impactTestServer(t)
+	defer server.Close()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{"--server", server.URL, "impact", "report", "payments", "payments-db"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	report := stdout.String()
+	for _, expected := range []string{
+		"KBeacon Secret Impact Report",
+		"Secret: payments/payments-db",
+		"Impact score: 42.50",
+		"Affected workloads: 1",
+		"Discovery modes: hybrid=1",
+		"payments-platform: 1 workload(s)",
+		"Deployment payments/payments-api",
+		"Deployment payments/payments-api -> Secret payments/payments-db mode=hybrid resolved=yes optional=no",
+		"sources: env.secretKeyRef",
+	} {
+		if !strings.Contains(report, expected) {
+			t.Fatalf("expected report to contain %q, got:\n%s", expected, report)
+		}
+	}
+}
+
+func TestRunImpactReportFormatFlag(t *testing.T) {
+	server := impactTestServer(t)
+	defer server.Close()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{"--server", server.URL, "impact", "--format", "report", "payments", "payments-db"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	if !strings.Contains(stdout.String(), "KBeacon Secret Impact Report") {
+		t.Fatalf("expected human-readable report, got %q", stdout.String())
 	}
 }
 
@@ -123,4 +164,95 @@ func TestRunUnknownGetResource(t *testing.T) {
 	if !strings.Contains(stderr.String(), "unknown get resource") {
 		t.Fatalf("unexpected stderr: %q", stderr.String())
 	}
+}
+
+func impactTestServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/secrets/payments/payments-db/impact" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"apiVersion": "kbeacon.io/v1",
+			"cluster": "ci",
+			"generatedAt": "2026-07-03T17:00:00Z",
+			"data": {
+				"secret": {
+					"ref": {
+						"cluster": "ci",
+						"namespace": "payments",
+						"name": "payments-db"
+					},
+					"exists": true,
+					"type": "Opaque",
+					"ownerTeam": "payments-platform",
+					"criticality": "critical",
+					"affectedWorkloadCount": 1,
+					"affectedTeamCount": 1,
+					"affectedNamespaceCount": 1,
+					"unresolvedReferenceCount": 0,
+					"impactScore": 42.5
+				},
+				"summary": {
+					"affectedWorkloadCount": 1,
+					"affectedTeamCount": 1,
+					"affectedNamespaceCount": 1,
+					"unresolvedReferenceCount": 0,
+					"discoveryModes": {
+						"hybrid": 1
+					}
+				},
+				"affectedTeams": [
+					{
+						"ownerTeam": "payments-platform",
+						"workloadCount": 1
+					}
+				],
+				"affectedWorkloads": [
+					{
+						"ref": {
+							"cluster": "ci",
+							"namespace": "payments",
+							"apiVersion": "apps/v1",
+							"kind": "Deployment",
+							"name": "payments-api"
+						},
+						"ownerTeam": "payments-platform",
+						"criticality": "critical",
+						"discoveryMode": "hybrid",
+						"dependencyCount": 1,
+						"unresolvedCount": 0
+					}
+				],
+				"edges": [
+					{
+						"workload": {
+							"cluster": "ci",
+							"namespace": "payments",
+							"apiVersion": "apps/v1",
+							"kind": "Deployment",
+							"name": "payments-api"
+						},
+						"secret": {
+							"cluster": "ci",
+							"namespace": "payments",
+							"name": "payments-db"
+						},
+						"discoveryMode": "hybrid",
+						"sources": [
+							{
+								"type": "env.secretKeyRef",
+								"path": "env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]"
+							}
+						],
+						"optional": false,
+						"resolved": true
+					}
+				]
+			}
+		}`))
+	}))
 }

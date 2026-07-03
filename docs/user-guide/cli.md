@@ -26,6 +26,7 @@ kbeaconctl get secrets --limit 20
 kbeaconctl get workloads --namespace payments
 kbeaconctl get dependency-map --secret-name payments-db --resolved true
 kbeaconctl impact payments payments-db
+kbeaconctl impact report payments payments-db
 ```
 
 You can also set the server explicitly:
@@ -53,7 +54,8 @@ kbeaconctl get secrets
 | `get workloads` | List normalized workloads. |
 | `get dependency-map` | Query the current dependency graph. |
 | `get config` | Query Agent graph summary. |
-| `impact <namespace> <secret>` | Query Secret impact details. |
+| `impact <namespace> <secret>` | Query Secret impact details as JSON. |
+| `impact report <namespace> <secret>` | Print a human-readable Secret impact report. |
 | `dependencies <namespace> <kind> <name>` | Query workload dependencies. |
 | `raw <path>` | Query an arbitrary Agent API path. |
 
@@ -76,8 +78,27 @@ Pagination is also supported:
 kbeaconctl get secrets --limit 100 --offset 200
 ```
 
-## Output
+## Secret impact report
 
-The first version of `kbeaconctl` prints the Agent API JSON response as-is.
+Use the report form when reviewing a Secret rotation or preparing a change review:
 
-Human-readable reports are tracked as the next CLI step.
+```bash
+kbeaconctl impact report payments payments-db
+```
+
+The same report can be selected with a format flag:
+
+```bash
+kbeaconctl impact --format report payments payments-db
+```
+
+The report includes:
+
+- Secret identity and impact score;
+- affected workload, team, namespace, and unresolved-reference counts;
+- discovery mode distribution;
+- affected teams;
+- affected workloads;
+- dependency edges and source types.
+
+The plain `impact <namespace> <secret>` form still prints the original Agent API JSON response for scripts and automation.

@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -165,13 +167,72 @@ func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 }
 
 func runImpact(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == "report" {
+		return runImpactReport(ctx, client, baseURL, args[1:], stdout, stderr)
+	}
+
+	fs := flag.NewFlagSet("impact", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	format := fs.String("format", "json", "Output format: json or report")
+
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+
+	rest := fs.Args()
+	if len(rest) != 2 {
+		fmt.Fprintln(stderr, "usage: kbeaconctl impact [--format json|report] <namespace> <secret-name>")
+		fmt.Fprintln(stderr, "       kbeaconctl impact report <namespace> <secret-name>")
+		return 2
+	}
+
+	endpoint := "/api/v1/secrets/" + url.PathEscape(rest[0]) + "/" + url.PathEscape(rest[1]) + "/impact"
+
+	switch strings.ToLower(strings.TrimSpace(*format)) {
+	case "json":
+		return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+	case "report", "text":
+		return requestImpactReport(ctx, client, baseURL, endpoint, stdout, stderr)
+	default:
+		fmt.Fprintf(stderr, "unsupported impact format %q; expected json or report\n", *format)
+		return 2
+	}
+}
+
+func runImpactReport(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
 	if len(args) != 2 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl impact <namespace> <secret-name>")
+		fmt.Fprintln(stderr, "usage: kbeaconctl impact report <namespace> <secret-name>")
 		return 2
 	}
 
 	endpoint := "/api/v1/secrets/" + url.PathEscape(args[0]) + "/" + url.PathEscape(args[1]) + "/impact"
-	return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+	return requestImpactReport(ctx, client, baseURL, endpoint, stdout, stderr)
+}
+
+func requestImpactReport(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, stdout, stderr io.Writer) int {
+	body, requestURL, status, err := requestBody(ctx, client, baseURL, endpoint, nil)
+	if err != nil {
+		fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
+		return 1
+	}
+
+	if status < 200 || status >= 300 {
+		fmt.Fprintf(stderr, "request %s returned HTTP %d\n", requestURL, status)
+		if len(body) > 0 {
+			fmt.Fprintln(stderr, strings.TrimRight(string(body), "\n"))
+		}
+		return 1
+	}
+
+	var envelope impactEnvelope
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		fmt.Fprintf(stderr, "decode Secret impact response: %v\n", err)
+		return 1
+	}
+
+	renderSecretImpactReport(stdout, envelope)
+	return 0
 }
 
 func runDependencies(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
@@ -199,33 +260,14 @@ func runRaw(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 }
 
 func requestJSON(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, query url.Values, stdout, stderr io.Writer) int {
-	u := *baseURL
-	u.Path = strings.TrimRight(u.Path, "/") + endpoint
-	if query != nil {
-		u.RawQuery = query.Encode()
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	body, requestURL, status, err := requestBody(ctx, client, baseURL, endpoint, query)
 	if err != nil {
-		fmt.Fprintf(stderr, "build request: %v\n", err)
+		fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
 		return 1
 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Fprintf(stderr, "request %s failed: %v\n", u.String(), err)
-		return 1
-	}
-	defer resp.Body.Close()
-
-	body, readErr := io.ReadAll(resp.Body)
-	if readErr != nil {
-		fmt.Fprintf(stderr, "read response: %v\n", readErr)
-		return 1
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		fmt.Fprintf(stderr, "request %s returned HTTP %d\n", u.String(), resp.StatusCode)
+	if status < 200 || status >= 300 {
+		fmt.Fprintf(stderr, "request %s returned HTTP %d\n", requestURL, status)
 		if len(body) > 0 {
 			fmt.Fprintln(stderr, strings.TrimRight(string(body), "\n"))
 		}
@@ -240,6 +282,280 @@ func requestJSON(ctx context.Context, client *http.Client, baseURL *url.URL, end
 	}
 
 	return 0
+}
+
+func requestBody(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, query url.Values) ([]byte, string, int, error) {
+	u := *baseURL
+	u.Path = strings.TrimRight(u.Path, "/") + endpoint
+	if query != nil {
+		u.RawQuery = query.Encode()
+	}
+
+	requestURL := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, requestURL, 0, fmt.Errorf("build request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, requestURL, 0, err
+	}
+	defer resp.Body.Close()
+
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, requestURL, resp.StatusCode, fmt.Errorf("read response: %w", readErr)
+	}
+
+	return body, requestURL, resp.StatusCode, nil
+}
+
+type impactEnvelope struct {
+	APIVersion  string     `json:"apiVersion"`
+	Cluster     string     `json:"cluster"`
+	GeneratedAt string     `json:"generatedAt"`
+	Data        impactData `json:"data"`
+}
+
+type impactData struct {
+	Secret            impactSecretSummary     `json:"secret"`
+	Summary           impactSummary           `json:"summary"`
+	AffectedTeams     []impactAffectedTeam    `json:"affectedTeams"`
+	AffectedWorkloads []impactWorkloadSummary `json:"affectedWorkloads"`
+	Edges             []impactEdge            `json:"edges"`
+}
+
+type impactSecretSummary struct {
+	Ref                      impactSecretRef `json:"ref"`
+	Exists                   bool            `json:"exists"`
+	Type                     string          `json:"type"`
+	OwnerTeam                string          `json:"ownerTeam"`
+	Criticality              string          `json:"criticality"`
+	AffectedWorkloadCount    int             `json:"affectedWorkloadCount"`
+	AffectedTeamCount        int             `json:"affectedTeamCount"`
+	AffectedNamespaceCount   int             `json:"affectedNamespaceCount"`
+	UnresolvedReferenceCount int             `json:"unresolvedReferenceCount"`
+	ImpactScore              float64         `json:"impactScore"`
+}
+
+type impactSummary struct {
+	AffectedWorkloadCount    int            `json:"affectedWorkloadCount"`
+	AffectedTeamCount        int            `json:"affectedTeamCount"`
+	AffectedNamespaceCount   int            `json:"affectedNamespaceCount"`
+	UnresolvedReferenceCount int            `json:"unresolvedReferenceCount"`
+	DiscoveryModes           map[string]int `json:"discoveryModes"`
+}
+
+type impactAffectedTeam struct {
+	OwnerTeam     string `json:"ownerTeam"`
+	WorkloadCount int    `json:"workloadCount"`
+}
+
+type impactWorkloadSummary struct {
+	Ref             impactWorkloadRef `json:"ref"`
+	OwnerTeam       string            `json:"ownerTeam"`
+	Service         string            `json:"service"`
+	Environment     string            `json:"environment"`
+	Criticality     string            `json:"criticality"`
+	DiscoveryMode   string            `json:"discoveryMode"`
+	DependencyCount int               `json:"dependencyCount"`
+	UnresolvedCount int               `json:"unresolvedCount"`
+}
+
+type impactEdge struct {
+	Workload      impactWorkloadRef `json:"workload"`
+	Secret        impactSecretRef   `json:"secret"`
+	DiscoveryMode string            `json:"discoveryMode"`
+	Sources       []impactSource    `json:"sources"`
+	Optional      bool              `json:"optional"`
+	Resolved      bool              `json:"resolved"`
+	OwnerTeam     string            `json:"ownerTeam"`
+	Criticality   string            `json:"criticality"`
+}
+
+type impactSecretRef struct {
+	Cluster   string `json:"cluster"`
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	Key       string `json:"key"`
+}
+
+type impactWorkloadRef struct {
+	Cluster    string `json:"cluster"`
+	Namespace  string `json:"namespace"`
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+	UID        string `json:"uid"`
+}
+
+type impactSource struct {
+	Type          string `json:"type"`
+	Path          string `json:"path"`
+	Container     string `json:"container"`
+	InitContainer string `json:"initContainer"`
+	Ephemeral     bool   `json:"ephemeralContainer"`
+	Volume        string `json:"volume"`
+	EnvVar        string `json:"envVar"`
+	Annotation    string `json:"annotation"`
+	ResourceField string `json:"resourceField"`
+}
+
+func renderSecretImpactReport(w io.Writer, envelope impactEnvelope) {
+	data := envelope.Data
+	secret := data.Secret.Ref
+
+	fmt.Fprintln(w, "KBeacon Secret Impact Report")
+	fmt.Fprintf(w, "Cluster: %s\n", valueOr(envelope.Cluster, "unknown"))
+	fmt.Fprintf(w, "Generated at: %s\n", valueOr(envelope.GeneratedAt, "unknown"))
+	fmt.Fprintf(w, "Secret: %s/%s\n", valueOr(secret.Namespace, "unknown"), valueOr(secret.Name, "unknown"))
+	fmt.Fprintf(w, "Exists: %s\n", yesNo(data.Secret.Exists))
+
+	if data.Secret.Type != "" {
+		fmt.Fprintf(w, "Type: %s\n", data.Secret.Type)
+	}
+	if data.Secret.OwnerTeam != "" {
+		fmt.Fprintf(w, "Owner team: %s\n", data.Secret.OwnerTeam)
+	}
+	if data.Secret.Criticality != "" {
+		fmt.Fprintf(w, "Criticality: %s\n", data.Secret.Criticality)
+	}
+
+	fmt.Fprintf(w, "Impact score: %.2f\n", data.Secret.ImpactScore)
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Summary:")
+	fmt.Fprintf(w, "  Affected workloads: %d\n", data.Summary.AffectedWorkloadCount)
+	fmt.Fprintf(w, "  Affected teams: %d\n", data.Summary.AffectedTeamCount)
+	fmt.Fprintf(w, "  Affected namespaces: %d\n", data.Summary.AffectedNamespaceCount)
+	fmt.Fprintf(w, "  Unresolved references: %d\n", data.Summary.UnresolvedReferenceCount)
+	fmt.Fprintf(w, "  Discovery modes: %s\n", formatDiscoveryModes(data.Summary.DiscoveryModes))
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Affected teams:")
+	if len(data.AffectedTeams) == 0 {
+		fmt.Fprintln(w, "  (none)")
+	} else {
+		for _, team := range data.AffectedTeams {
+			fmt.Fprintf(w, "  - %s: %d workload(s)\n", valueOr(team.OwnerTeam, "unknown"), team.WorkloadCount)
+		}
+	}
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Affected workloads:")
+	if len(data.AffectedWorkloads) == 0 {
+		fmt.Fprintln(w, "  (none)")
+	} else {
+		for _, workload := range data.AffectedWorkloads {
+			ref := workload.Ref
+			details := []string{}
+			if workload.OwnerTeam != "" {
+				details = append(details, "ownerTeam="+workload.OwnerTeam)
+			}
+			if workload.Criticality != "" {
+				details = append(details, "criticality="+workload.Criticality)
+			}
+			if workload.DiscoveryMode != "" {
+				details = append(details, "mode="+workload.DiscoveryMode)
+			}
+			details = append(details, fmt.Sprintf("dependencies=%d", workload.DependencyCount))
+			details = append(details, fmt.Sprintf("unresolved=%d", workload.UnresolvedCount))
+
+			fmt.Fprintf(
+				w,
+				"  - %s %s/%s (%s)\n",
+				valueOr(ref.Kind, "Workload"),
+				valueOr(ref.Namespace, "unknown"),
+				valueOr(ref.Name, "unknown"),
+				strings.Join(details, ", "),
+			)
+		}
+	}
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Dependency edges:")
+	if len(data.Edges) == 0 {
+		fmt.Fprintln(w, "  (none)")
+	} else {
+		for _, edge := range data.Edges {
+			fmt.Fprintf(
+				w,
+				"  - %s %s/%s -> Secret %s/%s mode=%s resolved=%s optional=%s\n",
+				valueOr(edge.Workload.Kind, "Workload"),
+				valueOr(edge.Workload.Namespace, "unknown"),
+				valueOr(edge.Workload.Name, "unknown"),
+				valueOr(edge.Secret.Namespace, "unknown"),
+				valueOr(edge.Secret.Name, "unknown"),
+				valueOr(edge.DiscoveryMode, "unknown"),
+				yesNo(edge.Resolved),
+				yesNo(edge.Optional),
+			)
+			fmt.Fprintf(w, "    sources: %s\n", sourceTypes(edge.Sources))
+		}
+	}
+}
+
+func formatDiscoveryModes(modes map[string]int) string {
+	if len(modes) == 0 {
+		return "(none)"
+	}
+
+	keys := make([]string, 0, len(modes))
+	for key := range modes {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	parts := make([]string, 0, len(keys))
+	for _, key := range keys {
+		parts = append(parts, fmt.Sprintf("%s=%d", key, modes[key]))
+	}
+
+	return strings.Join(parts, ", ")
+}
+
+func sourceTypes(sources []impactSource) string {
+	if len(sources) == 0 {
+		return "(none)"
+	}
+
+	seen := map[string]struct{}{}
+	out := []string{}
+
+	for _, source := range sources {
+		sourceType := strings.TrimSpace(source.Type)
+		if sourceType == "" {
+			continue
+		}
+		if _, ok := seen[sourceType]; ok {
+			continue
+		}
+		seen[sourceType] = struct{}{}
+		out = append(out, sourceType)
+	}
+
+	if len(out) == 0 {
+		return "(none)"
+	}
+
+	sort.Strings(out)
+	return strings.Join(out, ", ")
+}
+
+func yesNo(value bool) string {
+	if value {
+		return "yes"
+	}
+	return "no"
+}
+
+func valueOr(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
 }
 
 func normalizeBaseURL(raw string) (*url.URL, error) {
@@ -288,6 +604,7 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "  get dependency-map [filters]                 Get dependency map")
 	fmt.Fprintln(w, "  get config                                   Get Agent graph summary")
 	fmt.Fprintln(w, "  impact <namespace> <secret-name>             Get Secret impact JSON")
+	fmt.Fprintln(w, "  impact report <namespace> <secret-name>      Print a human-readable Secret impact report")
 	fmt.Fprintln(w, "  dependencies <namespace> <kind> <name>       Get workload dependency JSON")
 	fmt.Fprintln(w, "  raw <api-path>                               GET an arbitrary Agent API path")
 	fmt.Fprintln(w)

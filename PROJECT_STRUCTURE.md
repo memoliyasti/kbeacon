@@ -33,6 +33,7 @@ kbeacon/
     demo-blast-radius/           # Runnable Secret blast-radius demo
     scale/                       # Scale fixture and benchmark documentation
   cmd/kbeacon-agent/             # KBeacon Agent entrypoint
+  cmd/kbeaconctl/                # KBeacon CLI client
   internal/
     config/                      # Runtime config loading and defaults
     controller/                  # Kubernetes informer controller
