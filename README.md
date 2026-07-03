@@ -3,6 +3,7 @@
 [![CI](https://github.com/memoliyasti/kbeacon/actions/workflows/ci.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/ci.yaml)
 [![Release](https://github.com/memoliyasti/kbeacon/actions/workflows/release.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/release.yaml)
 [![Docs](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml/badge.svg)](https://github.com/memoliyasti/kbeacon/actions/workflows/pages.yaml)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kbeacon)](https://artifacthub.io/packages/search?repo=kbeacon)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 KBeacon is a Kubernetes Secret dependency intelligence agent for platform, SRE, DevOps, and security engineering teams.
