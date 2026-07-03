@@ -14,6 +14,7 @@ import (
 	appsinformers "k8s.io/client-go/informers/apps/v1"
 	batchinformers "k8s.io/client-go/informers/batch/v1"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	networkinginformers "k8s.io/client-go/informers/networking/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
@@ -30,6 +31,7 @@ type ResourceConfig struct {
 	Deployments     bool
 	StatefulSets    bool
 	DaemonSets      bool
+	Ingresses       bool
 	Jobs            bool
 	CronJobs        bool
 }
@@ -42,6 +44,7 @@ func DefaultResourceConfig() ResourceConfig {
 		Deployments:     true,
 		StatefulSets:    true,
 		DaemonSets:      true,
+		Ingresses:       true,
 		Jobs:            true,
 		CronJobs:        true,
 	}
@@ -61,6 +64,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.StatefulSets
 	case "DaemonSet":
 		return r.DaemonSets
+	case "Ingress":
+		return r.Ingresses
 	case "Job":
 		return r.Jobs
 	case "CronJob":
@@ -108,6 +113,7 @@ type Controller struct {
 	deploymentInformer     appsinformers.DeploymentInformer
 	statefulSetInformer    appsinformers.StatefulSetInformer
 	daemonSetInformer      appsinformers.DaemonSetInformer
+	ingressInformer        networkinginformers.IngressInformer
 	jobInformer            batchinformers.JobInformer
 	cronJobInformer        batchinformers.CronJobInformer
 
@@ -207,6 +213,10 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 	if resources.DaemonSets {
 		c.daemonSetInformer = factory.Apps().V1().DaemonSets()
 		c.synced["DaemonSet"] = false
+	}
+	if resources.Ingresses {
+		c.ingressInformer = factory.Networking().V1().Ingresses()
+		c.synced["Ingress"] = false
 	}
 	if resources.Jobs {
 		c.jobInformer = factory.Batch().V1().Jobs()
@@ -331,6 +341,9 @@ func (c *Controller) registerHandlers() {
 	}
 	if c.daemonSetInformer != nil {
 		c.registerResourceHandler("DaemonSet", c.daemonSetInformer.Informer())
+	}
+	if c.ingressInformer != nil {
+		c.registerResourceHandler("Ingress", c.ingressInformer.Informer())
 	}
 	if c.jobInformer != nil {
 		c.registerResourceHandler("Job", c.jobInformer.Informer())
@@ -501,6 +514,21 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.ingressInformer != nil {
+		ingresses, err := c.ingressInformer.Lister().List(labels.Everything())
+		if err != nil {
+			c.logger.Error("list ingresses failed", "error", err)
+			return
+		}
+
+		for _, ingress := range ingresses {
+			if !c.namespaceFilter.Include(ingress.Namespace) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromIngress(discoveryOptions, ingress))
+		}
+	}
+
 	if c.podInformer != nil {
 		pods, err := c.podInformer.Lister().List(labels.Everything())
 		if err != nil {
@@ -606,6 +634,12 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "Secret", synced: c.secretInformer.Informer().HasSynced})
 	}
+	if c.serviceAccountInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "ServiceAccount", synced: c.serviceAccountInformer.Informer().HasSynced})
+	}
 	if c.podInformer != nil {
 		syncs = append(syncs, struct {
 			name   string
@@ -630,6 +664,12 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "DaemonSet", synced: c.daemonSetInformer.Informer().HasSynced})
 	}
+	if c.ingressInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "Ingress", synced: c.ingressInformer.Informer().HasSynced})
+	}
 	if c.jobInformer != nil {
 		syncs = append(syncs, struct {
 			name   string
@@ -647,7 +687,7 @@ func (c *Controller) enabledSyncs() []struct {
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob"}
 }
 
 func stringSet(values []string) map[string]struct{} {

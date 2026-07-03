@@ -12,6 +12,9 @@
 {{- if .Values.resourcesToWatch.batch.jobs }}{{- $batchResources = append $batchResources "jobs" -}}{{- end }}
 {{- if .Values.resourcesToWatch.batch.cronJobs }}{{- $batchResources = append $batchResources "cronjobs" -}}{{- end }}
 
+{{- $networkingResources := list -}}
+{{- if .Values.resourcesToWatch.networking.ingresses }}{{- $networkingResources = append $networkingResources "ingresses" -}}{{- end }}
+
 {{- if eq .Values.rbac.scope "cluster" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -38,6 +41,11 @@ rules:
   {{- if gt (len $appsResources) 0 }}
   - apiGroups: ["apps"]
     resources: {{ toJson $appsResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $networkingResources) 0 }}
+  - apiGroups: ["networking.k8s.io"]
+    resources: {{ toJson $networkingResources }}
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- if gt (len $batchResources) 0 }}
@@ -89,6 +97,11 @@ rules:
   {{- if gt (len $appsResources) 0 }}
   - apiGroups: ["apps"]
     resources: {{ toJson $appsResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if gt (len $networkingResources) 0 }}
+  - apiGroups: ["networking.k8s.io"]
+    resources: {{ toJson $networkingResources }}
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- if gt (len $batchResources) 0 }}

@@ -212,3 +212,22 @@ helm upgrade --install kbeacon ./charts/kbeacon \
   --set cluster.name=prod-eu-1 \
   --set resourcesToWatch.core.serviceAccounts=false
 ```
+
+## Ingress TLS Secret discovery
+
+KBeacon can watch Kubernetes Ingress resources and discover TLS Secrets from `spec.tls[].secretName`.
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: true
+```
+
+Disable Ingress watching and Ingress RBAC when it is not needed:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.networking.ingresses=false
+```

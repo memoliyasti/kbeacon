@@ -159,3 +159,26 @@ func TestControllerLowPrivilegeModeMarksSecretInformerOptional(t *testing.T) {
 		t.Fatalf("expected enabled Deployment informer in cache sync status, got %#v", cacheStatus)
 	}
 }
+
+func TestControllerEnabledSyncsIncludeServiceAccountAndIngress(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster: "minikube",
+		Resources: ResourceConfig{
+			ServiceAccounts: true,
+			Ingresses:       true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["ServiceAccount"] {
+		t.Fatalf("expected ServiceAccount informer in enabled syncs, got %#v", names)
+	}
+	if !names["Ingress"] {
+		t.Fatalf("expected Ingress informer in enabled syncs, got %#v", names)
+	}
+}

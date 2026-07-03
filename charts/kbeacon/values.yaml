@@ -170,6 +170,10 @@ resourcesToWatch:
     ## @param resourcesToWatch.apps.daemonSets Watch DaemonSets.
     daemonSets: true
 
+  networking:
+    ## @param resourcesToWatch.networking.ingresses Watch Ingress resources to discover TLS Secret dependencies.
+    ingresses: true
+
   batch:
     ## @param resourcesToWatch.batch.jobs Watch Jobs.
     jobs: true

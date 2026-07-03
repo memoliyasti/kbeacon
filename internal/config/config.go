@@ -91,6 +91,9 @@ type ResourcesToWatchConfig struct {
 		StatefulSets bool `yaml:"statefulSets" json:"statefulSets"`
 		DaemonSets   bool `yaml:"daemonSets" json:"daemonSets"`
 	} `yaml:"apps" json:"apps"`
+	Networking struct {
+		Ingresses bool `yaml:"ingresses" json:"ingresses"`
+	} `yaml:"networking" json:"networking"`
 	Batch struct {
 		Jobs     bool `yaml:"jobs" json:"jobs"`
 		CronJobs bool `yaml:"cronJobs" json:"cronJobs"`
@@ -138,6 +141,7 @@ func Default() Config {
 	cfg.ResourcesToWatch.Apps.Deployments = true
 	cfg.ResourcesToWatch.Apps.StatefulSets = true
 	cfg.ResourcesToWatch.Apps.DaemonSets = true
+	cfg.ResourcesToWatch.Networking.Ingresses = true
 	cfg.ResourcesToWatch.Batch.Jobs = true
 	cfg.ResourcesToWatch.Batch.CronJobs = true
 

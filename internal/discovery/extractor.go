@@ -9,6 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -192,6 +193,48 @@ func WorkloadFromCronJob(opts Options, cronJob *batchv1.CronJob) graph.WorkloadI
 	)
 }
 
+func WorkloadFromIngress(opts Options, ingress *networkingv1.Ingress) graph.WorkloadInput {
+	annotations := ingress.GetAnnotations()
+	labels := ingress.GetLabels()
+	labelKeys := opts.MetadataLabelKeys.withDefaults()
+	mode := discoveryModeFor(annotations, opts.DefaultMode)
+
+	ref := graph.WorkloadRef{
+		Cluster:    opts.Cluster,
+		Namespace:  ingress.Namespace,
+		APIVersion: "networking.k8s.io/v1",
+		Kind:       "Ingress",
+		Name:       ingress.Name,
+		UID:        string(ingress.UID),
+	}
+
+	input := graph.WorkloadInput{
+		Ref:           ref,
+		OwnerTeam:     metadataValue(annotations[AnnotationOwnerTeam], labels, labelKeys.OwnerTeam, opts.MetadataLabelsEnabled),
+		Service:       metadataValue(annotations[AnnotationService], labels, labelKeys.Service, opts.MetadataLabelsEnabled),
+		Environment:   metadataValue(annotations[AnnotationEnvironment], labels, labelKeys.Environment, opts.MetadataLabelsEnabled),
+		Criticality:   metadataValue(annotations[AnnotationCriticality], labels, labelKeys.Criticality, opts.MetadataLabelsEnabled),
+		DiscoveryMode: mode,
+	}
+
+	if mode == graph.DiscoveryModeDisabled {
+		return input
+	}
+
+	ignore := ignoredSecrets(opts.Cluster, ingress.Namespace, annotations)
+	edges := []graph.DependencyEdge{}
+
+	if mode == graph.DiscoveryModeInfer || mode == graph.DiscoveryModeHybrid {
+		edges = append(edges, inferIngressEdges(opts.Cluster, ref, ingress)...)
+	}
+
+	if mode == graph.DiscoveryModeExplicit || mode == graph.DiscoveryModeHybrid {
+		edges = append(edges, explicitAnnotationEdges(opts.Cluster, ref, annotations)...)
+	}
+
+	input.Edges = filterAndMergeEdges(edges, ignore)
+	return input
+}
 func workloadFromPodSpec(
 	opts Options,
 	apiVersion string,
@@ -247,6 +290,31 @@ func workloadFromPodSpec(
 	return input
 }
 
+func inferIngressEdges(cluster string, workload graph.WorkloadRef, ingress *networkingv1.Ingress) []graph.DependencyEdge {
+	edges := []graph.DependencyEdge{}
+
+	for i, tls := range ingress.Spec.TLS {
+		if tls.SecretName == "" {
+			continue
+		}
+
+		edges = append(edges, newEdge(
+			cluster,
+			workload,
+			workload.Namespace,
+			tls.SecretName,
+			false,
+			graph.DiscoveryModeInfer,
+			graph.DependencySource{
+				Type:          "ingress.tls",
+				Path:          fmt.Sprintf("spec.tls[%d].secretName", i),
+				ResourceField: "spec.tls.secretName",
+			},
+		))
+	}
+
+	return edges
+}
 func inferPodSpecEdges(opts Options, workload graph.WorkloadRef, podSpec corev1.PodSpec) []graph.DependencyEdge {
 	edges := []graph.DependencyEdge{}
 

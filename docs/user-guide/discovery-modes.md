@@ -298,3 +298,27 @@ This fallback applies only when:
 The resulting dependency source type is `serviceAccount.imagePullSecrets`.
 
 Pod-level `imagePullSecrets` take precedence over ServiceAccount fallback references.
+
+## Ingress TLS Secret discovery
+
+KBeacon also discovers Secret references from networking.k8s.io/v1 Ingress TLS configuration.
+
+```yaml
+spec:
+  tls:
+    - hosts:
+        - app.example.com
+      secretName: app-tls
+```
+
+The resulting dependency source type is `ingress.tls`.
+
+Ingress objects are represented as Secret-consuming Kubernetes objects in the dependency graph. They are not Pods, Deployments, or runtime workloads, but they still depend on Secrets for TLS termination.
+
+Disable the watcher with:
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: false
+```

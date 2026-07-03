@@ -158,6 +158,7 @@ Implemented watcher values:
 | `resourcesToWatch.apps.daemonSets` | `DaemonSet` |
 | `resourcesToWatch.batch.jobs` | `Job` |
 | `resourcesToWatch.batch.cronJobs` | `CronJob` |
+| `resourcesToWatch.networking.ingresses` | `Ingress` |
 
 Disabled resources are not watched and are represented as optional in readiness status.
 
@@ -335,3 +336,23 @@ Fallback behavior:
 - If Pod-level `imagePullSecrets` are absent, KBeacon looks up the workload ServiceAccount.
 - Secrets from `serviceAccount.imagePullSecrets` are represented as inferred dependency edges.
 - The dependency source type is `serviceAccount.imagePullSecrets`.
+
+## Ingress TLS Secret discovery
+
+Ingress TLS discovery is controlled by the networking resource watcher.
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: true
+```
+
+When enabled, KBeacon watches networking.k8s.io/v1 Ingress resources and records each `spec.tls[].secretName` reference as an inferred Secret dependency.
+
+Disable it when Ingress TLS is out of scope:
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: false
+```

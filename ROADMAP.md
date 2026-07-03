@@ -5,6 +5,7 @@ KBeacon is an early-stage personal open source project. The roadmap is intention
 ## Current release line
 
 Implemented today:
+- Ingress TLS Secret discovery for networking.k8s.io/v1 Ingress TLS Secret references.
 
 - Kubernetes workload Secret dependency discovery.
 - `infer`, `explicit`, `hybrid`, and `disabled` discovery modes.
@@ -49,7 +50,6 @@ These are possible future features, not current promises:
 
 - ExternalSecret target Secret modeling.
 - SecretProviderClass and CSI Secret Store support.
-- Ingress TLS Secret discovery.
 - Strimzi KafkaConnector support.
 - Confluent Connector support.
 - Grafana App Plugin.

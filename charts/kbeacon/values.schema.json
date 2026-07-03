@@ -271,6 +271,15 @@
             }
           },
           "additionalProperties": false
+        },
+        "networking": {
+          "type": "object",
+          "properties": {
+            "ingresses": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

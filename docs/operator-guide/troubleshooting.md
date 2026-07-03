@@ -134,6 +134,7 @@ KBeacon currently discovers Secret references from these sources:
 - `envFrom.secretRef`;
 - `volumes.secret`;
 - `imagePullSecrets`;
+- `ingress.tls`;
 - `kbeacon.io/watch-secrets`;
 - `kbeacon.io/watch-secrets-json`.
 
@@ -328,3 +329,22 @@ For ServiceAccount fallback discovery, confirm:
 - `resourcesToWatch.core.serviceAccounts=true`;
 - the chart rendered ServiceAccount RBAC;
 - the workload Pod template does not define its own `imagePullSecrets`.
+
+## Ingress TLS Secret discovery troubleshooting
+
+If an expected TLS Secret dependency is missing, check the Ingress object and the networking watcher.
+
+```bash
+kubectl -n <namespace> get ingress <name> -o yaml
+helm get values kbeacon -n kbeacon-system -a | grep -A8 resourcesToWatch
+kubectl auth can-i list ingresses.networking.k8s.io --as system:serviceaccount:kbeacon-system:kbeacon -A
+```
+
+Expected conditions:
+
+- `resourcesToWatch.networking.ingresses=true`;
+- the Ingress uses networking.k8s.io/v1;
+- the Ingress has `spec.tls[].secretName`;
+- namespace include and exclude filters do not remove the Ingress namespace.
+
+When Ingress watching is disabled, the Agent cannot observe Ingress TLS references and Ingress RBAC is omitted by the chart.

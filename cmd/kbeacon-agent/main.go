@@ -144,6 +144,7 @@ func main() {
 			Deployments:     cfg.ResourcesToWatch.Apps.Deployments,
 			StatefulSets:    cfg.ResourcesToWatch.Apps.StatefulSets,
 			DaemonSets:      cfg.ResourcesToWatch.Apps.DaemonSets,
+			Ingresses:       cfg.ResourcesToWatch.Networking.Ingresses,
 			Jobs:            cfg.ResourcesToWatch.Batch.Jobs,
 			CronJobs:        cfg.ResourcesToWatch.Batch.CronJobs,
 		},

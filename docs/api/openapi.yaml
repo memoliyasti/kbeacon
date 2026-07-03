@@ -502,6 +502,7 @@ components:
             - volumes.secret
             - imagePullSecrets
             - serviceAccount.imagePullSecrets
+            - ingress.tls
             - annotation
         path:
           type: string

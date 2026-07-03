@@ -186,6 +186,7 @@ Implemented watcher values:
 | `resourcesToWatch.apps.daemonSets` | `DaemonSet` |
 | `resourcesToWatch.batch.jobs` | `Job` |
 | `resourcesToWatch.batch.cronJobs` | `CronJob` |
+| `resourcesToWatch.networking.ingresses` | `Ingress` |
 
 Disabled resources are not started as informers. They are represented as optional in readiness status.
 
@@ -395,3 +396,26 @@ resourcesToWatch:
 With `resourcesToWatch.core.serviceAccounts=false`, the chart omits ServiceAccount RBAC and the Agent cannot discover ServiceAccount image pull Secret fallbacks.
 
 Pod-level `imagePullSecrets` take precedence. KBeacon does not add ServiceAccount fallback edges when the Pod spec already contains explicit image pull Secrets.
+
+### Ingress TLS Secret discovery
+
+KBeacon discovers TLS Secret references from networking.k8s.io/v1 Ingress resources when Ingress watching is enabled.
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: true
+```
+
+The chart renders read-only `get`, `list`, and `watch` RBAC for networking.k8s.io Ingress resources by default.
+
+Disable Ingress watching when the cluster does not use Ingress TLS or when the Agent should not receive Ingress permissions:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.networking.ingresses=false
+```
+
+Ingress TLS edges use dependency source type `ingress.tls`.

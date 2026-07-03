@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added Ingress TLS Secret discovery from networking.k8s.io/v1 Ingress resources.
 - Added ServiceAccount imagePullSecrets fallback discovery for workloads that omit Pod-level `imagePullSecrets`.
 
 ## v0.2.4

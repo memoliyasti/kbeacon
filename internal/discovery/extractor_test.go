@@ -6,6 +6,7 @@ import (
 	"github.com/memoliyasti/kbeacon/internal/graph"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -356,5 +357,52 @@ func TestWorkloadFromDeploymentPrefersExplicitPodImagePullSecretsOverServiceAcco
 
 	if _, ok := edgesBySecret["kbeacon-demo/builder-pull-secret"]; ok {
 		t.Fatalf("did not expect ServiceAccount fallback when Pod spec imagePullSecrets is set; edges=%#v", input.Edges)
+	}
+}
+
+func TestWorkloadFromIngressExtractsTLSEdges(t *testing.T) {
+	ingress := &networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "payments-web",
+			Namespace: "payments",
+			UID:       "ingress-uid",
+			Annotations: map[string]string{
+				AnnotationOwnerTeam:   "payments-platform",
+				AnnotationCriticality: "high",
+			},
+			Labels: map[string]string{
+				"app.kubernetes.io/name": "payments-web",
+			},
+		},
+		Spec: networkingv1.IngressSpec{
+			TLS: []networkingv1.IngressTLS{
+				{Hosts: []string{"payments.example.com"}, SecretName: "payments-web-tls"},
+				{Hosts: []string{"api.payments.example.com"}, SecretName: "payments-api-tls"},
+			},
+		},
+	}
+
+	input := WorkloadFromIngress(DefaultOptions("minikube"), ingress)
+
+	if input.Ref.Cluster != "minikube" || input.Ref.Namespace != "payments" || input.Ref.APIVersion != "networking.k8s.io/v1" || input.Ref.Kind != "Ingress" || input.Ref.Name != "payments-web" {
+		t.Fatalf("unexpected ingress workload ref: %#v", input.Ref)
+	}
+
+	edgesBySecret := map[string]graph.DependencyEdge{}
+	for _, edge := range input.Edges {
+		edgesBySecret[graph.SecretID(edge.Secret)] = edge
+	}
+
+	for _, key := range []string{"payments/payments-web-tls", "payments/payments-api-tls"} {
+		edge, ok := edgesBySecret[key]
+		if !ok {
+			t.Fatalf("missing Ingress TLS edge for %s; edges=%#v", key, input.Edges)
+		}
+		if edge.DiscoveryMode != graph.DiscoveryModeInfer {
+			t.Fatalf("expected Ingress TLS edge to be inferred, got %s", edge.DiscoveryMode)
+		}
+		if len(edge.Sources) != 1 || edge.Sources[0].Type != "ingress.tls" {
+			t.Fatalf("unexpected Ingress TLS edge sources: %#v", edge.Sources)
+		}
 	}
 }

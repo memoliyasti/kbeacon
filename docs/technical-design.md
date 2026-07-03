@@ -4953,3 +4953,17 @@ These references inform the design baseline and should be checked during impleme
 ## End of design
 
 KBeacon should remain boring infrastructure: one Agent, watches, an in-memory graph, Prometheus metrics, a small API, Grafana dashboards, and Grafana Alerting. That simplicity is the product.
+
+### Implemented Ingress TLS Secret discovery
+
+KBeacon supports networking.k8s.io/v1 Ingress TLS Secret discovery.
+
+Each `spec.tls[].secretName` value is represented as an inferred dependency edge with source type `ingress.tls`.
+
+The watcher is controlled by:
+
+```yaml
+resourcesToWatch:
+  networking:
+    ingresses: true
+```

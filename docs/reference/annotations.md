@@ -267,3 +267,19 @@ ServiceAccount image pull Secret discovery is not annotation-driven.
 When inferred discovery is enabled, KBeacon can discover `serviceAccount.imagePullSecrets` as fallback dependencies for workloads that do not define Pod-level `imagePullSecrets`.
 
 Explicit KBeacon annotations remain useful for non-standard dependency relationships that are not visible in Pod specs or ServiceAccount metadata.
+
+## Ingress TLS references
+
+Ingress TLS Secret discovery does not require KBeacon annotations.
+
+KBeacon discovers networking.k8s.io/v1 Ingress TLS references from:
+
+```yaml
+spec:
+  tls:
+    - secretName: app-tls
+```
+
+The dependency source type is `ingress.tls`.
+
+Use `resourcesToWatch.networking.ingresses=false` to disable this watcher and omit Ingress RBAC.
