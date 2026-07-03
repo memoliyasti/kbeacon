@@ -59,6 +59,7 @@ nav:
   - Getting started: getting-started.md
   - User guide:
       - Installation: user-guide/installation.md
+      - CLI: user-guide/cli.md
       - Configuration: user-guide/configuration.md
       - Discovery modes: user-guide/discovery-modes.md
       - Blast-radius demo: user-guide/blast-radius-demo.md

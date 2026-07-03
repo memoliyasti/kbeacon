@@ -139,7 +139,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make supply-chain-lint supported-resources-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make ctl-smoke supply-chain-lint supported-resources-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
   docker-smoke:
     name: docker smoke

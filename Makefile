@@ -12,11 +12,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint
+.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint ctl-build ctl-smoke
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check kind-e2e-smoke-lint
+validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check kind-e2e-smoke-lint ctl-smoke
 
 ci: validate-ci
 
@@ -37,6 +37,14 @@ supply-chain-lint:
 
 api-contract-lint:
 	$(GO) test ./internal/server -run 'Test(OpenAPIContract|APIExampleContracts|HandlerResponsesMatchAPIContractShapes)'
+
+
+ctl-build:
+	$(GO) build -trimpath -o ./bin/kbeaconctl ./cmd/kbeaconctl
+
+ctl-smoke: ctl-build
+	./bin/kbeaconctl version >/tmp/kbeaconctl-version.txt
+	grep -q "kbeaconctl version=" /tmp/kbeaconctl-version.txt
 
 build:
 	$(GO) build -trimpath -o ./bin/kbeacon-agent ./cmd/kbeacon-agent

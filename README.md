@@ -140,6 +140,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Website: https://memoliyasti.github.io/kbeacon/
 - Getting started: `docs/getting-started.md`
 - Installation: `docs/user-guide/installation.md`
+- CLI: `docs/user-guide/cli.md`
 - Configuration: `docs/user-guide/configuration.md`
 - Discovery modes: `docs/user-guide/discovery-modes.md`
 - Dashboards: `docs/user-guide/dashboards.md`

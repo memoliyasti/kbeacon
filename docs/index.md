@@ -47,6 +47,7 @@ Read more in [Why KBeacon?](concepts/why-kbeacon.md).
 - Getting started: getting-started.md
 - Blast-radius demo: user-guide/blast-radius-demo.md
 - Installation: user-guide/installation.md
+- CLI: user-guide/cli.md
 - Helm reference: reference/helm.md
 - Supported resources: reference/supported-resources.md
 - Metrics reference: reference/metrics.md
