@@ -87,7 +87,7 @@ KBeacon provides a Kubernetes-native answer without replacing existing observabi
 
 ### 2.1 Product statement
 
-KBeacon discovers Secret dependencies from Kubernetes workloads and selected platform CRDs, calculates impact, and emits dependency intelligence to Prometheus-compatible systems.
+KBeacon currently discovers Secret dependencies from implemented Kubernetes workload resources, ServiceAccount image pull Secret fallbacks, and Ingress TLS references. Optional platform CRD support is future design intent unless it is also documented in the reference docs, OpenAPI contract, Helm values, and Go tests.
 
 ### 2.2 Operating model
 
@@ -111,7 +111,7 @@ The design optimizes for:
 
 ### 3.1 Goals
 
-1. **Discover Secret dependencies** from core Kubernetes workloads and supported platform CRDs.
+1. **Discover Secret dependencies** from implemented Kubernetes resources, including workload Pod specs, explicit annotations, ServiceAccount image pull Secret fallbacks, and Ingress TLS Secret references.
 2. **Answer Secret impact questions** through metrics, API responses, and Grafana dashboards.
 3. **Support infer, explicit, and hybrid discovery modes** so teams can start with automatic discovery and add annotations for ambiguous resources.
 4. **Expose Prometheus metrics** with stable names, documented labels, and cardinality guidance.
@@ -1415,7 +1415,7 @@ spec.jobTemplate.spec.template.spec
 
 CronJobs are especially important for backup, ETL, reporting, and rotation tasks. Their Secrets are often critical even when the workload has no continuously running Pods.
 
-### 11.11 Strimzi KafkaConnector
+### 11.11 Future: Strimzi KafkaConnector
 
 Strimzi `KafkaConnector` resources are optional and watched only if enabled. KBeacon must not fail when the Strimzi CRD is absent.
 
@@ -1492,7 +1492,7 @@ Suggested regex:
 \$\{secrets:((?P<namespace>[a-z0-9]([-a-z0-9]*[a-z0-9])?)/)?(?P<name>[A-Za-z0-9._-]+):(?P<key>[A-Za-z0-9._-]+)\}
 ```
 
-### 11.12 Confluent for Kubernetes Connector
+### 11.12 Future: Confluent for Kubernetes Connector
 
 Confluent for Kubernetes `Connector` resources are optional and watched only if enabled.
 
@@ -1555,7 +1555,7 @@ Potential edge:
 Ingress namespace/name -> Secret namespace/spec.tls[].secretName
 ```
 
-Design question for future: Ingress is not a workload. KBeacon can model it as a `WorkloadRef` kind `Ingress` or introduce a more generic `ConsumerRef`. The MVP should keep `WorkloadRef` but define the term as any Secret-consuming Kubernetes object.
+Implementation note: Ingress TLS references are modeled as Secret-consuming Kubernetes objects using `WorkloadRef` kind `Ingress`. A future generic `ConsumerRef` may be considered later, but the current public API keeps the existing workload-shaped reference model.
 
 ### 11.14 Future: ExternalSecret
 
@@ -4331,7 +4331,6 @@ testdata/
   deployment-imagepullsecret.yaml
   cronjob-secret.yaml
   strimzi-kafkaconnector-config-provider.yaml
-  confluent-connector-explicit.yaml
 ```
 
 Each fixture should have an expected JSON edge list.
