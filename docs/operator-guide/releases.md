@@ -22,3 +22,11 @@ Images are published to:
 ## Image visibility
 
 Official KBeacon GHCR packages are public by default. Kubernetes clusters do not need an image pull Secret for the default image. Use imagePullSecrets only for private forks or private registries.
+
+## SBOMs and attestations
+
+KBeacon releases include SPDX JSON SBOM files for the source tree and generated release artifacts.
+
+The release workflow creates artifact provenance attestations with GitHub artifact attestations and enables BuildKit provenance and SBOM metadata for release container images.
+
+Use `checksums.txt` to verify downloaded release assets. Use GitHub CLI artifact attestation verification when you need provenance validation in addition to checksum validation.

@@ -9,6 +9,8 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  attestations: write
+  artifact-metadata: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -108,7 +110,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make supply-chain-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
       - name: Build release binaries
         run: |
@@ -177,6 +179,25 @@ jobs:
           helm verify "dist/kbeacon-${{ steps.version.outputs.version_no_v }}.tgz" \
             --keyring .helm-signing/pubring.gpg
 
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate release SBOMs
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_NO_V="${{ steps.version.outputs.version_no_v }}"
+
+          syft dir:.             --exclude './dist/**'             --exclude './site/**'             --exclude './.venv/**'             --exclude './.venv-docs/**'             -o spdx-json="dist/kbeacon-source-${VERSION}.spdx.json"
+
+          for artifact in dist/kbeacon-agent_${VERSION}_* dist/kbeacon-${VERSION_NO_V}.tgz
+          do
+            if [ -f "${artifact}" ]; then
+              syft "file:${artifact}" -o spdx-json="${artifact}.spdx.json"
+            fi
+          done
+
       - name: Generate checksums
         run: |
           cd dist
@@ -214,6 +235,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=kbeacon-release-image
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v4.1.2
@@ -230,6 +253,11 @@ jobs:
             --certificate-identity "${IDENTITY}" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             "${IMAGE_REF}"
+
+      - name: Attest release artifact provenance
+        uses: actions/attest@v4
+        with:
+          subject-checksums: dist/checksums.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

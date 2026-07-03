@@ -55,3 +55,11 @@ For release `v0.3.1`, the workflow publishes:
 ## Official GHCR package visibility
 
 Official KBeacon GHCR packages for this repository are expected to be public. Kubernetes clusters do not need an image pull Secret for the default image. Use `imagePullSecrets` only for private forks or private registries.
+
+## SBOMs and attestations
+
+Release builds publish SPDX JSON SBOM files together with the normal release artifacts.
+
+The release workflow also creates GitHub artifact attestations for the release artifact checksums. The release image build enables BuildKit provenance and SBOM metadata for the pushed multi-arch GHCR image.
+
+Release consumers can verify artifact checksums from `checksums.txt`. GitHub artifact attestations can be verified with GitHub CLI when available for the repository and account plan.

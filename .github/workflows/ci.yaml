@@ -21,6 +21,10 @@ on:
 
 permissions:
   contents: read
+  packages: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -135,7 +139,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make supply-chain-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
   docker-smoke:
     name: docker smoke
@@ -259,6 +263,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=kbeacon-main-image
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v4.1.2

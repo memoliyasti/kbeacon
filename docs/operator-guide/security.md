@@ -70,3 +70,9 @@ The first redaction control is `privacy.redaction.secretKeys`.
 When enabled, KBeacon redacts Secret key names in dependency source paths returned by the Agent API. For example, an inferred environment variable source path that would normally include `payments-db#password` is returned as `payments-db#<redacted>`.
 
 This option does not redact Secret names or namespaces because KBeacon's primary purpose is to show workload-to-Secret relationships. Keep the Agent API, Prometheus, Grafana, and logs internal to trusted platform users.
+
+## Supply chain metadata
+
+Release artifacts include checksums and SPDX JSON SBOM files. The release workflow creates GitHub artifact attestations for release artifacts and enables BuildKit provenance and SBOM metadata for pushed container images.
+
+Treat SBOMs as public software supply chain metadata. They should not contain Kubernetes Secret values or cluster-specific Secret names.
