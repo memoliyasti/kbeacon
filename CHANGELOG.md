@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.2
+
+- Enforced single-replica Agent mode until leader election is implemented.
+- Added projected Secret volume discovery from `volumes.projected.sources.secret`.
+- Added `privacy.redaction.secretKeys` to redact Secret key names in Agent API source paths.
+- Added Kind end-to-end smoke testing for chart, RBAC, discovery, API, projected Secret volume discovery, and redaction behavior.
+- Added release SBOM and artifact attestation wiring.
+- Added a supported resource matrix for current runtime support and future resource scope.
+- Added a browser-friendly Helm repository landing page.
+
+
 ## Unreleased
 
 ## v0.3.1
