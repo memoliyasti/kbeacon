@@ -52,6 +52,8 @@ helm-schema-lint:
 	grep -Eq "service/type|service.type" /tmp/kbeacon-schema-invalid-service-type.txt
 	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set networkPolicy.ingress.from=invalid >/tmp/kbeacon-schema-invalid-networkpolicy-from.txt 2>&1
 	grep -Eq "networkPolicy/ingress/from|networkPolicy.ingress.from" /tmp/kbeacon-schema-invalid-networkpolicy-from.txt
+	! $(HELM) lint ./charts/kbeacon --set cluster.name=$(CLUSTER_NAME) --set replicaCount=2 >/tmp/kbeacon-schema-invalid-replica-count.txt 2>&1
+	grep -Eq "replicaCount|one of|single-replica|multi-replica" /tmp/kbeacon-schema-invalid-replica-count.txt
 
 helm-template:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set dashboards.enabled=true > /tmp/kbeacon-rendered.yaml

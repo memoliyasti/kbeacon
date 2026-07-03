@@ -22,6 +22,7 @@ image:
   pullPolicy: IfNotPresent
 
 ## @param replicaCount Number of KBeacon Agent replicas. KBeacon is designed to run as one agent per cluster.
+# KBeacon v0.3.x runs as one Agent replica per cluster. Multi-replica mode is not supported until leader election is implemented.
 replicaCount: 1
 
 ## @param imagePullSecrets Optional image pull secrets for private registries.

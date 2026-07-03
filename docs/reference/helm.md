@@ -444,3 +444,11 @@ Example values:
           - podSelector:
               matchLabels:
                 app: prometheus
+
+## Replica count
+
+replicaCount: 1
+
+KBeacon v0.3.x is intentionally single-replica. Each Agent replica builds its own in-memory dependency graph. Running more than one replica without leader election can duplicate Prometheus metrics and expose replica-local API snapshots.
+
+The chart validates `replicaCount=1` and rejects other values. High availability with leader election is tracked as future work.

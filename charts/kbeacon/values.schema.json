@@ -39,7 +39,10 @@
     },
     "replicaCount": {
       "type": "integer",
-      "minimum": 1
+      "enum": [
+        1
+      ],
+      "description": "KBeacon runs as one Agent replica per cluster in this release. Multi-replica mode requires leader election and is not supported yet."
     },
     "imagePullSecrets": {
       "type": "array",

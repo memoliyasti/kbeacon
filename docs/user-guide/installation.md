@@ -231,3 +231,9 @@ Use port-forwarding for ad hoc local access:
     kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 
 Avoid exposing the Agent API through `NodePort` or `LoadBalancer` unless your environment applies authentication, authorization, and network restrictions outside KBeacon.
+
+## Replica count and availability
+
+KBeacon v0.3.x runs as one Agent replica per cluster.
+
+Keep `replicaCount=1` for normal installs. Multi-replica operation is not supported until leader election is implemented, because each Agent replica independently watches Kubernetes and builds its own in-memory graph.
