@@ -152,12 +152,30 @@ jobs:
             wait "${pid}"
           done
 
+      - name: Prepare Helm signing key
+        run: |
+          set -euo pipefail
+          mkdir -p .helm-signing
+          printf "%s" "${{ secrets.HELM_SIGNING_KEYRING_BASE64 }}" | base64 -d > .helm-signing/secring.gpg
+          printf "%s" "${{ secrets.HELM_SIGNING_PASSPHRASE }}" > .helm-signing/passphrase.txt
+          gpg --batch --yes --dearmor --output .helm-signing/pubring.gpg docs/charts/kbeacon-helm-signing-key.asc
+          chmod 600 .helm-signing/secring.gpg .helm-signing/passphrase.txt .helm-signing/pubring.gpg
+
       - name: Package Helm chart
         run: |
           helm package ./charts/kbeacon \
             --destination dist \
             --version "${{ steps.version.outputs.version_no_v }}" \
-            --app-version "${{ steps.version.outputs.version_no_v }}"
+            --app-version "${{ steps.version.outputs.version_no_v }}" \
+            --sign \
+            --key "${{ secrets.HELM_SIGNING_KEY_NAME }}" \
+            --keyring .helm-signing/secring.gpg \
+            --passphrase-file .helm-signing/passphrase.txt
+
+      - name: Verify Helm chart provenance
+        run: |
+          helm verify "dist/kbeacon-${{ steps.version.outputs.version_no_v }}.tgz" \
+            --keyring .helm-signing/pubring.gpg
 
       - name: Generate checksums
         run: |
