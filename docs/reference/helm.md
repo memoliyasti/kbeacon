@@ -482,3 +482,9 @@ Run it locally when docker, kind, kubectl, helm, and python3 are available:
     make kind-e2e-smoke
 
 The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind cluster, installs the Helm chart, creates a small workload graph, and verifies the Agent API.
+
+## Supported resource matrix
+
+The implemented Kubernetes resource and dependency source matrix is maintained in [`supported-resources.md`](supported-resources.md).
+
+Use that page as the source of truth for what KBeacon watches today and what is only future roadmap scope.

@@ -332,3 +332,7 @@ Supported source path:
     spec.volumes[].projected.sources[].secret.name
 
 KBeacon records these dependencies with source type `volumes.projected.sources.secret`. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.
+
+## Supported resource matrix
+
+See the [Supported resources reference](../reference/supported-resources.md) for the complete current matrix of Kubernetes resources, Helm watcher values, and dependency source types.

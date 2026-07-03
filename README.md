@@ -144,6 +144,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Discovery modes: `docs/user-guide/discovery-modes.md`
 - Dashboards: `docs/user-guide/dashboards.md`
 - Helm reference: `docs/reference/helm.md`
+- Supported resources: docs/reference/supported-resources.md
 - Metrics reference: `docs/reference/metrics.md`
 - Annotation reference: `docs/reference/annotations.md`
 - Agent API: `docs/api/openapi.yaml`

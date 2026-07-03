@@ -73,6 +73,7 @@ nav:
   - Operations:
       - Prometheus: operations/prometheus.md
   - Reference:
+      - Supported resources: reference/supported-resources.md
       - Helm: reference/helm.md
       - Metrics: reference/metrics.md
       - Annotations: reference/annotations.md
