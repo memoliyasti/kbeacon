@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>KBeacon Helm Repository</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 860px;
+      margin: 48px auto;
+      padding: 0 20px;
+      line-height: 1.55;
+      color: #1f2937;
+    }
+    code, pre {
+      background: #f3f4f6;
+      border-radius: 6px;
+    }
+    code {
+      padding: 2px 5px;
+    }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    a {
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <h1>KBeacon Helm Repository</h1>
+
+  <p>This directory is the public Helm repository for the KBeacon chart.</p>
+
+  <h2>Helm install</h2>
+
+  <pre><code>helm repo add kbeacon https://memoliyasti.github.io/kbeacon/charts
+helm repo update
+helm upgrade --install kbeacon kbeacon/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1</code></pre>
+
+  <h2>Repository files</h2>
+
+  <ul>
+    <li><a href="./index.yaml">index.yaml</a></li>
+    <li><a href="./artifacthub-repo.yml">artifacthub-repo.yml</a></li>
+    <li><a href="./kbeacon-helm-signing-key.asc">KBeacon Helm signing public key</a></li>
+  </ul>
+
+  <h2>Project links</h2>
+
+  <ul>
+    <li><a href="https://github.com/memoliyasti/kbeacon">Source repository</a></li>
+    <li><a href="https://memoliyasti.github.io/kbeacon/">Documentation</a></li>
+    <li><a href="https://artifacthub.io/packages/helm/kbeacon/kbeacon">Artifact Hub package</a></li>
+  </ul>
+</body>
+</html>
