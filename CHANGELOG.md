@@ -2,8 +2,17 @@
 
 ## Unreleased
 
+## v0.3.0
+
+### Added
+
 - Added Ingress TLS Secret discovery from networking.k8s.io/v1 Ingress resources.
 - Added ServiceAccount imagePullSecrets fallback discovery for workloads that omit Pod-level `imagePullSecrets`.
+
+### Notes
+
+- This release adds new read-only discovery paths for ServiceAccount image pull Secret fallbacks and Ingress TLS Secret references.
+- The chart now includes default read-only RBAC for ServiceAccounts and Ingresses. Disable them with `resourcesToWatch.core.serviceAccounts=false` or `resourcesToWatch.networking.ingresses=false` when those discovery paths are out of scope.
 
 ## v0.2.4
 
