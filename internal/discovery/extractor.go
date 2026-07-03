@@ -354,6 +354,32 @@ func inferPodSpecEdges(opts Options, workload graph.WorkloadRef, podSpec corev1.
 		))
 	}
 
+	for _, volume := range podSpec.Volumes {
+		if volume.Projected == nil {
+			continue
+		}
+
+		for i, projection := range volume.Projected.Sources {
+			if projection.Secret == nil || projection.Secret.Name == "" {
+				continue
+			}
+
+			edges = append(edges, newEdge(
+				opts.Cluster,
+				workload,
+				workload.Namespace,
+				projection.Secret.Name,
+				projection.Secret.Optional != nil && *projection.Secret.Optional,
+				graph.DiscoveryModeInfer,
+				graph.DependencySource{
+					Type:   "volumes.projected.sources.secret",
+					Path:   fmt.Sprintf("spec.volumes[%s].projected.sources[%d].secret.name", volume.Name, i),
+					Volume: volume.Name,
+				},
+			))
+		}
+	}
+
 	if opts.IncludeImagePullSecrets {
 		for i, ref := range podSpec.ImagePullSecrets {
 			if ref.Name == "" {

@@ -406,3 +406,79 @@ func TestWorkloadFromIngressExtractsTLSEdges(t *testing.T) {
 		}
 	}
 }
+
+func TestWorkloadFromDeploymentExtractsProjectedSecretVolumeDependencies(t *testing.T) {
+	optional := true
+
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "api",
+			Namespace: "kbeacon-demo",
+			UID:       "deployment-uid",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "api",
+							Image: "busybox:1.36",
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "projected-config",
+							VolumeSource: corev1.VolumeSource{
+								Projected: &corev1.ProjectedVolumeSource{
+									Sources: []corev1.VolumeProjection{
+										{
+											Secret: &corev1.SecretProjection{
+												LocalObjectReference: corev1.LocalObjectReference{
+													Name: "projected-secret",
+												},
+												Optional: &optional,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+
+	for _, edge := range input.Edges {
+		if edge.Secret.Namespace != "kbeacon-demo" || edge.Secret.Name != "projected-secret" {
+			continue
+		}
+
+		if !edge.Optional {
+			t.Fatalf("expected projected Secret edge to preserve optional=true: %#v", edge)
+		}
+
+		if len(edge.Sources) != 1 {
+			t.Fatalf("expected one source for projected Secret edge, got %#v", edge.Sources)
+		}
+
+		source := edge.Sources[0]
+		if source.Type != "volumes.projected.sources.secret" {
+			t.Fatalf("expected projected Secret source type, got %q", source.Type)
+		}
+
+		if source.Volume != "projected-config" {
+			t.Fatalf("expected source volume projected-config, got %q", source.Volume)
+		}
+
+		if source.Path != "spec.volumes[projected-config].projected.sources[0].secret.name" {
+			t.Fatalf("unexpected source path: %q", source.Path)
+		}
+
+		return
+	}
+
+	t.Fatalf("expected projected Secret dependency edge, got %#v", input.Edges)
+}

@@ -263,3 +263,13 @@ KBeacon v0.3.x is intentionally single-replica. Keep `replicaCount=1`.
 Each Agent replica builds its own in-memory dependency graph. Running more than one replica without leader election can duplicate Prometheus metrics and expose replica-local API snapshots. The chart therefore rejects `replicaCount` values other than `1`.
 
 High availability with leader election is tracked as future work.
+
+## Projected Secret volumes
+
+Kubernetes projected volumes can include Secret projections. KBeacon discovers these references from Pod specs and workload Pod templates.
+
+Supported source path:
+
+    spec.volumes[].projected.sources[].secret.name
+
+KBeacon records these dependencies with source type `volumes.projected.sources.secret`. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.

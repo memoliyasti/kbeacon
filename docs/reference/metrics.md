@@ -342,3 +342,7 @@ Use the read-only Agent API for detailed dependency source paths and Secret key-
 - Prometheus operations: `docs/operations/prometheus.md`
 - Helm reference: `docs/reference/helm.md`
 - API contract: `docs/api/openapi.yaml`
+
+## Projected Secret volume source
+
+Dependency edges discovered from projected Secret volumes use source type `volumes.projected.sources.secret`.

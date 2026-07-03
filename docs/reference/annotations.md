@@ -286,3 +286,13 @@ spec:
 The dependency source type is `ingress.tls`.
 
 Use `resourcesToWatch.networking.ingresses=false` to disable this watcher and omit Ingress RBAC.
+
+## Projected Secret volumes
+
+Kubernetes projected volumes can include Secret projections. KBeacon discovers these references from Pod specs and workload Pod templates.
+
+Supported source path:
+
+    spec.volumes[].projected.sources[].secret.name
+
+KBeacon records these dependencies with source type `volumes.projected.sources.secret`. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.
