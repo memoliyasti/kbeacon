@@ -165,11 +165,14 @@ KBeacon annotations have higher precedence than label fallback.
 resourcesToWatch:
   core:
     secrets: true
+    serviceAccounts: true
     pods: true
   apps:
     deployments: true
     statefulSets: true
     daemonSets: true
+  networking:
+    ingresses: true
   batch:
     jobs: true
     cronJobs: true
@@ -180,6 +183,7 @@ Implemented watcher values:
 | Value path | Resource |
 | --- | --- |
 | `resourcesToWatch.core.secrets` | `Secret` |
+| `resourcesToWatch.core.serviceAccounts` | `ServiceAccount` |
 | `resourcesToWatch.core.pods` | `Pod` |
 | `resourcesToWatch.apps.deployments` | `Deployment` |
 | `resourcesToWatch.apps.statefulSets` | `StatefulSet` |

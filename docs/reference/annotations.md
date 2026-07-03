@@ -29,7 +29,10 @@ Workload annotations are interpreted for normalized workloads discovered by KBea
 - `StatefulSet`;
 - `DaemonSet`;
 - `Job`;
-- `CronJob`.
+- `CronJob`;
+- `Ingress` when `resourcesToWatch.networking.ingresses=true`.
+
+Ingress objects are modeled as Secret-consuming Kubernetes objects rather than runtime Pods. When Ingress watching is enabled, KBeacon reads Ingress metadata annotations for discovery mode, explicit dependencies, ignored dependencies, ownership metadata, service metadata, environment metadata, and criticality metadata.
 
 For controller workloads, annotations can be placed on the workload object. Pod template annotations can also be read when `discovery.readPodTemplateAnnotations=true`.
 

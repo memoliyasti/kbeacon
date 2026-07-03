@@ -31,7 +31,7 @@ KBeacon turns that scattered metadata into a current dependency graph that helps
 ## Core capabilities
 
 - Kubernetes-native discovery using `client-go` shared informers.
-- Workload coverage for Pods, Deployments, StatefulSets, DaemonSets, Jobs, and CronJobs.
+- Workload coverage for Pods, Deployments, StatefulSets, DaemonSets, Jobs, CronJobs, and Ingress TLS references.
 - Dependency extraction from standard Pod spec fields: `env.valueFrom.secretKeyRef`, `envFrom.secretRef`, `volumes.secret`, and `imagePullSecrets`.
 - ServiceAccount imagePullSecrets fallback discovery when workloads omit Pod-level `imagePullSecrets`.
 - Ingress TLS Secret discovery from networking.k8s.io/v1 Ingress spec.tls[].secretName.
