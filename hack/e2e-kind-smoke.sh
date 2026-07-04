@@ -326,3 +326,110 @@ PY
 
 echo
 echo "ok: Kind E2E smoke test completed"
+
+echo
+echo "===== kbeaconctl snapshot export smoke ====="
+
+SNAPSHOT_NAMESPACE="${NAMESPACE:-kbeacon-system}"
+SNAPSHOT_SERVICE="${KBEACON_SERVICE_NAME:-kbeacon}"
+
+if ! kubectl -n "${SNAPSHOT_NAMESPACE}" get svc "${SNAPSHOT_SERVICE}" >/dev/null 2>&1
+then
+  SNAPSHOT_SERVICE="$(kubectl -n "${SNAPSHOT_NAMESPACE}" get svc -l app.kubernetes.io/name=kbeacon -o jsonpath='{.items[0].metadata.name}')"
+fi
+
+if [ -z "${SNAPSHOT_SERVICE}" ]; then
+  echo "ERROR: could not resolve KBeacon Service name in namespace ${SNAPSHOT_NAMESPACE}"
+  exit 1
+fi
+
+go build -trimpath -o ./bin/kbeaconctl ./cmd/kbeaconctl
+
+SNAPSHOT_PORT="${KBEACON_SNAPSHOT_PORT:-18081}"
+
+for candidate in 18081 18082 18083 18084 18085
+do
+  if ! (command -v lsof >/dev/null 2>&1 && lsof -iTCP:"${candidate}" -sTCP:LISTEN >/dev/null 2>&1)
+  then
+    SNAPSHOT_PORT="${candidate}"
+    break
+  fi
+done
+
+SNAPSHOT_URL="http://127.0.0.1:${SNAPSHOT_PORT}"
+SNAPSHOT_FILE="/tmp/kbeacon-kind-snapshot.json"
+SNAPSHOT_PF_LOG="/tmp/kbeacon-snapshot-port-forward.log"
+
+rm -f "${SNAPSHOT_FILE}" "${SNAPSHOT_PF_LOG}"
+
+kubectl -n "${SNAPSHOT_NAMESPACE}" port-forward "svc/${SNAPSHOT_SERVICE}" "${SNAPSHOT_PORT}:8080" >"${SNAPSHOT_PF_LOG}" 2>&1 &
+SNAPSHOT_PF_PID="$!"
+
+SNAPSHOT_READY=0
+
+for _ in $(seq 1 30)
+do
+  if curl -fsSL "${SNAPSHOT_URL}/readyz" >/dev/null 2>&1
+  then
+    SNAPSHOT_READY=1
+    break
+  fi
+
+  if ! kill -0 "${SNAPSHOT_PF_PID}" >/dev/null 2>&1
+  then
+    echo "ERROR: snapshot port-forward exited early"
+    cat "${SNAPSHOT_PF_LOG}" || true
+    exit 1
+  fi
+
+  sleep 1
+done
+
+if [ "${SNAPSHOT_READY}" != "1" ]; then
+  echo "ERROR: KBeacon Agent was not reachable for snapshot export"
+  cat "${SNAPSHOT_PF_LOG}" || true
+  kill "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+  wait "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+  exit 1
+fi
+
+if ! ./bin/kbeaconctl \
+  --server "${SNAPSHOT_URL}" \
+  snapshot export \
+  --include secrets,workloads,dependency-map,config \
+  --output "${SNAPSHOT_FILE}"
+then
+  echo "ERROR: kbeaconctl snapshot export failed"
+  cat "${SNAPSHOT_PF_LOG}" || true
+  kill "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+  wait "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+  exit 1
+fi
+
+python3 -c '
+import json
+import sys
+
+path = sys.argv[1]
+
+with open(path, "r", encoding="utf-8") as f:
+    snapshot = json.load(f)
+
+if snapshot.get("kind") != "KBeaconSnapshot":
+    raise SystemExit(f"expected kind=KBeaconSnapshot, got {snapshot.get(\"kind\")!r}")
+
+serialized = json.dumps(snapshot, sort_keys=True)
+
+required_tokens = ["secrets", "workloads", "dependency", "config"]
+missing = [token for token in required_tokens if token not in serialized]
+
+if missing:
+    raise SystemExit(f"snapshot is missing expected content tokens: {missing}")
+
+print("snapshot export validation passed")
+' "${SNAPSHOT_FILE}"
+
+kill "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+wait "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
+
+ls -lh "${SNAPSHOT_FILE}"
