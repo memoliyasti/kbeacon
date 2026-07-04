@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.4
+
+- Added `kbeaconctl snapshot export` for portable Agent API snapshots.
+- Added `kbeaconctl snapshot diff` with text, JSON, and markdown output for offline review and PR comments.
+- Added Kind E2E smoke coverage for snapshot export and snapshot diff.
+- Added Prometheus alert runbooks and runbook validation for alert rule maintenance.
+- Kept Agent, Helm, metrics, and API behavior compatible with v0.3.3.
+
 ## v0.3.3
 
 - Added `kbeaconctl` CLI foundation and Secret impact report output.
