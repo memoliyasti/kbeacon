@@ -76,6 +76,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runImpact(ctx, client, baseURL, rest[1:], stdout, stderr)
 	case "dependencies":
 		return runDependencies(ctx, client, baseURL, rest[1:], stdout, stderr)
+	case "snapshot":
+		return runSnapshot(ctx, client, baseURL, rest[1:], stdout, stderr)
 	case "raw":
 		return runRaw(ctx, client, baseURL, rest[1:], stdout, stderr)
 	case "help", "-h", "--help":
@@ -257,6 +259,167 @@ func runRaw(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 	}
 
 	return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+}
+
+func runSnapshot(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+	if len(args) == 0 || args[0] != "export" {
+		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot export [--output FILE] [--include LIST] [--pretty=false]")
+		return 2
+	}
+
+	fs := flag.NewFlagSet("snapshot export", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	output := fs.String("output", "-", "Output file path, or - for stdout")
+	include := fs.String("include", "config,secrets,workloads,dependency-map", "Comma-separated resources: config,secrets,workloads,dependency-map")
+	pretty := fs.Bool("pretty", true, "Pretty-print JSON output")
+
+	if err := fs.Parse(args[1:]); err != nil {
+		return 2
+	}
+
+	if fs.NArg() != 0 {
+		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot export [--output FILE] [--include LIST] [--pretty=false]")
+		return 2
+	}
+
+	return requestSnapshotExport(ctx, client, baseURL, *include, *output, *pretty, stdout, stderr)
+}
+
+type snapshotExport struct {
+	APIVersion  string                     `json:"apiVersion"`
+	Kind        string                     `json:"kind"`
+	GeneratedAt string                     `json:"generatedAt"`
+	Server      string                     `json:"server"`
+	Resources   map[string]json.RawMessage `json:"resources"`
+}
+
+type snapshotResourceRequest struct {
+	Name     string
+	Endpoint string
+}
+
+func requestSnapshotExport(
+	ctx context.Context,
+	client *http.Client,
+	baseURL *url.URL,
+	include string,
+	output string,
+	pretty bool,
+	stdout io.Writer,
+	stderr io.Writer,
+) int {
+	requests, err := parseSnapshotResources(include)
+	if err != nil {
+		fmt.Fprintf(stderr, "invalid --include value: %v\n", err)
+		return 2
+	}
+
+	resources := make(map[string]json.RawMessage, len(requests))
+
+	for _, item := range requests {
+		body, requestURL, status, err := requestBody(ctx, client, baseURL, item.Endpoint, nil)
+		if err != nil {
+			fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
+			return 1
+		}
+
+		if status < 200 || status >= 300 {
+			fmt.Fprintf(stderr, "request %s returned HTTP %d\n", requestURL, status)
+			if len(body) > 0 {
+				fmt.Fprintln(stderr, strings.TrimRight(string(body), "\n"))
+			}
+			return 1
+		}
+
+		if !json.Valid(body) {
+			fmt.Fprintf(stderr, "request %s returned invalid JSON\n", requestURL)
+			return 1
+		}
+
+		resources[item.Name] = append(json.RawMessage(nil), body...)
+	}
+
+	snapshot := snapshotExport{
+		APIVersion:  "kbeacon.io/v1",
+		Kind:        "KBeaconSnapshot",
+		GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+		Server:      baseURL.String(),
+		Resources:   resources,
+	}
+
+	var encoded []byte
+	if pretty {
+		encoded, err = json.MarshalIndent(snapshot, "", "  ")
+	} else {
+		encoded, err = json.Marshal(snapshot)
+	}
+	if err != nil {
+		fmt.Fprintf(stderr, "encode snapshot: %v\n", err)
+		return 1
+	}
+
+	encoded = append(encoded, '\n')
+
+	output = strings.TrimSpace(output)
+	if output == "" || output == "-" {
+		_, _ = stdout.Write(encoded)
+		return 0
+	}
+
+	if err := os.WriteFile(output, encoded, 0o600); err != nil {
+		fmt.Fprintf(stderr, "write snapshot %s: %v\n", output, err)
+		return 1
+	}
+
+	fmt.Fprintf(stdout, "wrote snapshot %s\n", output)
+	return 0
+}
+
+func parseSnapshotResources(value string) ([]snapshotResourceRequest, error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		value = "config,secrets,workloads,dependency-map"
+	}
+
+	parts := strings.Split(value, ",")
+	out := make([]snapshotResourceRequest, 0, len(parts))
+	seen := map[string]struct{}{}
+
+	for _, part := range parts {
+		item, ok := canonicalSnapshotResource(part)
+		if !ok {
+			return nil, fmt.Errorf("unsupported resource %q", strings.TrimSpace(part))
+		}
+
+		if _, duplicate := seen[item.Name]; duplicate {
+			continue
+		}
+
+		seen[item.Name] = struct{}{}
+		out = append(out, item)
+	}
+
+	if len(out) == 0 {
+		return nil, fmt.Errorf("no resources selected")
+	}
+
+	return out, nil
+}
+
+func canonicalSnapshotResource(value string) (snapshotResourceRequest, bool) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "config":
+		return snapshotResourceRequest{Name: "config", Endpoint: "/api/v1/config"}, true
+	case "secret", "secrets":
+		return snapshotResourceRequest{Name: "secrets", Endpoint: "/api/v1/secrets"}, true
+	case "workload", "workloads":
+		return snapshotResourceRequest{Name: "workloads", Endpoint: "/api/v1/workloads"}, true
+	case "dependency-map", "dependencymap", "dependencies", "dependency", "map":
+		return snapshotResourceRequest{Name: "dependencyMap", Endpoint: "/api/v1/dependency-map"}, true
+	default:
+		return snapshotResourceRequest{}, false
+	}
 }
 
 func requestJSON(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, query url.Values, stdout, stderr io.Writer) int {

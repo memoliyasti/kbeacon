@@ -27,6 +27,7 @@ kbeaconctl get workloads --namespace payments
 kbeaconctl get dependency-map --secret-name payments-db --resolved true
 kbeaconctl impact payments payments-db
 kbeaconctl impact report payments payments-db
+kbeaconctl snapshot export --output kbeacon-snapshot.json
 ```
 
 You can also set the server explicitly:
@@ -57,6 +58,7 @@ kbeaconctl get secrets
 | `impact <namespace> <secret>` | Query Secret impact details as JSON. |
 | `impact report <namespace> <secret>` | Print a human-readable Secret impact report. |
 | `dependencies <namespace> <kind> <name>` | Query workload dependencies. |
+| `snapshot export` | Export a portable JSON snapshot from the Agent API. |
 | `raw <path>` | Query an arbitrary Agent API path. |
 
 ## Filtering
@@ -113,3 +115,22 @@ Semantic KBeacon releases publish kbeaconctl binaries for Linux and macOS alongs
     kbeaconctl_vX.Y.Z_darwin_arm64
 
 Use the release checksums.txt file to verify downloaded CLI binaries.
+
+## Snapshot export
+
+Use snapshot export when you need a portable point-in-time view of the Agent API for offline review, support bundles, CI artifacts, or later diffing.
+
+    kbeaconctl snapshot export --output kbeacon-snapshot.json
+
+By default, the snapshot includes:
+
+- Agent graph summary from `/api/v1/config`;
+- Secrets from `/api/v1/secrets`;
+- workloads from `/api/v1/workloads`;
+- dependency map from `/api/v1/dependency-map`.
+
+You can export only selected resources:
+
+    kbeaconctl snapshot export --include secrets,dependency-map --output dependencies.json
+
+Use `--output -` to write JSON to stdout.

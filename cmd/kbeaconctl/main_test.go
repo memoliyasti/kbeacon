@@ -166,6 +166,106 @@ func TestRunUnknownGetResource(t *testing.T) {
 	}
 }
 
+func TestRunSnapshotExport(t *testing.T) {
+	requested := map[string]bool{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested[r.URL.Path] = true
+		w.Header().Set("Content-Type", "application/json")
+
+		switch r.URL.Path {
+		case "/api/v1/config":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":{"cluster":{"name":"ci"}}}`))
+		case "/api/v1/secrets":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":[{"ref":{"namespace":"payments","name":"payments-db"}}]}`))
+		case "/api/v1/workloads":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":[{"ref":{"namespace":"payments","kind":"Deployment","name":"payments-api"}}]}`))
+		case "/api/v1/dependency-map":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":{"nodes":[],"edges":[]}}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{"--server", server.URL, "snapshot", "export"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	for _, path := range []string{
+		"/api/v1/config",
+		"/api/v1/secrets",
+		"/api/v1/workloads",
+		"/api/v1/dependency-map",
+	} {
+		if !requested[path] {
+			t.Fatalf("expected snapshot export to request %s; requested=%v", path, requested)
+		}
+	}
+
+	output := stdout.String()
+	for _, expected := range []string{
+		`"kind": "KBeaconSnapshot"`,
+		`"config"`,
+		`"secrets"`,
+		`"workloads"`,
+		`"dependencyMap"`,
+		`"payments-db"`,
+	} {
+		if !strings.Contains(output, expected) {
+			t.Fatalf("expected snapshot output to contain %q, got:\n%s", expected, output)
+		}
+	}
+}
+
+func TestRunSnapshotExportIncludeSubset(t *testing.T) {
+	requested := map[string]bool{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested[r.URL.Path] = true
+		w.Header().Set("Content-Type", "application/json")
+
+		switch r.URL.Path {
+		case "/api/v1/secrets":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":[]}`))
+		case "/api/v1/dependency-map":
+			_, _ = w.Write([]byte(`{"apiVersion":"kbeacon.io/v1","data":{"nodes":[],"edges":[]}}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{
+		"--server", server.URL,
+		"snapshot", "export",
+		"--include", "secrets,dependency-map",
+		"--pretty=false",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	if requested["/api/v1/config"] || requested["/api/v1/workloads"] {
+		t.Fatalf("unexpected extra snapshot requests: %v", requested)
+	}
+
+	output := stdout.String()
+	if !strings.Contains(output, `"kind":"KBeaconSnapshot"`) {
+		t.Fatalf("expected compact snapshot JSON, got %q", output)
+	}
+	if !strings.Contains(output, `"dependencyMap"`) {
+		t.Fatalf("expected dependencyMap resource, got %q", output)
+	}
+}
+
 func impactTestServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
