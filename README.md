@@ -141,6 +141,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Getting started: `docs/getting-started.md`
 - Installation: `docs/user-guide/installation.md`
 - CLI: `docs/user-guide/cli.md`
+- Alert runbooks: `docs/operator-guide/runbooks.md`
 - Human-readable Secret impact reports: `kbeaconctl impact report <namespace> <secret>`
 - Portable API snapshots: `kbeaconctl snapshot export --output kbeacon-snapshot.json`.
 - Snapshot diffs: `kbeaconctl snapshot diff old.json new.json`.

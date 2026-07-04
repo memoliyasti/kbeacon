@@ -11,6 +11,7 @@ groups:
         annotations:
           summary: "KBeacon Agent is down"
           description: "KBeacon target {{ $labels.instance }} in cluster {{ $labels.cluster }} has been down for more than 2 minutes."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconagentdown"
 
       - alert: KBeaconCacheNotSynced
         expr: min by (cluster, instance, resource) (kbeacon_cache_sync_status{job=~"kbeacon.*"}) == 0
@@ -21,6 +22,7 @@ groups:
         annotations:
           summary: "KBeacon cache is not synced"
           description: "KBeacon cache for resource {{ $labels.resource }} in cluster {{ $labels.cluster }} has not synced for more than 5 minutes."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconcachenotsynced"
 
       - alert: KBeaconGraphRebuildLatencyHigh
         expr: |
@@ -37,6 +39,7 @@ groups:
         annotations:
           summary: "KBeacon graph rebuild latency is high"
           description: "KBeacon graph rebuild p95 latency is above 2s for cluster {{ $labels.cluster }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeacongraphrebuildlatencyhigh"
 
   - name: kbeacon.dependencies
     interval: 30s
@@ -55,6 +58,7 @@ groups:
         annotations:
           summary: "Secret changed and affects workloads"
           description: "Secret {{ $labels.namespace }}/{{ $labels.secret_name }} changed recently and affects workloads in cluster {{ $labels.cluster }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconsecretchangedwithimpact"
 
       - alert: KBeaconCriticalSecretChangedRecently
         expr: |
@@ -78,6 +82,7 @@ groups:
         annotations:
           summary: "Critical or high Secret changed recently"
           description: "Secret {{ $labels.namespace }}/{{ $labels.secret_name }} with criticality {{ $labels.criticality }} changed recently and affects workloads in cluster {{ $labels.cluster }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconcriticalsecretchangedrecently"
 
       - alert: KBeaconHighImpactSecret
         expr: kbeacon_secret_impact_score{job=~"kbeacon.*"} >= 80
@@ -88,6 +93,7 @@ groups:
         annotations:
           summary: "High impact Kubernetes Secret"
           description: "Secret {{ $labels.namespace }}/{{ $labels.secret_name }} in cluster {{ $labels.cluster }} has impact score {{ $value }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconhighimpactsecret"
 
       - alert: KBeaconLargeSecretFanout
         expr: kbeacon_secret_affected_workload_count{job=~"kbeacon.*"} >= 20
@@ -98,6 +104,7 @@ groups:
         annotations:
           summary: "Secret has large workload fan-out"
           description: "Secret {{ $labels.namespace }}/{{ $labels.secret_name }} affects {{ $value }} workloads in cluster {{ $labels.cluster }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconlargesecretfanout"
 
       - alert: KBeaconUnresolvedSecretReference
         expr: kbeacon_unresolved_secret_references{job=~"kbeacon.*"} > 0
@@ -108,6 +115,7 @@ groups:
         annotations:
           summary: "Unresolved Secret reference detected"
           description: "Secret reference {{ $labels.namespace }}/{{ $labels.secret_name }} is unresolved in cluster {{ $labels.cluster }}."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconunresolvedsecretreference"
 
       - alert: KBeaconNoDependenciesDiscovered
         expr: |
@@ -121,6 +129,7 @@ groups:
         annotations:
           summary: "No Secret dependencies discovered"
           description: "KBeacon sees workloads in cluster {{ $labels.cluster }} but no Secret dependencies have been discovered for 15 minutes."
+          runbook_url: "https://memoliyasti.github.io/kbeacon/operator-guide/runbooks/#kbeaconnodependenciesdiscovered"
 
   - name: kbeacon.recording
     interval: 30s
