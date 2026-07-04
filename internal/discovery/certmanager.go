@@ -1,7 +1,6 @@
 package discovery
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/memoliyasti/kbeacon/internal/graph"
@@ -105,28 +104,4 @@ func certificateSecretName(certificate *unstructured.Unstructured) (string, bool
 	}
 
 	return secretName, true
-}
-
-func newCertificateObject(namespace, name, secretName string) *unstructured.Unstructured {
-	obj := &unstructured.Unstructured{
-		Object: map[string]any{
-			"apiVersion": CertManagerCertificateAPIVersion,
-			"kind":       CertManagerCertificateKind,
-			"metadata": map[string]any{
-				"namespace": namespace,
-				"name":      name,
-			},
-			"spec": map[string]any{},
-		},
-	}
-
-	if secretName != "" {
-		_ = unstructured.SetNestedField(obj.Object, secretName, "spec", "secretName")
-	}
-
-	return obj
-}
-
-func certManagerCertificateSourcePath(index int) string {
-	return fmt.Sprintf("spec.secretName[%d]", index)
 }

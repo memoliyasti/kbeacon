@@ -161,3 +161,23 @@ func TestWorkloadFromCertificateWithoutSecretNameKeepsExplicitEdges(t *testing.T
 		t.Fatalf("unexpected explicit edge: %#v", input.Edges[0])
 	}
 }
+
+func newCertificateObject(namespace, name, secretName string) *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{
+		Object: map[string]any{
+			"apiVersion": CertManagerCertificateAPIVersion,
+			"kind":       CertManagerCertificateKind,
+			"metadata": map[string]any{
+				"namespace": namespace,
+				"name":      name,
+			},
+			"spec": map[string]any{},
+		},
+	}
+
+	if secretName != "" {
+		_ = unstructured.SetNestedField(obj.Object, secretName, "spec", "secretName")
+	}
+
+	return obj
+}
