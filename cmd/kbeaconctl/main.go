@@ -262,8 +262,17 @@ func runRaw(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 }
 
 func runSnapshot(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
-	if len(args) == 0 || args[0] != "export" {
-		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot export [--output FILE] [--include LIST] [--pretty=false]")
+	if len(args) == 0 {
+		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot <export|diff> [args]")
+		return 2
+	}
+
+	if args[0] == "diff" {
+		return runSnapshotDiff(args[1:], stdout, stderr)
+	}
+
+	if args[0] != "export" {
+		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot <export|diff> [args]")
 		return 2
 	}
 

@@ -143,6 +143,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - CLI: `docs/user-guide/cli.md`
 - Human-readable Secret impact reports: `kbeaconctl impact report <namespace> <secret>`
 - Portable API snapshots: `kbeaconctl snapshot export --output kbeacon-snapshot.json`.
+- Snapshot diffs: `kbeaconctl snapshot diff old.json new.json`.
 - Release assets include `kbeaconctl` binaries for Linux and macOS.
 - Configuration: `docs/user-guide/configuration.md`
 - Discovery modes: `docs/user-guide/discovery-modes.md`

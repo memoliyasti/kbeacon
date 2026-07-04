@@ -59,6 +59,7 @@ kbeaconctl get secrets
 | `impact report <namespace> <secret>` | Print a human-readable Secret impact report. |
 | `dependencies <namespace> <kind> <name>` | Query workload dependencies. |
 | `snapshot export` | Export a portable JSON snapshot from the Agent API. |
+| `snapshot diff` | Compare two exported snapshots. |
 | `raw <path>` | Query an arbitrary Agent API path. |
 
 ## Filtering
@@ -134,3 +135,23 @@ You can export only selected resources:
     kbeaconctl snapshot export --include secrets,dependency-map --output dependencies.json
 
 Use `--output -` to write JSON to stdout.
+
+## Snapshot diff
+
+Compare two exported KBeacon snapshots:
+
+    kbeaconctl snapshot diff old-snapshot.json new-snapshot.json
+
+Emit machine-readable JSON:
+
+    kbeaconctl snapshot diff --format json old-snapshot.json new-snapshot.json
+
+Limit the comparison to selected resources:
+
+    kbeaconctl snapshot diff --include secrets,edges old-snapshot.json new-snapshot.json
+
+Fail CI when any change is detected:
+
+    kbeaconctl snapshot diff --fail-on-change old-snapshot.json new-snapshot.json
+
+The diff reports added, removed, and changed Secrets, workloads, and dependency edges. Snapshot diff is offline and does not contact the Agent API.
