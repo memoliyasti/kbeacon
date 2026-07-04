@@ -509,3 +509,172 @@ print("snapshot diff JSON validation passed")
 echo "snapshot diff smoke passed"
 
 ls -lh "${SNAPSHOT_DIFF_TEXT}" "${SNAPSHOT_DIFF_JSON}" "${SNAPSHOT_DIFF_FAIL_ON_CHANGE}"
+
+
+echo
+echo "===== namespace-scoped low-privilege runtime smoke ====="
+
+LOW_PRIV_NAMESPACE="kbeacon-lowpriv-e2e"
+LOW_PRIV_RELEASE="kbeacon-lowpriv"
+LOW_PRIV_PORT="${KBEACON_LOW_PRIV_PORT:-18086}"
+LOW_PRIV_URL=""
+LOW_PRIV_PF_LOG="/tmp/kbeacon-kind-lowpriv-port-forward.log"
+LOW_PRIV_ROLE_YAML="/tmp/kbeacon-kind-lowpriv-role.yaml"
+LOW_PRIV_IMPACT_JSON="/tmp/kbeacon-kind-lowpriv-impact.json"
+LOW_PRIV_DEPENDENCIES_JSON="/tmp/kbeacon-kind-lowpriv-dependencies.json"
+LOW_PRIV_SNAPSHOT_JSON="/tmp/kbeacon-kind-lowpriv-snapshot.json"
+
+rm -f "${LOW_PRIV_PF_LOG}" "${LOW_PRIV_ROLE_YAML}" "${LOW_PRIV_IMPACT_JSON}" "${LOW_PRIV_DEPENDENCIES_JSON}" "${LOW_PRIV_SNAPSHOT_JSON}"
+helm uninstall "${LOW_PRIV_RELEASE}" --namespace "${LOW_PRIV_NAMESPACE}" --wait --timeout 60s >/dev/null 2>&1 || true
+
+kubectl create namespace "${LOW_PRIV_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" create secret generic app-db --from-literal=username=demo --from-literal=password=demo --dry-run=client -o yaml | kubectl apply -f -
+
+if ! kubectl -n "${LOW_PRIV_NAMESPACE}" get deployment api >/dev/null 2>&1
+then
+  kubectl -n "${LOW_PRIV_NAMESPACE}" create deployment api --image=busybox:1.36 -- sh -c "sleep 3600"
+fi
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" set env deployment/api --from=secret/app-db
+kubectl -n "${LOW_PRIV_NAMESPACE}" annotate deployment/api kbeacon.io/discovery-mode=hybrid kbeacon.io/owner-team=platform kbeacon.io/criticality=high --overwrite
+kubectl -n "${LOW_PRIV_NAMESPACE}" rollout status deployment/api --timeout=120s
+
+MAIN_IMAGE="$(kubectl -n "${KBEACON_NAMESPACE:-kbeacon-system}" get deploy kbeacon -o jsonpath="{.spec.template.spec.containers[0].image}")"
+echo "LOW_PRIV_MAIN_IMAGE=${MAIN_IMAGE}"
+
+LOW_PRIV_IMAGE_ARGS=()
+if [[ "${MAIN_IMAGE}" == *@* ]]
+then
+  LOW_PRIV_IMAGE_REPOSITORY="${MAIN_IMAGE%@*}"
+  LOW_PRIV_IMAGE_DIGEST="${MAIN_IMAGE#*@}"
+  LOW_PRIV_IMAGE_ARGS=(--set "image.repository=${LOW_PRIV_IMAGE_REPOSITORY}" --set "image.digest=${LOW_PRIV_IMAGE_DIGEST}" --set image.pullPolicy=IfNotPresent)
+else
+  LOW_PRIV_IMAGE_REPOSITORY="${MAIN_IMAGE%:*}"
+  LOW_PRIV_IMAGE_TAG="${MAIN_IMAGE##*:}"
+
+  if [ "${LOW_PRIV_IMAGE_REPOSITORY}" = "${MAIN_IMAGE}" ] || [ -z "${LOW_PRIV_IMAGE_TAG}" ]
+  then
+    echo "ERROR: could not parse image repository/tag from ${MAIN_IMAGE}"
+    exit 1
+  fi
+
+  LOW_PRIV_IMAGE_ARGS=(--set "image.repository=${LOW_PRIV_IMAGE_REPOSITORY}" --set "image.tag=${LOW_PRIV_IMAGE_TAG}" --set image.pullPolicy=IfNotPresent)
+fi
+
+helm upgrade --install "${LOW_PRIV_RELEASE}" ./charts/kbeacon --namespace "${LOW_PRIV_NAMESPACE}" --set cluster.name=kind-lowpriv --set rbac.scope=namespace --set-string "discovery.namespaces.include[0]=${LOW_PRIV_NAMESPACE}" --set resourcesToWatch.core.secrets=false --set dashboards.enabled=false "${LOW_PRIV_IMAGE_ARGS[@]}" --wait --timeout 180s
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" rollout status deployment/"${LOW_PRIV_RELEASE}" --timeout=180s
+kubectl -n "${LOW_PRIV_NAMESPACE}" get role,rolebinding,deploy,pods,svc -l app.kubernetes.io/instance="${LOW_PRIV_RELEASE}"
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" get role "${LOW_PRIV_RELEASE}" -o yaml > "${LOW_PRIV_ROLE_YAML}"
+cat "${LOW_PRIV_ROLE_YAML}"
+
+if grep -q "secrets" "${LOW_PRIV_ROLE_YAML}"
+then
+  echo "ERROR: namespace-scoped low-privilege Role unexpectedly contains Secret RBAC"
+  exit 1
+fi
+
+echo "ok: namespace-scoped low-privilege Role has no Secret RBAC"
+
+for candidate in 18086 18087 18088 18089 18090
+do
+  if ! (command -v lsof >/dev/null 2>&1 && lsof -iTCP:"${candidate}" -sTCP:LISTEN >/dev/null 2>&1)
+  then
+    LOW_PRIV_PORT="${candidate}"
+    break
+  fi
+done
+
+LOW_PRIV_URL="http://127.0.0.1:${LOW_PRIV_PORT}"
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" port-forward "svc/${LOW_PRIV_RELEASE}" "${LOW_PRIV_PORT}:8080" >"${LOW_PRIV_PF_LOG}" 2>&1 &
+LOW_PRIV_PF_PID="$!"
+
+LOW_PRIV_READY=0
+for _ in $(seq 1 30)
+do
+  if curl -fsSL "${LOW_PRIV_URL}/readyz" > /tmp/kbeacon-kind-lowpriv-ready.json
+  then
+    LOW_PRIV_READY=1
+    break
+  fi
+
+  if ! kill -0 "${LOW_PRIV_PF_PID}" >/dev/null 2>&1
+  then
+    echo "ERROR: low-privilege port-forward exited early"
+    cat "${LOW_PRIV_PF_LOG}" || true
+    exit 1
+  fi
+
+  sleep 1
+done
+
+if [ "${LOW_PRIV_READY}" != "1" ]
+then
+  echo "ERROR: low-privilege Agent was not reachable"
+  cat "${LOW_PRIV_PF_LOG}" || true
+  kubectl -n "${LOW_PRIV_NAMESPACE}" logs deploy/"${LOW_PRIV_RELEASE}" --tail=200 || true
+  kill "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  wait "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  exit 1
+fi
+
+cat /tmp/kbeacon-kind-lowpriv-ready.json
+python3 -c "import json,sys; data=json.load(open(sys.argv[1], \"r\", encoding=\"utf-8\")); assert data[\"status\"] == \"ready\", data" /tmp/kbeacon-kind-lowpriv-ready.json
+
+kubectl -n "${LOW_PRIV_NAMESPACE}" logs deploy/"${LOW_PRIV_RELEASE}" --tail=200 > /tmp/kbeacon-kind-lowpriv-agent.log
+cat /tmp/kbeacon-kind-lowpriv-agent.log
+
+if grep -q "at the cluster scope" /tmp/kbeacon-kind-lowpriv-agent.log
+then
+  echo "ERROR: low-privilege Agent is still using cluster-scoped informer list/watch"
+  kill "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  wait "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  exit 1
+fi
+
+./bin/kbeaconctl --server "${LOW_PRIV_URL}" ready
+
+LOW_PRIV_IMPACT_READY=0
+for _ in $(seq 1 60)
+do
+  if curl -fsSL "${LOW_PRIV_URL}/api/v1/secrets/${LOW_PRIV_NAMESPACE}/app-db/impact" > "${LOW_PRIV_IMPACT_JSON}"
+  then
+    if python3 -c "import json,sys; data=json.load(open(sys.argv[1], \"r\", encoding=\"utf-8\")); sys.exit(0 if data.get(\"data\", {}).get(\"summary\", {}).get(\"affectedWorkloadCount\", 0) >= 1 else 1)" "${LOW_PRIV_IMPACT_JSON}"
+    then
+      LOW_PRIV_IMPACT_READY=1
+      break
+    fi
+  fi
+
+  sleep 2
+done
+
+if [ "${LOW_PRIV_IMPACT_READY}" != "1" ]
+then
+  echo "ERROR: low-privilege impact graph did not include expected affected workload"
+  cat "${LOW_PRIV_IMPACT_JSON}" 2>/dev/null || true
+  kill "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  wait "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+  exit 1
+fi
+
+cat "${LOW_PRIV_IMPACT_JSON}"
+python3 -c "import json,sys; data=json.load(open(sys.argv[1], \"r\", encoding=\"utf-8\")); secret=data[\"data\"][\"secret\"]; summary=data[\"data\"][\"summary\"]; assert secret[\"exists\"] is False, secret; assert summary[\"affectedWorkloadCount\"] >= 1, summary; print(\"low-privilege impact validation passed\")" "${LOW_PRIV_IMPACT_JSON}"
+
+curl -fsSL "${LOW_PRIV_URL}/api/v1/workloads/${LOW_PRIV_NAMESPACE}/Deployment/api/dependencies" > "${LOW_PRIV_DEPENDENCIES_JSON}"
+cat "${LOW_PRIV_DEPENDENCIES_JSON}"
+python3 -c "import json,sys; data=json.load(open(sys.argv[1], \"r\", encoding=\"utf-8\")); deps=data[\"data\"][\"dependencies\"]; matches=[d for d in deps if d[\"secret\"][\"ref\"][\"name\"] == \"app-db\" and d[\"resolved\"] is False]; assert matches, deps; print(\"low-privilege dependency validation passed\")" "${LOW_PRIV_DEPENDENCIES_JSON}"
+
+./bin/kbeaconctl --server "${LOW_PRIV_URL}" snapshot export --output "${LOW_PRIV_SNAPSHOT_JSON}"
+python3 -c "import json,sys; snapshot=json.load(open(sys.argv[1], \"r\", encoding=\"utf-8\")); resources=snapshot[\"resources\"]; assert snapshot[\"kind\"] == \"KBeaconSnapshot\", snapshot; assert snapshot.get(\"cluster\") == \"kind-lowpriv\", snapshot; assert len(resources[\"workloads\"][\"data\"]) > 0, resources[\"workloads\"]; assert len(resources[\"dependencyMap\"][\"data\"][\"edges\"]) > 0, resources[\"dependencyMap\"]; print(\"low-privilege snapshot validation passed\")" "${LOW_PRIV_SNAPSHOT_JSON}"
+
+./bin/kbeaconctl snapshot diff --format markdown "${LOW_PRIV_SNAPSHOT_JSON}" "${LOW_PRIV_SNAPSHOT_JSON}" | sed -n "1,40p"
+
+kill "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+wait "${LOW_PRIV_PF_PID}" >/dev/null 2>&1 || true
+helm uninstall "${LOW_PRIV_RELEASE}" --namespace "${LOW_PRIV_NAMESPACE}" --wait --timeout 60s
+
+echo "namespace-scoped low-privilege runtime smoke passed"
