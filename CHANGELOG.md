@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.5
+
+- Fixed `kbeaconctl snapshot export` to include the top-level `cluster` field and added stricter snapshot export validation.
+- Fixed namespace-scoped installs with exactly one included namespace so the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.
+- Added Kind E2E coverage for namespace-scoped low-privilege runtime behavior.
+- Removed repository local-cluster helper artifacts and Minikube-facing product documentation; local clusters remain a validation target, not a product install path.
+- Kept Agent, Helm, metrics, and API behavior compatible with v0.3.4.
+
 ## v0.3.4
 
 - Added `kbeaconctl snapshot export` for portable Agent API snapshots.
@@ -23,13 +31,6 @@
 - Added release SBOM and artifact attestation wiring.
 - Added a supported resource matrix for current runtime support and future resource scope.
 - Added a browser-friendly Helm repository landing page.
-
-
-## Unreleased
-- Fixed `kbeaconctl snapshot export` to include the top-level `cluster` field and added stricter snapshot export validation.
-- Fixed namespace-scoped installs with exactly one included namespace so the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.
-- Added Kind E2E coverage for namespace-scoped low-privilege runtime behavior.
-- Removed repository local-cluster helper artifacts and Minikube-facing product documentation; local clusters remain a validation target, not a product install path.
 
 ## v0.3.1
 
