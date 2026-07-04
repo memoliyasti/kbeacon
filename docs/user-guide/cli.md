@@ -146,6 +146,8 @@ Emit machine-readable JSON:
 
     kbeaconctl snapshot diff --format json old-snapshot.json new-snapshot.json
 
+    kbeaconctl snapshot diff --format markdown old-snapshot.json new-snapshot.json
+
 Limit the comparison to selected resources:
 
     kbeaconctl snapshot diff --include secrets,edges old-snapshot.json new-snapshot.json
@@ -155,3 +157,7 @@ Fail CI when any change is detected:
     kbeaconctl snapshot diff --fail-on-change old-snapshot.json new-snapshot.json
 
 The diff reports added, removed, and changed Secrets, workloads, and dependency edges. Snapshot diff is offline and does not contact the Agent API.
+
+Markdown output is intended for pull request comments and CI summaries:
+
+    kbeaconctl snapshot diff --format markdown old-snapshot.json new-snapshot.json > snapshot-diff.md
