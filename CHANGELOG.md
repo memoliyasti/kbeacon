@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.3
+
+- Added `kbeaconctl` CLI foundation and Secret impact report output.
+- Updated the release workflow to publish `kbeaconctl` binaries for Linux and macOS.
+- Kept Agent, Helm, metrics, and API behavior compatible with v0.3.2.
+
 ## v0.3.2
 
 - Enforced single-replica Agent mode until leader election is implemented.
