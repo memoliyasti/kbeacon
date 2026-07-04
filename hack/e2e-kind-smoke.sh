@@ -433,3 +433,46 @@ kill "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
 wait "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true
 
 ls -lh "${SNAPSHOT_FILE}"
+
+echo
+echo "===== kbeaconctl snapshot diff smoke ====="
+
+SNAPSHOT_DIFF_TEXT="/tmp/kbeacon-kind-snapshot-diff.txt"
+SNAPSHOT_DIFF_JSON="/tmp/kbeacon-kind-snapshot-diff.json"
+SNAPSHOT_DIFF_FAIL_ON_CHANGE="/tmp/kbeacon-kind-snapshot-diff-fail-on-change.txt"
+
+rm -f "${SNAPSHOT_DIFF_TEXT}" "${SNAPSHOT_DIFF_JSON}" "${SNAPSHOT_DIFF_FAIL_ON_CHANGE}"
+
+./bin/kbeaconctl snapshot diff "${SNAPSHOT_FILE}" "${SNAPSHOT_FILE}" > "${SNAPSHOT_DIFF_TEXT}"
+
+grep -q "KBeacon Snapshot Diff" "${SNAPSHOT_DIFF_TEXT}"
+
+./bin/kbeaconctl snapshot diff --format json "${SNAPSHOT_FILE}" "${SNAPSHOT_FILE}" > "${SNAPSHOT_DIFF_JSON}"
+
+python3 -c '
+import json
+import sys
+
+path = sys.argv[1]
+
+with open(path, "r", encoding="utf-8") as f:
+    diff = json.load(f)
+
+kind = diff.get("kind")
+if kind != "KBeaconSnapshotDiff":
+    raise SystemExit(f"expected kind=KBeaconSnapshotDiff, got {kind!r}")
+
+serialized = json.dumps(diff, sort_keys=True)
+
+for token in ("secrets", "workloads", "edges"):
+    if token not in serialized:
+        raise SystemExit(f"snapshot diff JSON missing expected token {token!r}")
+
+print("snapshot diff JSON validation passed")
+' "${SNAPSHOT_DIFF_JSON}"
+
+./bin/kbeaconctl snapshot diff --fail-on-change "${SNAPSHOT_FILE}" "${SNAPSHOT_FILE}" > "${SNAPSHOT_DIFF_FAIL_ON_CHANGE}"
+
+echo "snapshot diff smoke passed"
+
+ls -lh "${SNAPSHOT_DIFF_TEXT}" "${SNAPSHOT_DIFF_JSON}" "${SNAPSHOT_DIFF_FAIL_ON_CHANGE}"
