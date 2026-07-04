@@ -26,6 +26,10 @@
 
 
 ## Unreleased
+- Fixed `kbeaconctl snapshot export` to include the top-level `cluster` field and added stricter snapshot export validation.
+- Fixed namespace-scoped installs with exactly one included namespace so the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.
+- Added Kind E2E coverage for namespace-scoped low-privilege runtime behavior.
+- Removed repository local-cluster helper artifacts and Minikube-facing product documentation; local clusters remain a validation target, not a product install path.
 
 ## v0.3.1
 
