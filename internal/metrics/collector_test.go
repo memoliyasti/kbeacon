@@ -36,18 +36,18 @@ func TestGraphCollectorCanDisableEdgeSeries(t *testing.T) {
 func gatherGraphCollector(t *testing.T, emitEdges bool) []*dto.MetricFamily {
 	t.Helper()
 
-	cache := graph.NewCache("minikube")
+	cache := graph.NewCache("test-cluster")
 	now := time.Unix(1000, 0)
 
 	workload := graph.WorkloadRef{
-		Cluster:    "minikube",
+		Cluster:    "test-cluster",
 		Namespace:  "payments",
 		APIVersion: "apps/v1",
 		Kind:       "Deployment",
 		Name:       "api",
 	}
 	secret := graph.SecretRef{
-		Cluster:   "minikube",
+		Cluster:   "test-cluster",
 		Namespace: "payments",
 		Name:      "db-password",
 	}
@@ -88,7 +88,7 @@ func gatherGraphCollector(t *testing.T, emitEdges bool) []*dto.MetricFamily {
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(NewGraphCollectorWithOptions(
 		cache,
-		"minikube",
+		"test-cluster",
 		"test",
 		"test",
 		GraphCollectorOptions{EmitEdges: emitEdges},

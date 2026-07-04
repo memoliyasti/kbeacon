@@ -1,9 +1,6 @@
 # Example Prometheus scrape configuration for KBeacon.
 #
 # Use this when you are not using Prometheus Operator ServiceMonitor.
-# For local Minikube development, see:
-#
-#   hack/local-dev/prometheus-kbeacon-incluster-values.yaml
 
 scrape_configs:
   # Recommended in-cluster scrape target.
@@ -16,7 +13,7 @@ scrape_configs:
       - targets:
           - kbeacon.kbeacon-system.svc.cluster.local:8080
         labels:
-          cluster: minikube
+          cluster: prod-eu-1
           app: kbeacon
           component: agent
           environment: local
@@ -40,7 +37,7 @@ scrape_configs:
   #       regex: http
   #       action: keep
   #     - target_label: cluster
-  #       replacement: minikube
+  #       replacement: prod-eu-1
   #     - target_label: app
   #       replacement: kbeacon
   #     - target_label: component
@@ -51,7 +48,7 @@ scrape_configs:
   # Alternative local-process development target.
   #
   # Use this only when running ./bin/kbeacon-agent on the host and exposing it
-  # through hack/local-dev/create-kbeacon-local-endpoint.sh.
+  # through the Service DNS name or a controlled port-forward appropriate for your environment.
   #
   # - job_name: kbeacon-local
   #   honor_labels: true
@@ -62,7 +59,7 @@ scrape_configs:
   #     - targets:
   #         - kbeacon-local.kube-addons.svc.cluster.local:8080
   #       labels:
-  #         cluster: minikube
+  #         cluster: prod-eu-1
   #         app: kbeacon
   #         component: agent
   #         environment: local

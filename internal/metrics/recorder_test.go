@@ -9,7 +9,7 @@ import (
 
 func TestRuntimeRecorderCanBeRegisteredAndObserved(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	recorder := NewRuntimeRecorder("minikube")
+	recorder := NewRuntimeRecorder("test-cluster")
 
 	if err := registry.Register(recorder); err != nil {
 		t.Fatalf("register recorder: %v", err)

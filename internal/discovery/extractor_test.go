@@ -73,10 +73,10 @@ func TestWorkloadFromDeploymentExtractsSecretDependencies(t *testing.T) {
 		},
 	}
 
-	opts := DefaultOptions("minikube")
+	opts := DefaultOptions("test-cluster")
 	input := WorkloadFromDeployment(opts, deployment)
 
-	if input.Ref.Cluster != "minikube" ||
+	if input.Ref.Cluster != "test-cluster" ||
 		input.Ref.Namespace != "kbeacon-demo" ||
 		input.Ref.Kind != "Deployment" ||
 		input.Ref.Name != "api" {
@@ -154,7 +154,7 @@ func TestWorkloadFromDeploymentDisabled(t *testing.T) {
 		},
 	}
 
-	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+	input := WorkloadFromDeployment(DefaultOptions("test-cluster"), deployment)
 
 	if input.DiscoveryMode != graph.DiscoveryModeDisabled {
 		t.Fatalf("expected disabled discovery mode, got %s", input.DiscoveryMode)
@@ -204,7 +204,7 @@ func TestWorkloadFromDeploymentUsesMetadataLabelFallback(t *testing.T) {
 		},
 	}
 
-	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+	input := WorkloadFromDeployment(DefaultOptions("test-cluster"), deployment)
 
 	if input.OwnerTeam != "payments-platform" {
 		t.Fatalf("expected owner team from labels, got %q", input.OwnerTeam)
@@ -253,7 +253,7 @@ func TestWorkloadMetadataAnnotationsOverrideLabels(t *testing.T) {
 		},
 	}
 
-	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+	input := WorkloadFromDeployment(DefaultOptions("test-cluster"), deployment)
 
 	if input.OwnerTeam != "annotation-team" {
 		t.Fatalf("expected annotation owner team to win, got %q", input.OwnerTeam)
@@ -290,7 +290,7 @@ func TestWorkloadFromDeploymentUsesServiceAccountImagePullSecretsFallback(t *tes
 		},
 	}
 
-	opts := DefaultOptions("minikube")
+	opts := DefaultOptions("test-cluster")
 	opts.ServiceAccountImagePullSecrets = map[string][]string{
 		ServiceAccountKey("kbeacon-demo", "builder"): []string{"builder-pull-secret"},
 	}
@@ -340,7 +340,7 @@ func TestWorkloadFromDeploymentPrefersExplicitPodImagePullSecretsOverServiceAcco
 		},
 	}
 
-	opts := DefaultOptions("minikube")
+	opts := DefaultOptions("test-cluster")
 	opts.ServiceAccountImagePullSecrets = map[string][]string{
 		ServiceAccountKey("kbeacon-demo", "builder"): []string{"builder-pull-secret"},
 	}
@@ -383,9 +383,9 @@ func TestWorkloadFromIngressExtractsTLSEdges(t *testing.T) {
 		},
 	}
 
-	input := WorkloadFromIngress(DefaultOptions("minikube"), ingress)
+	input := WorkloadFromIngress(DefaultOptions("test-cluster"), ingress)
 
-	if input.Ref.Cluster != "minikube" || input.Ref.Namespace != "payments" || input.Ref.APIVersion != "networking.k8s.io/v1" || input.Ref.Kind != "Ingress" || input.Ref.Name != "payments-web" {
+	if input.Ref.Cluster != "test-cluster" || input.Ref.Namespace != "payments" || input.Ref.APIVersion != "networking.k8s.io/v1" || input.Ref.Kind != "Ingress" || input.Ref.Name != "payments-web" {
 		t.Fatalf("unexpected ingress workload ref: %#v", input.Ref)
 	}
 
@@ -450,7 +450,7 @@ func TestWorkloadFromDeploymentExtractsProjectedSecretVolumeDependencies(t *test
 		},
 	}
 
-	input := WorkloadFromDeployment(DefaultOptions("minikube"), deployment)
+	input := WorkloadFromDeployment(DefaultOptions("test-cluster"), deployment)
 
 	for _, edge := range input.Edges {
 		if edge.Secret.Namespace != "kbeacon-demo" || edge.Secret.Name != "projected-secret" {
@@ -517,7 +517,7 @@ func TestWorkloadFromDeploymentRedactsSecretKeySourcePaths(t *testing.T) {
 		},
 	}
 
-	opts := DefaultOptions("minikube")
+	opts := DefaultOptions("test-cluster")
 	opts.RedactSecretKeys = true
 
 	input := WorkloadFromDeployment(opts, deployment)

@@ -52,7 +52,7 @@ build:
 	$(GO) build -trimpath -o ./bin/kbeacon-agent ./cmd/kbeacon-agent
 
 run:
-	KBEACON_CLUSTER_NAME=local-dev $(GO) run ./cmd/kbeacon-agent
+	KBEACON_CLUSTER_NAME=dev-cluster $(GO) run ./cmd/kbeacon-agent
 
 docker-build:
 	docker build -t $(IMAGE):$(TAG) .

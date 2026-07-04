@@ -5,33 +5,30 @@ KBeacon is an early-stage personal open source project. The roadmap is intention
 ## Current release line
 
 Implemented today:
-- Ingress TLS Secret discovery for networking.k8s.io/v1 Ingress TLS Secret references.
 
-- Kubernetes workload Secret dependency discovery.
+- Kubernetes workload Secret dependency discovery for Pods, workload controllers, ServiceAccounts, and Ingress TLS references.
+- Secret reference discovery from environment variables, envFrom, Secret volumes, projected Secret volumes, imagePullSecrets, and KBeacon annotations.
 - `infer`, `explicit`, `hybrid`, and `disabled` discovery modes.
-- Read-only Agent API.
-- Prometheus metrics.
+- Read-only Agent API with filtering and bounded pagination.
+- `kbeaconctl` API client, Secret impact report, snapshot export, and snapshot diff with text, JSON, and markdown output.
+- Prometheus metrics, recording rules, alert rules, and operator runbooks.
 - Grafana dashboard examples.
-- Helm chart.
-- Low-privilege mode without Secret object reads.
-- Edge metric cardinality guard.
-- API filtering and bounded pagination.
-- Metadata fallback from existing workload labels.
-- Live scale benchmark report harness.
-- GitHub Actions CI, release workflow, and documentation website.
+- Helm chart with single-replica Agent mode, namespace-scoped RBAC option, low-privilege mode, ServiceMonitor support, and public chart repository index.
+- Secret key redaction controls for dependency source paths.
+- Kind E2E smoke coverage for chart/API/CLI behavior.
+- SBOMs, checksums, signed Helm chart provenance, GitHub artifact attestations, and GHCR release images.
+- Supported-resource matrix and release documentation.
 
 ## Near-term priorities
 
 ### Documentation and usability
 
 - Keep README, website, Helm reference, OpenAPI, and examples aligned with real behavior.
-- Add more end-to-end examples for common Secret patterns.
-- Keep Minikube as a local development workflow, not as the production install path.
+- Add more end-to-end examples for common production Secret patterns.
 
 ### Safety and operability
 
-- Release and security hardening: SBOM, provenance/attestation documentation, checksum verification, branch protection recommendations, and token hygiene.
-
+- Keep release, security, checksum, provenance, and attestation documentation accurate as the project evolves.
 - Continue tightening least-privilege RBAC examples.
 - Add more tests for low-privilege and namespace-scoped installs.
 - Improve readiness and troubleshooting guidance.

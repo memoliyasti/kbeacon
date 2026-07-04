@@ -6,11 +6,11 @@ import (
 )
 
 func TestApplySnapshotDerivesSecretMetadataFromAffectedWorkload(t *testing.T) {
-	cache := NewCache("minikube")
+	cache := NewCache("test-cluster")
 	now := time.Unix(1000, 0)
 
 	workload := WorkloadRef{
-		Cluster:    "minikube",
+		Cluster:    "test-cluster",
 		Namespace:  "kbeacon-demo",
 		APIVersion: "apps/v1",
 		Kind:       "Deployment",
@@ -18,7 +18,7 @@ func TestApplySnapshotDerivesSecretMetadataFromAffectedWorkload(t *testing.T) {
 	}
 
 	secret := SecretRef{
-		Cluster:   "minikube",
+		Cluster:   "test-cluster",
 		Namespace: "kbeacon-demo",
 		Name:      "app-db-secret",
 	}
@@ -87,11 +87,11 @@ func TestApplySnapshotDerivesSecretMetadataFromAffectedWorkload(t *testing.T) {
 }
 
 func TestApplySnapshotTracksUnresolvedSecretReference(t *testing.T) {
-	cache := NewCache("minikube")
+	cache := NewCache("test-cluster")
 	now := time.Unix(1000, 0)
 
 	workload := WorkloadRef{
-		Cluster:    "minikube",
+		Cluster:    "test-cluster",
 		Namespace:  "kbeacon-demo",
 		APIVersion: "apps/v1",
 		Kind:       "Deployment",
@@ -99,7 +99,7 @@ func TestApplySnapshotTracksUnresolvedSecretReference(t *testing.T) {
 	}
 
 	missingSecret := SecretRef{
-		Cluster:   "minikube",
+		Cluster:   "test-cluster",
 		Namespace: "kbeacon-demo",
 		Name:      "missing-secret",
 	}
@@ -145,11 +145,11 @@ func TestApplySnapshotTracksUnresolvedSecretReference(t *testing.T) {
 }
 
 func TestApplySnapshotWithoutSecretInputsKeepsDependencyEdgesUnresolved(t *testing.T) {
-	cache := NewCache("minikube")
+	cache := NewCache("test-cluster")
 	now := time.Unix(2000, 0)
 
 	workload := WorkloadRef{
-		Cluster:    "minikube",
+		Cluster:    "test-cluster",
 		Namespace:  "payments",
 		APIVersion: "apps/v1",
 		Kind:       "Deployment",
@@ -157,7 +157,7 @@ func TestApplySnapshotWithoutSecretInputsKeepsDependencyEdgesUnresolved(t *testi
 	}
 
 	secret := SecretRef{
-		Cluster:   "minikube",
+		Cluster:   "test-cluster",
 		Namespace: "payments",
 		Name:      "db-password",
 	}

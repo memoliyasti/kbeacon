@@ -9,7 +9,7 @@ coverage.txt
 kbeacon.zip
 *.sha256
 
-# Local Minikube development artifacts
+# Local runtime artifacts
 grafana-values.yaml
 prometheus-values.yaml
 kbeacon-local-endpoint.yaml

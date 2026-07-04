@@ -48,7 +48,7 @@ func TestControllerStatusMarksDisabledResourcesOptional(t *testing.T) {
 		nil,
 		nil,
 		Options{
-			Cluster: "minikube",
+			Cluster: "test-cluster",
 			Resources: ResourceConfig{
 				Secrets:     true,
 				Deployments: true,
@@ -104,7 +104,7 @@ func TestControllerStoresRecorder(t *testing.T) {
 		nil,
 		nil,
 		Options{
-			Cluster: "minikube",
+			Cluster: "test-cluster",
 			Resources: ResourceConfig{
 				Secrets: true,
 			},
@@ -123,7 +123,7 @@ func TestControllerLowPrivilegeModeMarksSecretInformerOptional(t *testing.T) {
 		nil,
 		nil,
 		Options{
-			Cluster: "minikube",
+			Cluster: "test-cluster",
 			Resources: ResourceConfig{
 				Secrets:     false,
 				Deployments: true,
@@ -162,7 +162,7 @@ func TestControllerLowPrivilegeModeMarksSecretInformerOptional(t *testing.T) {
 
 func TestControllerEnabledSyncsIncludeServiceAccountAndIngress(t *testing.T) {
 	ctrl := New(nil, nil, Options{
-		Cluster: "minikube",
+		Cluster: "test-cluster",
 		Resources: ResourceConfig{
 			ServiceAccounts: true,
 			Ingresses:       true,

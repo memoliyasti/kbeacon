@@ -5,7 +5,7 @@ KBeacon includes deterministic scale tooling for two separate purposes:
 1. fixture generation for repeatable manifests;
 2. live benchmark reporting against a running Agent.
 
-The scale tools are intentionally local-development utilities. They are not run as part of normal CI because large fixture levels can create many Kubernetes objects.
+The scale tools are intentionally developer utilities. They are not run as part of normal CI because large fixture levels can create many Kubernetes objects.
 
 ## Generate a fixture
 

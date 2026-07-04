@@ -115,7 +115,7 @@ func Default() Config {
 		Kind:       "AgentConfig",
 	}
 
-	cfg.Cluster.Name = "local-dev"
+	cfg.Cluster.Name = "dev-cluster"
 
 	cfg.Log.Level = "info"
 
@@ -213,7 +213,7 @@ func (c *Config) ApplyEnv() {
 
 func (c *Config) Normalize() {
 	if c.Cluster.Name == "" {
-		c.Cluster.Name = "local-dev"
+		c.Cluster.Name = "dev-cluster"
 	}
 	if c.Log.Level == "" {
 		c.Log.Level = "info"

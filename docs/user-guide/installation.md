@@ -62,11 +62,14 @@ rbac:
 resourcesToWatch:
   core:
     secrets: true
+    serviceAccounts: true
     pods: true
   apps:
     deployments: true
     statefulSets: true
     daemonSets: true
+  networking:
+    ingresses: true
   batch:
     jobs: true
     cronJobs: true

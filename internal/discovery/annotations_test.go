@@ -3,7 +3,7 @@ package discovery
 import "testing"
 
 func TestParseWatchSecrets(t *testing.T) {
-	refs, err := ParseWatchSecrets("minikube", "workload-ns", "db-secret,shared/api-token#password")
+	refs, err := ParseWatchSecrets("test-cluster", "workload-ns", "db-secret,shared/api-token#password")
 	if err != nil {
 		t.Fatalf("ParseWatchSecrets returned error: %v", err)
 	}
@@ -12,14 +12,14 @@ func TestParseWatchSecrets(t *testing.T) {
 		t.Fatalf("expected 2 refs, got %d", len(refs))
 	}
 
-	if refs[0].Cluster != "minikube" ||
+	if refs[0].Cluster != "test-cluster" ||
 		refs[0].Namespace != "workload-ns" ||
 		refs[0].Name != "db-secret" ||
 		refs[0].Key != "" {
 		t.Fatalf("unexpected first ref: %#v", refs[0])
 	}
 
-	if refs[1].Cluster != "minikube" ||
+	if refs[1].Cluster != "test-cluster" ||
 		refs[1].Namespace != "shared" ||
 		refs[1].Name != "api-token" ||
 		refs[1].Key != "password" {
@@ -28,7 +28,7 @@ func TestParseWatchSecrets(t *testing.T) {
 }
 
 func TestParseWatchSecretsRejectsInvalidReference(t *testing.T) {
-	_, err := ParseWatchSecrets("minikube", "default", "valid-secret,")
+	_, err := ParseWatchSecrets("test-cluster", "default", "valid-secret,")
 	if err == nil {
 		t.Fatal("expected invalid trailing secret reference to fail")
 	}

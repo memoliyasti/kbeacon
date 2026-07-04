@@ -42,5 +42,4 @@ kbeacon/
     kube/                        # Kubernetes client config
     metrics/                     # Prometheus collectors and recorders
     server/                      # HTTP API and health endpoints
-  hack/local-dev/                # Minikube development helpers
 ```
