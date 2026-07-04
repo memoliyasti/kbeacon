@@ -84,6 +84,45 @@ func TestControllerStatusMarksDisabledResourcesOptional(t *testing.T) {
 	}
 }
 
+func TestControllerUsesNamespaceScopedInformerFactoryForSingleIncludedNamespace(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:           "test-cluster",
+			IncludeNamespaces: []string{"payments"},
+			ExcludeNamespaces: []string{"kube-system"},
+			Resources: ResourceConfig{
+				Pods: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.watchNamespace != "payments" {
+		t.Fatalf("expected namespace-scoped informer factory for payments, got %q", ctrl.watchNamespace)
+	}
+}
+
+func TestControllerUsesClusterScopedInformerFactoryWithoutSingleIncludedNamespace(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:           "test-cluster",
+			IncludeNamespaces: []string{"payments", "reports"},
+			Resources: ResourceConfig{
+				Pods: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.watchNamespace != "" {
+		t.Fatalf("expected cluster-scoped informer factory, got namespace %q", ctrl.watchNamespace)
+	}
+}
+
 type fakeRecorder struct {
 	watchEvents  int
 	graphUpdates int

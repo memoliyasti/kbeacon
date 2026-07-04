@@ -93,6 +93,7 @@ discovery:
 
 Use this profile when each namespace or tenant has an independently managed Agent deployment.
 
+For namespace-scoped RBAC, configure exactly one `discovery.namespaces.include` entry matching the release namespace. In that mode, the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.\n
 ## Low-privilege profile
 
 KBeacon can run without reading Kubernetes Secret objects.

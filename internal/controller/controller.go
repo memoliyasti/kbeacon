@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -98,8 +99,9 @@ type Controller struct {
 	graph  *graph.Cache
 	logger *slog.Logger
 
-	cluster string
-	resync  time.Duration
+	cluster        string
+	resync         time.Duration
+	watchNamespace string
 
 	resources        ResourceConfig
 	recorder         Recorder
@@ -152,6 +154,21 @@ func (f NamespaceFilter) Include(namespace string) bool {
 	return true
 }
 
+func newInformerFactory(client kubernetes.Interface, resync time.Duration, includeNamespaces []string, filter NamespaceFilter) (informers.SharedInformerFactory, string) {
+	if len(includeNamespaces) == 1 {
+		namespace := strings.TrimSpace(includeNamespaces[0])
+		if filter.Include(namespace) {
+			return informers.NewSharedInformerFactoryWithOptions(
+				client,
+				resync,
+				informers.WithNamespace(namespace),
+			), namespace
+		}
+	}
+
+	return informers.NewSharedInformerFactory(client, resync), ""
+}
+
 func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) *Controller {
 	if options.Resync == 0 {
 		options.Resync = 10 * time.Hour
@@ -171,7 +188,8 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		resources = DefaultResourceConfig()
 	}
 
-	factory := informers.NewSharedInformerFactory(client, options.Resync)
+	namespaceFilter := NewNamespaceFilter(options.IncludeNamespaces, options.ExcludeNamespaces)
+	factory, watchNamespace := newInformerFactory(client, options.Resync, options.IncludeNamespaces, namespaceFilter)
 
 	c := &Controller{
 		client:           client,
@@ -182,8 +200,9 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		resources:        resources,
 		recorder:         options.Recorder,
 		discoveryOptions: options.Discovery,
-		namespaceFilter:  NewNamespaceFilter(options.IncludeNamespaces, options.ExcludeNamespaces),
+		namespaceFilter:  namespaceFilter,
 		factory:          factory,
+		watchNamespace:   watchNamespace,
 		rebuildDebounce:  options.RebuildDebounce,
 		rebuildCh:        make(chan string, 1),
 		lastGraphCounts:  map[string]int{},

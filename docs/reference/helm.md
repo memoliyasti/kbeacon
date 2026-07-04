@@ -488,3 +488,5 @@ The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind 
 The implemented Kubernetes resource and dependency source matrix is maintained in [`supported-resources.md`](supported-resources.md).
 
 Use that page as the source of truth for what KBeacon watches today and what is only future roadmap scope.
+
+For namespace-scoped RBAC, configure exactly one `discovery.namespaces.include` entry matching the release namespace. In that mode, the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.\n
