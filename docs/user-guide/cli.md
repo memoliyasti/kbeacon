@@ -102,3 +102,14 @@ The report includes:
 - dependency edges and source types.
 
 The plain `impact <namespace> <secret>` form still prints the original Agent API JSON response for scripts and automation.
+
+## Release binaries
+
+Semantic KBeacon releases publish kbeaconctl binaries for Linux and macOS alongside the Agent binaries. Binary names follow this pattern:
+
+    kbeaconctl_vX.Y.Z_linux_amd64
+    kbeaconctl_vX.Y.Z_linux_arm64
+    kbeaconctl_vX.Y.Z_darwin_amd64
+    kbeaconctl_vX.Y.Z_darwin_arm64
+
+Use the release checksums.txt file to verify downloaded CLI binaries.

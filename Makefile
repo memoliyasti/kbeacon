@@ -29,6 +29,8 @@ test:
 supply-chain-lint:
 	grep -q "actions/attest@v4" .github/workflows/release.yaml
 	grep -q "Generate release SBOMs" .github/workflows/release.yaml
+	grep -q "kbeaconctl_" .github/workflows/release.yaml
+	grep -q "./cmd/kbeaconctl" .github/workflows/release.yaml
 	grep -q "subject-checksums: dist/checksums.txt" .github/workflows/release.yaml
 	grep -q "provenance: true" .github/workflows/release.yaml
 	grep -q "sbom: true" .github/workflows/release.yaml

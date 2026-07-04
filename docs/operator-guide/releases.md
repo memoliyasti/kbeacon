@@ -30,3 +30,7 @@ KBeacon releases include SPDX JSON SBOM files for the source tree and generated 
 The release workflow creates artifact provenance attestations with GitHub artifact attestations and enables BuildKit provenance and SBOM metadata for release container images.
 
 Use `checksums.txt` to verify downloaded release assets. Use GitHub CLI artifact attestation verification when you need provenance validation in addition to checksum validation.
+
+## kbeaconctl release assets
+
+Release assets include kbeaconctl binaries for Linux and macOS alongside the kbeacon-agent binaries. Verify downloaded CLI binaries with checksums.txt.

@@ -142,6 +142,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Installation: `docs/user-guide/installation.md`
 - CLI: `docs/user-guide/cli.md`
 - Human-readable Secret impact reports: `kbeaconctl impact report <namespace> <secret>`
+- Release assets include `kbeaconctl` binaries for Linux and macOS.
 - Configuration: `docs/user-guide/configuration.md`
 - Discovery modes: `docs/user-guide/discovery-modes.md`
 - Dashboards: `docs/user-guide/dashboards.md`

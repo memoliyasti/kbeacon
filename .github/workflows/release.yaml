@@ -121,10 +121,12 @@ jobs:
           COMMIT="${GITHUB_SHA}"
 
           build() {
-            local goos="$1"
-            local goarch="$2"
-            local ext="$3"
-            local output="dist/kbeacon-agent_${VERSION}_${goos}_${goarch}${ext}"
+            local component="$1"
+            local package="$2"
+            local goos="$3"
+            local goarch="$4"
+            local ext="$5"
+            local output="dist/${component}_${VERSION}_${goos}_${goarch}${ext}"
 
             echo "Building ${output}"
             GOOS="${goos}" GOARCH="${goarch}" CGO_ENABLED=0 \
@@ -132,27 +134,36 @@ jobs:
                 -trimpath \
                 -ldflags="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT}" \
                 -o "${output}" \
-                ./cmd/kbeacon-agent
+                "${package}"
+          }
+
+          build_all() {
+            local component="$1"
+            local package="$2"
+
+            build "${component}" "${package}" linux amd64 "" &
+            pids+=("$!")
+
+            build "${component}" "${package}" linux arm64 "" &
+            pids+=("$!")
+
+            build "${component}" "${package}" darwin amd64 "" &
+            pids+=("$!")
+
+            build "${component}" "${package}" darwin arm64 "" &
+            pids+=("$!")
           }
 
           pids=()
 
-          build linux amd64 "" &
-          pids+=("$!")
-
-          build linux arm64 "" &
-          pids+=("$!")
-
-          build darwin amd64 "" &
-          pids+=("$!")
-
-          build darwin arm64 "" &
-          pids+=("$!")
-
+          build_all "kbeacon-agent" "./cmd/kbeacon-agent"
+          build_all "kbeaconctl" "./cmd/kbeaconctl"
 
           for pid in "${pids[@]}"; do
             wait "${pid}"
           done
+
+          ls -lh dist/
 
       - name: Prepare Helm signing key
         run: |
@@ -191,7 +202,7 @@ jobs:
 
           syft dir:.             --exclude './dist/**'             --exclude './site/**'             --exclude './.venv/**'             --exclude './.venv-docs/**'             -o spdx-json="dist/kbeacon-source-${VERSION}.spdx.json"
 
-          for artifact in dist/kbeacon-agent_${VERSION}_* dist/kbeacon-${VERSION_NO_V}.tgz
+          for artifact in dist/kbeacon-agent_${VERSION}_* dist/kbeaconctl_${VERSION}_* dist/kbeacon-${VERSION_NO_V}.tgz
           do
             if [ -f "${artifact}" ]; then
               syft "file:${artifact}" -o spdx-json="${artifact}.spdx.json"

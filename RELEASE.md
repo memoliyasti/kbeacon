@@ -63,3 +63,7 @@ Release builds publish SPDX JSON SBOM files together with the normal release art
 The release workflow also creates GitHub artifact attestations for the release artifact checksums. The release image build enables BuildKit provenance and SBOM metadata for the pushed multi-arch GHCR image.
 
 Release consumers can verify artifact checksums from `checksums.txt`. GitHub artifact attestations can be verified with GitHub CLI when available for the repository and account plan.
+
+## kbeaconctl release assets
+
+Release assets include kbeaconctl binaries for Linux and macOS alongside the kbeacon-agent binaries. Verify downloaded CLI binaries with checksums.txt.
