@@ -418,15 +418,48 @@ with open(path, "r", encoding="utf-8") as f:
 if snapshot.get("kind") != "KBeaconSnapshot":
     raise SystemExit(f"expected kind=KBeaconSnapshot, got {snapshot.get(\"kind\")!r}")
 
-serialized = json.dumps(snapshot, sort_keys=True)
+resources = snapshot.get("resources")
+if not isinstance(resources, dict):
+    raise SystemExit("snapshot resources must be an object")
 
-required_tokens = ["secrets", "workloads", "dependency", "config"]
-missing = [token for token in required_tokens if token not in serialized]
+required_resources = ["config", "secrets", "workloads", "dependencyMap"]
+missing = [name for name in required_resources if name not in resources]
 
 if missing:
-    raise SystemExit(f"snapshot is missing expected content tokens: {missing}")
+    raise SystemExit(f"snapshot is missing expected resources: {missing}")
 
-print("snapshot export validation passed")
+for name in required_resources:
+    if not isinstance(resources[name], dict):
+        raise SystemExit(f"snapshot resource {name} must be an object")
+
+config = resources["config"]
+secrets = resources["secrets"]
+workloads = resources["workloads"]
+dependency_map = resources["dependencyMap"]
+
+cluster = snapshot.get("cluster")
+config_cluster = config.get("cluster") or config.get("data", {}).get("cluster", {}).get("name")
+
+if not cluster:
+    raise SystemExit("snapshot top-level cluster is empty")
+
+if cluster != config_cluster:
+    raise SystemExit(f"snapshot cluster {cluster!r} does not match config cluster {config_cluster!r}")
+
+secret_count = len(secrets.get("data", []))
+workload_count = len(workloads.get("data", []))
+edge_count = len(dependency_map.get("data", {}).get("edges", []))
+
+if secret_count <= 0:
+    raise SystemExit("snapshot secrets resource is empty")
+
+if workload_count <= 0:
+    raise SystemExit("snapshot workloads resource is empty")
+
+if edge_count <= 0:
+    raise SystemExit("snapshot dependencyMap edges resource is empty")
+
+print(f"snapshot export validation passed: cluster={cluster} secrets={secret_count} workloads={workload_count} edges={edge_count}")
 ' "${SNAPSHOT_FILE}"
 
 kill "${SNAPSHOT_PF_PID}" >/dev/null 2>&1 || true

@@ -299,8 +299,35 @@ type snapshotExport struct {
 	APIVersion  string                     `json:"apiVersion"`
 	Kind        string                     `json:"kind"`
 	GeneratedAt string                     `json:"generatedAt"`
+	Cluster     string                     `json:"cluster,omitempty"`
 	Server      string                     `json:"server"`
 	Resources   map[string]json.RawMessage `json:"resources"`
+}
+
+func clusterFromSnapshotResources(resources map[string]json.RawMessage) string {
+	raw, ok := resources["config"]
+	if !ok {
+		return ""
+	}
+
+	var envelope struct {
+		Cluster string `json:"cluster"`
+		Data    struct {
+			Cluster struct {
+				Name string `json:"name"`
+			} `json:"cluster"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return ""
+	}
+
+	if cluster := strings.TrimSpace(envelope.Cluster); cluster != "" {
+		return cluster
+	}
+
+	return strings.TrimSpace(envelope.Data.Cluster.Name)
 }
 
 type snapshotResourceRequest struct {
@@ -353,6 +380,7 @@ func requestSnapshotExport(
 		APIVersion:  "kbeacon.io/v1",
 		Kind:        "KBeaconSnapshot",
 		GeneratedAt: time.Now().UTC().Format(time.RFC3339),
+		Cluster:     clusterFromSnapshotResources(resources),
 		Server:      baseURL.String(),
 		Resources:   resources,
 	}

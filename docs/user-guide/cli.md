@@ -121,6 +121,8 @@ Use the release checksums.txt file to verify downloaded CLI binaries.
 
 Use snapshot export when you need a portable point-in-time view of the Agent API for offline review, support bundles, CI artifacts, or later diffing.
 
+Snapshot documents include top-level `cluster`, `generatedAt`, `server`, and a `resources` object keyed by exported Agent API resources.
+
     kbeaconctl snapshot export --output kbeacon-snapshot.json
 
 By default, the snapshot includes:

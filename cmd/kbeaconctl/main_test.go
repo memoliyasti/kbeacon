@@ -210,6 +210,7 @@ func TestRunSnapshotExport(t *testing.T) {
 	output := stdout.String()
 	for _, expected := range []string{
 		`"kind": "KBeaconSnapshot"`,
+		`"cluster": "ci"`,
 		`"config"`,
 		`"secrets"`,
 		`"workloads"`,
