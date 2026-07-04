@@ -10,7 +10,11 @@ import (
 
 	"github.com/memoliyasti/kbeacon/internal/discovery"
 	"github.com/memoliyasti/kbeacon/internal/graph"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/informers"
 	appsinformers "k8s.io/client-go/informers/apps/v1"
 	batchinformers "k8s.io/client-go/informers/batch/v1"
@@ -35,6 +39,7 @@ type ResourceConfig struct {
 	Ingresses       bool
 	Jobs            bool
 	CronJobs        bool
+	Certificates    bool
 }
 
 func DefaultResourceConfig() ResourceConfig {
@@ -71,6 +76,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.Jobs
 	case "CronJob":
 		return r.CronJobs
+	case "Certificate":
+		return r.Certificates
 	default:
 		return false
 	}
@@ -85,6 +92,7 @@ type Options struct {
 	Resources         ResourceConfig
 	ResourcesSet      bool
 	Recorder          Recorder
+	DynamicClient     dynamic.Interface
 	Discovery         discovery.Options
 	Logger            *slog.Logger
 }
@@ -108,6 +116,8 @@ type Controller struct {
 	discoveryOptions discovery.Options
 	namespaceFilter  NamespaceFilter
 	factory          informers.SharedInformerFactory
+	dynamicClient    dynamic.Interface
+	dynamicFactory   dynamicinformer.DynamicSharedInformerFactory
 
 	secretInformer         coreinformers.SecretInformer
 	serviceAccountInformer coreinformers.ServiceAccountInformer
@@ -118,6 +128,7 @@ type Controller struct {
 	ingressInformer        networkinginformers.IngressInformer
 	jobInformer            batchinformers.JobInformer
 	cronJobInformer        batchinformers.CronJobInformer
+	certificateInformer    cache.SharedIndexInformer
 
 	rebuildDebounce time.Duration
 	rebuildCh       chan string
@@ -169,6 +180,12 @@ func newInformerFactory(client kubernetes.Interface, resync time.Duration, inclu
 	return informers.NewSharedInformerFactory(client, resync), ""
 }
 
+var certManagerCertificateGVR = schema.GroupVersionResource{
+	Group:    "cert-manager.io",
+	Version:  "v1",
+	Resource: "certificates",
+}
+
 func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) *Controller {
 	if options.Resync == 0 {
 		options.Resync = 10 * time.Hour
@@ -202,6 +219,7 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		discoveryOptions: options.Discovery,
 		namespaceFilter:  namespaceFilter,
 		factory:          factory,
+		dynamicClient:    options.DynamicClient,
 		watchNamespace:   watchNamespace,
 		rebuildDebounce:  options.RebuildDebounce,
 		rebuildCh:        make(chan string, 1),
@@ -245,6 +263,16 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		c.cronJobInformer = factory.Batch().V1().CronJobs()
 		c.synced["CronJob"] = false
 	}
+	if resources.Certificates && options.DynamicClient != nil {
+		c.dynamicFactory = dynamicinformer.NewFilteredDynamicSharedInformerFactory(
+			options.DynamicClient,
+			options.Resync,
+			watchNamespace,
+			nil,
+		)
+		c.certificateInformer = c.dynamicFactory.ForResource(certManagerCertificateGVR).Informer()
+		c.synced["Certificate"] = false
+	}
 
 	c.registerHandlers()
 	return c
@@ -261,6 +289,9 @@ func (c *Controller) Start(ctx context.Context) error {
 	go c.runRebuildLoop(ctx)
 
 	c.factory.Start(ctx.Done())
+	if c.dynamicFactory != nil {
+		c.dynamicFactory.Start(ctx.Done())
+	}
 
 	syncs := c.enabledSyncs()
 
@@ -369,6 +400,9 @@ func (c *Controller) registerHandlers() {
 	}
 	if c.cronJobInformer != nil {
 		c.registerResourceHandler("CronJob", c.cronJobInformer.Informer())
+	}
+	if c.certificateInformer != nil {
+		c.registerResourceHandler("Certificate", c.certificateInformer)
 	}
 }
 
@@ -599,6 +633,19 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.certificateInformer != nil {
+		for _, item := range c.certificateInformer.GetStore().List() {
+			certificate, ok := item.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+			if !c.namespaceFilter.Include(certificate.GetNamespace()) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromCertificate(discoveryOptions, certificate))
+		}
+	}
+
 	c.graph.ApplySnapshot(secrets, workloads, time.Now())
 
 	duration := time.Since(start)
@@ -701,12 +748,18 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "CronJob", synced: c.cronJobInformer.Informer().HasSynced})
 	}
+	if c.certificateInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "Certificate", synced: c.certificateInformer.HasSynced})
+	}
 
 	return syncs
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate"}
 }
 
 func stringSet(values []string) map[string]struct{} {

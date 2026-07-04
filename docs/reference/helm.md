@@ -490,3 +490,13 @@ The implemented Kubernetes resource and dependency source matrix is maintained i
 Use that page as the source of truth for what KBeacon watches today and what is only future roadmap scope.
 
 For namespace-scoped RBAC, configure exactly one `discovery.namespaces.include` entry matching the release namespace. In that mode, the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.\n
+
+## cert-manager Certificate discovery
+
+Enable this optional watcher only when cert-manager CRDs are installed:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon   --namespace kbeacon-system   --create-namespace   --set cluster.name=prod-eu-1   --set resourcesToWatch.certManager.certificates=true
+```
+
+The chart adds read-only RBAC for `cert-manager.io` `certificates`, and the Agent discovers `spec.secretName` target Secrets.

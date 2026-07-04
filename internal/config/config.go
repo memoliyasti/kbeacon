@@ -103,6 +103,9 @@ type ResourcesToWatchConfig struct {
 	Networking struct {
 		Ingresses bool `yaml:"ingresses" json:"ingresses"`
 	} `yaml:"networking" json:"networking"`
+	CertManager struct {
+		Certificates bool `yaml:"certificates" json:"certificates"`
+	} `yaml:"certManager" json:"certManager"`
 	Batch struct {
 		Jobs     bool `yaml:"jobs" json:"jobs"`
 		CronJobs bool `yaml:"cronJobs" json:"cronJobs"`

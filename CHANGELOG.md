@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added optional cert-manager Certificate discovery from `spec.secretName` with Helm RBAC and validation coverage.
+
 ## v0.3.5
 
 - Fixed `kbeaconctl snapshot export` to include the top-level `cluster` field and added stricter snapshot export validation.

@@ -29,13 +29,14 @@ The technical design and roadmap may mention future resources. The table below i
 | `imagePullSecrets` | A Pod references an image pull Secret directly. |
 | `serviceAccount.imagePullSecrets` | A ServiceAccount provides image pull Secret fallback discovery. |
 | `ingress.tls` | An Ingress TLS entry references a Secret. |
+| `cert-manager.certificate.spec.secretName` | A cert-manager Certificate writes or renews a target Secret. |
 | `annotation` | A KBeacon explicit dependency annotation declares a Secret dependency. |
 
 ## Future or not currently implemented
 
 | Resource | Status | Expected dependency model |
 | --- | --- | --- |
-| cert-manager Certificate | Planned | `spec.secretName` target Secret. |
+| cert-manager Certificate | cert-manager.io/v1 | `resourcesToWatch.certManager.certificates` | Supported, optional | `spec.secretName` target Secret | Requires cert-manager CRDs to be installed before enabling the watcher. |
 | ExternalSecret | Planned | Target Kubernetes Secret and provider/store metadata. |
 | SecretProviderClass | Planned | CSI `secretObjects[*].secretName` outputs. |
 | Strimzi KafkaConnector | Planned | Explicit-first support, then selected config-provider patterns. |

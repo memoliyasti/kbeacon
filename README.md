@@ -204,3 +204,13 @@ The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind 
 ## Supply chain security
 
 Releases publish checksums, SPDX JSON SBOM files, signed Helm chart provenance, and release artifact attestations. Release container images are built with provenance and SBOM metadata enabled.
+
+## Optional cert-manager Certificate discovery
+
+When cert-manager CRDs are installed, KBeacon can model `Certificate.spec.secretName` as a dependency edge to the target Kubernetes Secret:
+
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon   --namespace kbeacon-system   --create-namespace   --set cluster.name=prod-eu-1   --set resourcesToWatch.certManager.certificates=true
+```
+
+Leave this watcher disabled unless the cert-manager `certificates.cert-manager.io` resource exists in the cluster.

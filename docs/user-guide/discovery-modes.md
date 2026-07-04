@@ -336,3 +336,7 @@ KBeacon records these dependencies with source type `volumes.projected.sources.s
 ## Supported resource matrix
 
 See the [Supported resources reference](../reference/supported-resources.md) for the complete current matrix of Kubernetes resources, Helm watcher values, and dependency source types.
+
+## cert-manager Certificate discovery
+
+cert-manager `Certificate` resources participate in discovery modes when `resourcesToWatch.certManager.certificates=true`. In `infer` or `hybrid` mode, KBeacon infers the target Secret from `spec.secretName`; in `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations.

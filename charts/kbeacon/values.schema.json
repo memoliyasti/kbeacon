@@ -284,6 +284,15 @@
             }
           },
           "additionalProperties": false
+        },
+        "certManager": {
+          "type": "object",
+          "properties": {
+            "certificates": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

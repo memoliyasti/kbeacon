@@ -116,6 +116,12 @@ jobs:
           grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
           grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
 
+      - name: Helm template cert-manager Certificate watcher
+        run: |
+          helm template kbeacon ./charts/kbeacon             --namespace kbeacon-system             --set cluster.name=ci             --set resourcesToWatch.certManager.certificates=true             > /tmp/kbeacon-certmanager-rendered.yaml
+          grep -q 'apiGroups: ["cert-manager.io"]' /tmp/kbeacon-certmanager-rendered.yaml
+          grep -q 'resources: ["certificates"]' /tmp/kbeacon-certmanager-rendered.yaml
+
       - name: Helm template namespace-scoped
         run: |
           helm template kbeacon ./charts/kbeacon \
@@ -139,7 +145,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
   docker-smoke:
     name: docker smoke

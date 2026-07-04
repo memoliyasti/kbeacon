@@ -346,3 +346,7 @@ Use the read-only Agent API for detailed dependency source paths and Secret key-
 ## Projected Secret volume source
 
 Dependency edges discovered from projected Secret volumes use source type `volumes.projected.sources.secret`.
+
+## cert-manager Certificate metrics behavior
+
+cert-manager `Certificate` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.certManager.certificates=true`. Their dependency edges use source type `cert-manager.certificate.spec.secretName` and contribute to the same graph, impact, and dependency metrics as workload edges.

@@ -299,3 +299,15 @@ The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind 
 The implemented Kubernetes resource and dependency source matrix is documented in `docs/reference/supported-resources.md`.
 
 Use that page as the source of truth for what KBeacon watches today and what is only future roadmap scope.
+
+## cert-manager Certificate discovery
+
+Enable this optional watcher only when cert-manager CRDs are installed:
+
+```yaml
+resourcesToWatch:
+  certManager:
+    certificates: true
+```
+
+KBeacon models `Certificate.spec.secretName` as a dependency edge to the target Kubernetes Secret. The chart adds read-only RBAC for `cert-manager.io` `certificates` only when the watcher is enabled.

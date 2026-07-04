@@ -372,3 +372,7 @@ Example:
         secretKeys: true
 
 This changes source paths such as `env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#password]` to `env[DB_PASSWORD].valueFrom.secretKeyRef[payments-db#<redacted>]`.
+
+## cert-manager Certificate watcher
+
+`resourcesToWatch.certManager.certificates=false` by default. Set it to `true` only when cert-manager CRDs are installed. When enabled, KBeacon watches `cert-manager.io/v1` `Certificate` resources and adds dependency edges from each Certificate to `spec.secretName`.

@@ -3,6 +3,9 @@ package controller
 import (
 	"testing"
 	"time"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	dynamicfake "k8s.io/client-go/dynamic/fake"
 )
 
 func TestNamespaceFilterIncludeList(t *testing.T) {
@@ -120,6 +123,49 @@ func TestControllerUsesClusterScopedInformerFactoryWithoutSingleIncludedNamespac
 
 	if ctrl.watchNamespace != "" {
 		t.Fatalf("expected cluster-scoped informer factory, got namespace %q", ctrl.watchNamespace)
+	}
+}
+
+func TestControllerStoresCertificateInformerWhenEnabled(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:       "test-cluster",
+			DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+			Resources: ResourceConfig{
+				Certificates: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.certificateInformer == nil {
+		t.Fatal("expected cert-manager Certificate informer when enabled")
+	}
+
+	if _, ok := ctrl.synced["Certificate"]; !ok {
+		t.Fatalf("expected Certificate sync status to be registered, got %#v", ctrl.synced)
+	}
+}
+
+func TestControllerEnabledSyncsIncludeCertificate(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster:       "test-cluster",
+		DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+		Resources: ResourceConfig{
+			Certificates: true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["Certificate"] {
+		t.Fatalf("expected Certificate informer in enabled syncs, got %#v", names)
 	}
 }
 

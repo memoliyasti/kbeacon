@@ -19,6 +19,7 @@ import (
 	"github.com/memoliyasti/kbeacon/internal/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"k8s.io/client-go/dynamic"
 )
 
 var (
@@ -108,10 +109,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, _, err := kube.NewClient(*kubeconfig)
+	client, restConfig, err := kube.NewClient(*kubeconfig)
 	if err != nil {
 		logger.Error("failed to create kubernetes client", "error", err)
 		os.Exit(1)
+	}
+
+	var dynamicClient dynamic.Interface
+	if cfg.ResourcesToWatch.CertManager.Certificates {
+		dynamicClient, err = dynamic.NewForConfig(restConfig)
+		if err != nil {
+			logger.Error("failed to create kubernetes dynamic client", "error", err)
+			os.Exit(1)
+		}
 	}
 
 	graphCache := graph.NewCache(cfg.Cluster.Name)
@@ -152,11 +162,13 @@ func main() {
 			Ingresses:       cfg.ResourcesToWatch.Networking.Ingresses,
 			Jobs:            cfg.ResourcesToWatch.Batch.Jobs,
 			CronJobs:        cfg.ResourcesToWatch.Batch.CronJobs,
+			Certificates:    cfg.ResourcesToWatch.CertManager.Certificates,
 		},
-		ResourcesSet: true,
-		Recorder:     runtimeRecorder,
-		Discovery:    discoveryOptions,
-		Logger:       logger,
+		ResourcesSet:  true,
+		DynamicClient: dynamicClient,
+		Recorder:      runtimeRecorder,
+		Discovery:     discoveryOptions,
+		Logger:        logger,
 	})
 
 	registry := prometheus.NewRegistry()

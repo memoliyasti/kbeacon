@@ -53,6 +53,12 @@ rules:
     resources: {{ toJson $batchResources }}
     verbs: ["get", "list", "watch"]
   {{- end }}
+
+  {{- if .Values.resourcesToWatch.certManager.certificates }}
+  - apiGroups: ["cert-manager.io"]
+    resources: ["certificates"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
   {{- with .Values.rbac.extraRules }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
@@ -107,6 +113,12 @@ rules:
   {{- if gt (len $batchResources) 0 }}
   - apiGroups: ["batch"]
     resources: {{ toJson $batchResources }}
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+
+  {{- if .Values.resourcesToWatch.certManager.certificates }}
+  - apiGroups: ["cert-manager.io"]
+    resources: ["certificates"]
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- with .Values.rbac.extraRules }}

@@ -296,3 +296,7 @@ Supported source path:
     spec.volumes[].projected.sources[].secret.name
 
 KBeacon records these dependencies with source type `volumes.projected.sources.secret`. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.
+
+## cert-manager Certificate resources
+
+When `resourcesToWatch.certManager.certificates=true`, cert-manager `Certificate` objects can use the same KBeacon metadata annotations as workloads. The inferred dependency source type is `cert-manager.certificate.spec.secretName`.
