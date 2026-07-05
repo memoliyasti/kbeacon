@@ -118,9 +118,13 @@ jobs:
 
       - name: Helm template cert-manager Certificate watcher
         run: |
-          helm template kbeacon ./charts/kbeacon             --namespace kbeacon-system             --set cluster.name=ci             --set resourcesToWatch.certManager.certificates=true             > /tmp/kbeacon-certmanager-rendered.yaml
-          grep -q 'apiGroups: ["cert-manager.io"]' /tmp/kbeacon-certmanager-rendered.yaml
-          grep -q 'resources: ["certificates"]' /tmp/kbeacon-certmanager-rendered.yaml
+          helm template kbeacon ./charts/kbeacon \
+            --namespace kbeacon-system \
+            --set cluster.name=ci \
+            --set resourcesToWatch.certManager.certificates=true \
+            > /tmp/kbeacon-certmanager-rendered.yaml
+          grep -Fq 'apiGroups: ["cert-manager.io"]' /tmp/kbeacon-certmanager-rendered.yaml
+          grep -Fq 'resources: ["certificates"]' /tmp/kbeacon-certmanager-rendered.yaml
 
       - name: Helm template namespace-scoped
         run: |
