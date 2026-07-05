@@ -45,7 +45,6 @@ Implemented today:
 
 These are possible future features, not current promises:
 
-- ExternalSecret target Secret modeling.
 - SecretProviderClass and CSI Secret Store support.
 - Strimzi KafkaConnector support.
 - Confluent Connector support.

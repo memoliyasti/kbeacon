@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-- Added Kind E2E coverage for optional ExternalSecret runtime discovery.
+## v0.3.7
+
 - Added optional External Secrets Operator ExternalSecret discovery from target Secret metadata with Helm RBAC and validation coverage.
+- Added Kind E2E coverage for optional ExternalSecret runtime discovery.
+- Kept ExternalSecret watching disabled by default and opt-in through `resourcesToWatch.externalSecrets.externalSecrets`.
+- Kept existing Agent, Helm, metrics, API, and supply-chain behavior compatible with v0.3.6.
 
 ## v0.3.6
 

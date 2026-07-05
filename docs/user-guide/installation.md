@@ -21,7 +21,7 @@ The default image is published to GitHub Container Registry:
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.3.6"
+  tag: "0.3.7"
   pullPolicy: IfNotPresent
 ```
 

@@ -4,8 +4,8 @@ KBeacon releases are produced from semantic version tags.
 
 Create a release tag:
 
-    git tag -a v0.3.6 -m "KBeacon v0.3.6"
-    git push origin v0.3.6
+    git tag -a v0.3.7 -m "KBeacon v0.3.7"
+    git push origin v0.3.7
 
 The release workflow publishes:
 
