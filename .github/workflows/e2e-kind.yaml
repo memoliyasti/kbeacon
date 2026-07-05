@@ -12,6 +12,7 @@ on:
       - "hack/e2e-kind-externalsecret-smoke.sh"
       - "hack/e2e-kind-secretproviderclass-smoke.sh"
       - "hack/e2e-kind-kafka-connectors-smoke.sh"
+      - "hack/e2e-kind-replicaset-owner-resolution-smoke.sh"
       - "charts/kbeacon/**"
       - "cmd/**"
       - "internal/**"
@@ -28,6 +29,7 @@ on:
       - "hack/e2e-kind-externalsecret-smoke.sh"
       - "hack/e2e-kind-secretproviderclass-smoke.sh"
       - "hack/e2e-kind-kafka-connectors-smoke.sh"
+      - "hack/e2e-kind-replicaset-owner-resolution-smoke.sh"
       - "charts/kbeacon/**"
       - "cmd/**"
       - "internal/**"
@@ -82,3 +84,6 @@ jobs:
 
       - name: Run Kafka connector Kind smoke
         run: ./hack/e2e-kind-kafka-connectors-smoke.sh
+
+      - name: Run ReplicaSet owner-resolution Kind smoke
+        run: ./hack/e2e-kind-replicaset-owner-resolution-smoke.sh

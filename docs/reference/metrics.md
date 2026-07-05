@@ -388,3 +388,5 @@ Confluent mounted Secret file edges use source type `confluent.connector.spec.co
 If the referenced Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
 
 `KafkaConnector` and `Connector` object names and namespaces may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.
+
+ReplicaSets are used only as an owner-resolution cache. They may appear in readiness or runtime cache-sync status when `resourcesToWatch.apps.replicaSets=true`, but they are not emitted as workload nodes and do not appear as `workload_kind="ReplicaSet"` in dependency graph metrics.

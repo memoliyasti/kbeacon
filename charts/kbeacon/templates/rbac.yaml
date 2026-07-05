@@ -7,6 +7,7 @@
 {{- if .Values.resourcesToWatch.apps.deployments }}{{- $appsResources = append $appsResources "deployments" -}}{{- end }}
 {{- if .Values.resourcesToWatch.apps.statefulSets }}{{- $appsResources = append $appsResources "statefulsets" -}}{{- end }}
 {{- if .Values.resourcesToWatch.apps.daemonSets }}{{- $appsResources = append $appsResources "daemonsets" -}}{{- end }}
+{{- if .Values.resourcesToWatch.apps.replicaSets }}{{- $appsResources = append $appsResources "replicasets" -}}{{- end }}
 
 {{- $batchResources := list -}}
 {{- if .Values.resourcesToWatch.batch.jobs }}{{- $batchResources = append $batchResources "jobs" -}}{{- end }}

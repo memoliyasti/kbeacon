@@ -260,6 +260,9 @@
             },
             "daemonSets": {
               "type": "boolean"
+            },
+            "replicaSets": {
+              "type": "boolean"
             }
           },
           "additionalProperties": false

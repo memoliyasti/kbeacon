@@ -12,6 +12,7 @@ The technical design and roadmap may mention future resources. The table below i
 | Pod | core/v1 | `resourcesToWatch.core.pods` | Supported | `env.valueFrom.secretKeyRef`, `envFrom.secretRef`, `volumes.secret`, `volumes.projected.sources.secret`, `imagePullSecrets`, KBeacon annotations, metadata labels | Pod Secret references are namespace-local except explicit KBeacon annotations can name another namespace. |
 | ServiceAccount | core/v1 | `resourcesToWatch.core.serviceAccounts` | Supported, optional | ServiceAccount `imagePullSecrets` fallback | Used when workload Pods omit Pod-level `imagePullSecrets`. |
 | Deployment | apps/v1 | `resourcesToWatch.apps.deployments` | Supported | Pod template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node. |
+| ReplicaSet | apps/v1 | `resourcesToWatch.apps.replicaSets` | Supported as owner-resolution cache | Owner references only; no dependency edges are emitted from ReplicaSet objects | Used to resolve Pods owned by ReplicaSets back to Deployments when possible. ReplicaSets are not rendered as primary workload nodes. If disabled or unresolved, controlled Pods are kept as Pod fallback nodes. |
 | StatefulSet | apps/v1 | `resourcesToWatch.apps.statefulSets` | Supported | Pod template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node. |
 | DaemonSet | apps/v1 | `resourcesToWatch.apps.daemonSets` | Supported | Pod template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node, not one node per Kubernetes node. |
 | Job | batch/v1 | `resourcesToWatch.batch.jobs` | Supported | Pod template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node. |
@@ -41,12 +42,6 @@ The technical design and roadmap may mention future resources. The table below i
 | `confluent.connector.spec.connectRest.authentication.secretRef` | A Confluent for Kubernetes Connector references a Kubernetes Secret for Connect REST authentication. |
 | `confluent.connector.spec.configs.file.mountedSecret` | A Confluent for Kubernetes Connector references a mounted Kubernetes Secret through `${file:/mnt/secrets/<secret>/...:key}` style config values. |
 | `annotation` | A KBeacon explicit dependency annotation declares a Secret dependency. |
-
-## Future or not currently implemented
-
-| Resource | Status | Expected dependency model |
-| --- | --- | --- |
-| ReplicaSet owner resolution | Planned | Prefer controller workload ownership rather than adding ReplicaSet as a primary output node. |
 
 ## Operational notes
 

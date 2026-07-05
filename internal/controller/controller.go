@@ -34,6 +34,7 @@ type ResourceConfig struct {
 	ServiceAccounts       bool
 	Pods                  bool
 	Deployments           bool
+	ReplicaSets           bool
 	StatefulSets          bool
 	DaemonSets            bool
 	Ingresses             bool
@@ -52,6 +53,7 @@ func DefaultResourceConfig() ResourceConfig {
 		ServiceAccounts: true,
 		Pods:            true,
 		Deployments:     true,
+		ReplicaSets:     true,
 		StatefulSets:    true,
 		DaemonSets:      true,
 		Ingresses:       true,
@@ -70,6 +72,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.Pods
 	case "Deployment":
 		return r.Deployments
+	case "ReplicaSet":
+		return r.ReplicaSets
 	case "StatefulSet":
 		return r.StatefulSets
 	case "DaemonSet":
@@ -135,6 +139,7 @@ type Controller struct {
 	serviceAccountInformer      coreinformers.ServiceAccountInformer
 	podInformer                 coreinformers.PodInformer
 	deploymentInformer          appsinformers.DeploymentInformer
+	replicaSetInformer          appsinformers.ReplicaSetInformer
 	statefulSetInformer         appsinformers.StatefulSetInformer
 	daemonSetInformer           appsinformers.DaemonSetInformer
 	ingressInformer             networkinginformers.IngressInformer
@@ -282,6 +287,10 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 	if resources.Deployments {
 		c.deploymentInformer = factory.Apps().V1().Deployments()
 		c.synced["Deployment"] = false
+	}
+	if resources.ReplicaSets {
+		c.replicaSetInformer = factory.Apps().V1().ReplicaSets()
+		c.synced["ReplicaSet"] = false
 	}
 	if resources.StatefulSets {
 		c.statefulSetInformer = factory.Apps().V1().StatefulSets()
@@ -449,6 +458,9 @@ func (c *Controller) registerHandlers() {
 	if c.deploymentInformer != nil {
 		c.registerResourceHandler("Deployment", c.deploymentInformer.Informer())
 	}
+	if c.replicaSetInformer != nil {
+		c.registerResourceHandler("ReplicaSet", c.replicaSetInformer.Informer())
+	}
 	if c.statefulSetInformer != nil {
 		c.registerResourceHandler("StatefulSet", c.statefulSetInformer.Informer())
 	}
@@ -551,6 +563,7 @@ func (c *Controller) rebuild(reason string) {
 	secrets := []graph.SecretInput{}
 	workloads := []graph.WorkloadInput{}
 	serviceAccountPullSecrets := map[string][]string{}
+	ownerIndex := newControllerOwnerIndex()
 
 	if c.secretInformer != nil {
 		secretObjects, err := c.secretInformer.Lister().List(labels.Everything())
@@ -608,7 +621,23 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(deployment.Namespace) {
 				continue
 			}
+			ownerIndex.addDeployment(deployment)
 			workloads = append(workloads, discovery.WorkloadFromDeployment(discoveryOptions, deployment))
+		}
+	}
+
+	if c.replicaSetInformer != nil {
+		replicaSets, err := c.replicaSetInformer.Lister().List(labels.Everything())
+		if err != nil {
+			c.logger.Error("list replicasets failed", "error", err)
+			return
+		}
+
+		for _, replicaSet := range replicaSets {
+			if !c.namespaceFilter.Include(replicaSet.Namespace) {
+				continue
+			}
+			ownerIndex.addReplicaSet(replicaSet)
 		}
 	}
 
@@ -623,6 +652,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(statefulSet.Namespace) {
 				continue
 			}
+			ownerIndex.addStatefulSet(statefulSet)
 			workloads = append(workloads, discovery.WorkloadFromStatefulSet(discoveryOptions, statefulSet))
 		}
 	}
@@ -638,6 +668,7 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(daemonSet.Namespace) {
 				continue
 			}
+			ownerIndex.addDaemonSet(daemonSet)
 			workloads = append(workloads, discovery.WorkloadFromDaemonSet(discoveryOptions, daemonSet))
 		}
 	}
@@ -657,21 +688,19 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
-	if c.podInformer != nil {
-		pods, err := c.podInformer.Lister().List(labels.Everything())
+	if c.cronJobInformer != nil {
+		cronJobs, err := c.cronJobInformer.Lister().List(labels.Everything())
 		if err != nil {
-			c.logger.Error("list pods failed", "error", err)
+			c.logger.Error("list cronjobs failed", "error", err)
 			return
 		}
 
-		for _, pod := range pods {
-			if !c.namespaceFilter.Include(pod.Namespace) {
+		for _, cronJob := range cronJobs {
+			if !c.namespaceFilter.Include(cronJob.Namespace) {
 				continue
 			}
-			if discovery.HasControllerOwner(pod.OwnerReferences) {
-				continue
-			}
-			workloads = append(workloads, discovery.WorkloadFromPod(discoveryOptions, pod))
+			ownerIndex.addCronJob(cronJob)
+			workloads = append(workloads, discovery.WorkloadFromCronJob(discoveryOptions, cronJob))
 		}
 	}
 
@@ -686,25 +715,32 @@ func (c *Controller) rebuild(reason string) {
 			if !c.namespaceFilter.Include(job.Namespace) {
 				continue
 			}
-			if discovery.HasControllerOwnerKind(job.OwnerReferences, "CronJob") {
+
+			includeJob := shouldIncludeJobWorkload(job, ownerIndex)
+			ownerIndex.addJob(job, includeJob)
+
+			if !includeJob {
 				continue
 			}
 			workloads = append(workloads, discovery.WorkloadFromJob(discoveryOptions, job))
 		}
 	}
 
-	if c.cronJobInformer != nil {
-		cronJobs, err := c.cronJobInformer.Lister().List(labels.Everything())
+	if c.podInformer != nil {
+		pods, err := c.podInformer.Lister().List(labels.Everything())
 		if err != nil {
-			c.logger.Error("list cronjobs failed", "error", err)
+			c.logger.Error("list pods failed", "error", err)
 			return
 		}
 
-		for _, cronJob := range cronJobs {
-			if !c.namespaceFilter.Include(cronJob.Namespace) {
+		for _, pod := range pods {
+			if !c.namespaceFilter.Include(pod.Namespace) {
 				continue
 			}
-			workloads = append(workloads, discovery.WorkloadFromCronJob(discoveryOptions, cronJob))
+			if !shouldIncludePodWorkload(pod, ownerIndex) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromPod(discoveryOptions, pod))
 		}
 	}
 
@@ -845,6 +881,12 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "Deployment", synced: c.deploymentInformer.Informer().HasSynced})
 	}
+	if c.replicaSetInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "ReplicaSet", synced: c.replicaSetInformer.Informer().HasSynced})
+	}
 	if c.statefulSetInformer != nil {
 		syncs = append(syncs, struct {
 			name   string
@@ -910,7 +952,7 @@ func (c *Controller) enabledSyncs() []struct {
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret", "SecretProviderClass", "KafkaConnector", "Connector"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "ReplicaSet", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret", "SecretProviderClass", "KafkaConnector", "Connector"}
 }
 
 func stringSet(values []string) map[string]struct{} {

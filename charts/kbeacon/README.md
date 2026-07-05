@@ -369,3 +369,5 @@ KBeacon models `spec.connectRest.authentication.*.secretRef` and `${file:/mnt/se
 The chart adds read-only RBAC for `kafka.strimzi.io` `kafkaconnectors` and `platform.confluent.io` `connectors` only when the matching watcher is enabled.
 
 KBeacon does not call Kafka Connect REST APIs, read connector plugin payloads, inspect mounted file contents, or read Kubernetes Secret data.
+
+`resourcesToWatch.apps.replicaSets=true` is enabled by default as an owner-resolution cache. ReplicaSets are watched read-only so KBeacon can map ReplicaSet-owned Pods back to Deployments and avoid duplicate Pod workload nodes. ReplicaSets are not emitted as primary workload nodes.

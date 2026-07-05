@@ -171,6 +171,9 @@ resourcesToWatch:
     ## @param resourcesToWatch.apps.daemonSets Watch DaemonSets.
     daemonSets: true
 
+    ## @param resourcesToWatch.apps.replicaSets Watch ReplicaSets as an owner-resolution cache. ReplicaSets are not emitted as primary workload nodes.
+    replicaSets: true
+
   networking:
     ## @param resourcesToWatch.networking.ingresses Watch Ingress resources to discover TLS Secret dependencies.
     ingresses: true

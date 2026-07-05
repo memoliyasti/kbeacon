@@ -110,7 +110,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint kind-e2e-kafka-connectors-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
       - name: Build release binaries
         run: |

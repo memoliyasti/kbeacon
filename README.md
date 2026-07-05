@@ -278,3 +278,5 @@ KBeacon models `spec.connectRest.authentication.*.secretRef` and mounted Secret 
 Both connector watchers are disabled by default and should be enabled only after the matching CRDs are installed.
 
 KBeacon does not call Kafka Connect REST APIs, read connector plugin payloads, inspect mounted file contents, or read Kubernetes Secret values.
+
+ReplicaSet owner-resolution cache is enabled by default. KBeacon watches ReplicaSets read-only so Pods owned by ReplicaSets can be mapped back to Deployments when possible. ReplicaSets are not emitted as primary workload nodes; unresolved controlled Pods remain visible as Pod fallback nodes.

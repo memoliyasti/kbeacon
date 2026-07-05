@@ -12,11 +12,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint ctl-build ctl-smoke runbooks-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint
+.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint ctl-build ctl-smoke runbooks-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint runbooks-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check kind-e2e-smoke-lint ctl-smoke kind-e2e-certmanager-smoke-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint
+validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint runbooks-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check kind-e2e-smoke-lint ctl-smoke kind-e2e-certmanager-smoke-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
 
 ci: validate-ci
 
@@ -120,6 +120,12 @@ helm-template-confluent-connector:
 	grep -q 'resources: \["connectors"\]' /tmp/kbeacon-confluent-connector-rendered.yaml
 	grep -q 'connectors: true' /tmp/kbeacon-confluent-connector-rendered.yaml
 
+
+helm-template-replicaset-owner-resolution:
+	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) > /tmp/kbeacon-replicaset-owner-resolution-rendered.yaml
+	grep -q 'resources: \["deployments","statefulsets","daemonsets","replicasets"\]' /tmp/kbeacon-replicaset-owner-resolution-rendered.yaml
+	grep -q 'replicaSets: true' /tmp/kbeacon-replicaset-owner-resolution-rendered.yaml
+
 helm-template-networkpolicy:
 	$(HELM) template kbeacon ./charts/kbeacon --namespace $(NAMESPACE) --set cluster.name=$(CLUSTER_NAME) --set networkPolicy.enabled=true --set 'networkPolicy.ingress.from[0].podSelector.matchLabels.app=prometheus' > /tmp/kbeacon-networkpolicy-rendered.yaml
 	grep -q "kind: NetworkPolicy" /tmp/kbeacon-networkpolicy-rendered.yaml
@@ -221,7 +227,7 @@ supported-resources-lint:
 runbooks-lint:
 	./hack/validate-runbooks.sh
 
-.PHONY: kind-e2e-certmanager-smoke-lint kind-e2e-certmanager-smoke kind-e2e-secretproviderclass-smoke-lint
+.PHONY: kind-e2e-certmanager-smoke-lint kind-e2e-certmanager-smoke kind-e2e-secretproviderclass-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
 kind-e2e-certmanager-smoke-lint:
 	bash -n hack/e2e-kind-certmanager-smoke.sh
 
@@ -233,7 +239,7 @@ kind-e2e-externalsecret-smoke-lint:
 
 kind-e2e-externalsecret-smoke: kind-e2e-externalsecret-smoke-lint
 	KIND=$(KIND) KUBECTL=$(KUBECTL) HELM=$(HELM) ./hack/e2e-kind-externalsecret-smoke.sh
-.PHONY: kind-e2e-secretproviderclass-smoke-lint kind-e2e-secretproviderclass-smoke
+.PHONY: kind-e2e-secretproviderclass-smoke-lint kind-e2e-secretproviderclass-smoke kind-e2e-replicaset-owner-resolution-smoke-lint
 kind-e2e-secretproviderclass-smoke-lint:
 	bash -n hack/e2e-kind-secretproviderclass-smoke.sh
 
@@ -242,3 +248,6 @@ kind-e2e-secretproviderclass-smoke: kind-e2e-secretproviderclass-smoke-lint
 
 kind-e2e-kafka-connectors-smoke-lint:
 	bash -n hack/e2e-kind-kafka-connectors-smoke.sh
+
+kind-e2e-replicaset-owner-resolution-smoke-lint:
+	bash -n hack/e2e-kind-replicaset-owner-resolution-smoke.sh

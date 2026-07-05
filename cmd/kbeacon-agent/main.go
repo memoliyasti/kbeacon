@@ -157,6 +157,7 @@ func main() {
 			ServiceAccounts:       cfg.ResourcesToWatch.Core.ServiceAccounts,
 			Pods:                  cfg.ResourcesToWatch.Core.Pods,
 			Deployments:           cfg.ResourcesToWatch.Apps.Deployments,
+			ReplicaSets:           cfg.ResourcesToWatch.Apps.ReplicaSets,
 			StatefulSets:          cfg.ResourcesToWatch.Apps.StatefulSets,
 			DaemonSets:            cfg.ResourcesToWatch.Apps.DaemonSets,
 			Ingresses:             cfg.ResourcesToWatch.Networking.Ingresses,

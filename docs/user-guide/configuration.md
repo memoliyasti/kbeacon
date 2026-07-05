@@ -158,6 +158,7 @@ Implemented watcher values:
 | `resourcesToWatch.core.serviceAccounts` | `ServiceAccount` |
 | `resourcesToWatch.core.pods` | `Pod` |
 | `resourcesToWatch.apps.deployments` | `Deployment` |
+| `resourcesToWatch.apps.replicaSets` | `ReplicaSet` owner-resolution cache |
 | `resourcesToWatch.apps.statefulSets` | `StatefulSet` |
 | `resourcesToWatch.apps.daemonSets` | `DaemonSet` |
 | `resourcesToWatch.batch.jobs` | `Job` |
@@ -487,3 +488,5 @@ The mounted Secret file dependency source type is `confluent.connector.spec.conf
 The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `platform.confluent.io` `connectors` only when this watcher is enabled.
 
 KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, read mounted file contents, or read Kubernetes Secret data.
+
+`resourcesToWatch.apps.replicaSets=true` enables an internal owner-resolution cache. KBeacon uses ReplicaSet owner references to avoid duplicate Pod workload nodes when a Pod belongs to a Deployment through a ReplicaSet. ReplicaSet objects are not emitted as primary workload nodes.

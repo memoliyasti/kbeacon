@@ -399,3 +399,9 @@ Mounted Secret file edges use dependency source type `confluent.connector.spec.c
 KBeacon does not call Kafka Connect REST APIs, infer dependencies from arbitrary connector configuration values, or read mounted file contents.
 
 Leave this watcher disabled unless the `connectors.platform.confluent.io` CRD is installed in the cluster.
+
+## ReplicaSet owner resolution
+
+When `resourcesToWatch.apps.replicaSets=true`, KBeacon watches ReplicaSets as an internal owner-resolution cache. This keeps Deployment-managed Pods from appearing as duplicate `Pod` workload nodes when their owning ReplicaSet can be resolved back to a watched Deployment.
+
+ReplicaSets are not primary workload nodes and do not produce dependency edges directly. If a ReplicaSet owner cannot be resolved, KBeacon keeps the controlled Pod as a `Pod` fallback node rather than hiding its Secret references.

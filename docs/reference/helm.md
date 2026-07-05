@@ -186,6 +186,7 @@ Implemented watcher values:
 | `resourcesToWatch.core.serviceAccounts` | `ServiceAccount` |
 | `resourcesToWatch.core.pods` | `Pod` |
 | `resourcesToWatch.apps.deployments` | `Deployment` |
+| `resourcesToWatch.apps.replicaSets` | `ReplicaSet` owner-resolution cache |
 | `resourcesToWatch.apps.statefulSets` | `StatefulSet` |
 | `resourcesToWatch.apps.daemonSets` | `DaemonSet` |
 | `resourcesToWatch.batch.jobs` | `Job` |
@@ -601,3 +602,5 @@ Mounted Secret file edges use dependency source type `confluent.connector.spec.c
 KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, read mounted file contents, or read Kubernetes Secret values.
 
 Leave this watcher disabled unless the `connectors.platform.confluent.io` CRD exists in the cluster.
+
+`resourcesToWatch.apps.replicaSets=true` starts a read-only ReplicaSet informer used only for owner resolution. KBeacon uses it to map ReplicaSet-owned Pods back to their Deployment when the Deployment is also watched. ReplicaSets are not emitted as primary workload nodes, and KBeacon does not infer Secret dependencies from ReplicaSet objects directly.

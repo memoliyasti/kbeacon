@@ -6,6 +6,8 @@ KBeacon is an early-stage personal open source project. The roadmap is intention
 
 Implemented today:
 
+- ReplicaSet owner-resolution cache for Deployment-managed Pods without emitting ReplicaSets as primary workload nodes.
+
 - Optional SecretProviderClass discovery from Secrets Store CSI Driver `spec.secretObjects[*].secretName`.
 - Optional Strimzi KafkaConnector discovery from Strimzi Kubernetes Config Provider Secret references.
 - Optional Confluent for Kubernetes Connector discovery from connect REST authentication Secret refs and mounted Secret file references.

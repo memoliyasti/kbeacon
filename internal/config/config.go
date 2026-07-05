@@ -97,6 +97,7 @@ type ResourcesToWatchConfig struct {
 	} `yaml:"core" json:"core"`
 	Apps struct {
 		Deployments  bool `yaml:"deployments" json:"deployments"`
+		ReplicaSets  bool `yaml:"replicaSets" json:"replicaSets"`
 		StatefulSets bool `yaml:"statefulSets" json:"statefulSets"`
 		DaemonSets   bool `yaml:"daemonSets" json:"daemonSets"`
 	} `yaml:"apps" json:"apps"`
@@ -163,6 +164,7 @@ func Default() Config {
 	cfg.ResourcesToWatch.Core.ServiceAccounts = true
 	cfg.ResourcesToWatch.Core.Pods = true
 	cfg.ResourcesToWatch.Apps.Deployments = true
+	cfg.ResourcesToWatch.Apps.ReplicaSets = true
 	cfg.ResourcesToWatch.Apps.StatefulSets = true
 	cfg.ResourcesToWatch.Apps.DaemonSets = true
 	cfg.ResourcesToWatch.Networking.Ingresses = true

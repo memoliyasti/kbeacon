@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added Kind E2E coverage for ReplicaSet owner-resolution runtime behavior.
+
+- Added ReplicaSet owner-resolution cache so Deployment-managed Pods are deduplicated when their ReplicaSet owner can be resolved, while unresolved controlled Pods remain visible as Pod fallbacks.
+
 ## v0.3.9
 
 - Added optional Strimzi KafkaConnector discovery from Strimzi Kubernetes Config Provider Secret references with Helm RBAC and validation coverage.
