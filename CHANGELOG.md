@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## v0.3.11
+
 - Added API compatibility alias tests, Prometheus metric label contract tests, and a documented compatibility policy.
+- Documented canonical `/api/v1` usage, `/api/*` compatibility aliases, metric label stability, and Helm compatibility expectations.
+- Kept Agent runtime behavior, Helm defaults, metrics, API response shapes, and supply-chain behavior compatible with v0.3.10.
 
 ## v0.3.10
 
