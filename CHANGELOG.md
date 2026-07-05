@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+## v0.3.8
+
 - Added Kind E2E coverage for optional SecretProviderClass runtime discovery.
 - Added optional Secrets Store CSI Driver SecretProviderClass discovery from `spec.secretObjects[*].secretName` with Helm RBAC and validation coverage.
+- Kept SecretProviderClass watching disabled by default and opt-in through `resourcesToWatch.secretsStore.secretProviderClasses`.
+- Kept existing Agent, Helm, metrics, API, and supply-chain behavior compatible with v0.3.7.
 
 ## v0.3.7
 

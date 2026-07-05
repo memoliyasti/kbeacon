@@ -53,7 +53,7 @@ The default release image is published to GitHub Container Registry.
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.3.7"
+  tag: "0.3.8"
   pullPolicy: IfNotPresent
 ```
 
