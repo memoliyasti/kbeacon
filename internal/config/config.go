@@ -112,6 +112,12 @@ type ResourcesToWatchConfig struct {
 	SecretsStore struct {
 		SecretProviderClasses bool `yaml:"secretProviderClasses" json:"secretProviderClasses"`
 	} `yaml:"secretsStore" json:"secretsStore"`
+	Strimzi struct {
+		KafkaConnectors bool `yaml:"kafkaConnectors" json:"kafkaConnectors"`
+	} `yaml:"strimzi" json:"strimzi"`
+	Confluent struct {
+		Connectors bool `yaml:"connectors" json:"connectors"`
+	} `yaml:"confluent" json:"confluent"`
 	Batch struct {
 		Jobs     bool `yaml:"jobs" json:"jobs"`
 		CronJobs bool `yaml:"cronJobs" json:"cronJobs"`

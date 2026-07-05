@@ -311,6 +311,24 @@
             }
           },
           "additionalProperties": false
+        },
+        "strimzi": {
+          "type": "object",
+          "properties": {
+            "kafkaConnectors": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "confluent": {
+          "type": "object",
+          "properties": {
+            "connectors": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

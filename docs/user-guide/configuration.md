@@ -166,6 +166,8 @@ Implemented watcher values:
 | `resourcesToWatch.certManager.certificates` | `Certificate` |
 | `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
 | `resourcesToWatch.secretsStore.secretProviderClasses` | `SecretProviderClass` |
+| `resourcesToWatch.strimzi.kafkaConnectors` | `KafkaConnector` |
+| `resourcesToWatch.confluent.connectors` | `Connector` |
 
 Disabled resources are not watched and are represented as optional in readiness status.
 
@@ -428,3 +430,60 @@ The dependency source type is `secrets-store.csi.secretproviderclass.spec.secret
 The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `secrets-store.csi.x-k8s.io` `secretproviderclasses` only when this watcher is enabled.
 
 KBeacon does not read external provider object values, mounted file contents, or Kubernetes Secret data.
+
+## Strimzi KafkaConnector watcher
+
+`resourcesToWatch.strimzi.kafkaConnectors=false` by default.
+
+Set it to `true` only when Strimzi KafkaConnector CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  strimzi:
+    kafkaConnectors: true
+~~~
+
+When enabled, KBeacon watches `kafka.strimzi.io/v1` `KafkaConnector` resources and adds dependency edges from each `KafkaConnector` to referenced Kubernetes Secrets.
+
+Target Secret resolution:
+
+1. Iterate over string values under `spec.config`.
+2. Parse Strimzi Kubernetes Config Provider Secret references:
+   - `${secrets:namespace/name:key}`
+   - `${secrets:name:key}`
+3. Use the explicit namespace when present; otherwise use the `KafkaConnector` namespace.
+
+The dependency source type is `strimzi.kafkaconnector.spec.config.secrets`.
+
+The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `kafka.strimzi.io` `kafkaconnectors` only when this watcher is enabled.
+
+KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, or read Kubernetes Secret data.
+
+## Confluent / Kafka Connect Connector watcher
+
+`resourcesToWatch.confluent.connectors=false` by default.
+
+Set it to `true` only when Confluent for Kubernetes Connector CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  confluent:
+    connectors: true
+~~~
+
+When enabled, KBeacon watches `platform.confluent.io/v1beta1` `Connector` resources and adds dependency edges from each Connector to referenced Kubernetes Secrets.
+
+Target Secret resolution:
+
+1. Parse `spec.connectRest.authentication.*.secretRef` values.
+2. Iterate over string values under `spec.configs`.
+3. Parse mounted Secret file references such as `${file:/mnt/secrets/<secret>/...:key}`.
+4. Model each mounted Secret target as a Kubernetes Secret in the same namespace as the `Connector`.
+
+The Connect REST authentication dependency source type is `confluent.connector.spec.connectRest.authentication.secretRef`.
+
+The mounted Secret file dependency source type is `confluent.connector.spec.configs.file.mountedSecret`.
+
+The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `platform.confluent.io` `connectors` only when this watcher is enabled.
+
+KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, read mounted file contents, or read Kubernetes Secret data.

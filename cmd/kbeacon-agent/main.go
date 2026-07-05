@@ -116,7 +116,7 @@ func main() {
 	}
 
 	var dynamicClient dynamic.Interface
-	if cfg.ResourcesToWatch.CertManager.Certificates || cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets || cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses {
+	if cfg.ResourcesToWatch.CertManager.Certificates || cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets || cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses || cfg.ResourcesToWatch.Strimzi.KafkaConnectors || cfg.ResourcesToWatch.Confluent.Connectors {
 		dynamicClient, err = dynamic.NewForConfig(restConfig)
 		if err != nil {
 			logger.Error("failed to create kubernetes dynamic client", "error", err)
@@ -165,6 +165,8 @@ func main() {
 			Certificates:          cfg.ResourcesToWatch.CertManager.Certificates,
 			ExternalSecrets:       cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets,
 			SecretProviderClasses: cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses,
+			KafkaConnectors:       cfg.ResourcesToWatch.Strimzi.KafkaConnectors,
+			ConfluentConnectors:   cfg.ResourcesToWatch.Confluent.Connectors,
 		},
 		ResourcesSet:  true,
 		DynamicClient: dynamicClient,

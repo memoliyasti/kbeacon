@@ -248,3 +248,33 @@ KBeacon uses every non-empty `spec.secretObjects[*].secretName` entry as a targe
 KBeacon does not inspect external provider object names, provider payloads, mounted file contents, or Kubernetes Secret values.
 
 Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD exists in the cluster.
+
+## Optional Kafka connector discovery
+
+When Strimzi CRDs are installed, KBeacon can model Kubernetes Secret references from each `KafkaConnector`:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.strimzi.kafkaConnectors=true
+~~~
+
+KBeacon parses Strimzi Kubernetes Config Provider Secret references in `spec.config` string values, including `${secrets:namespace/name:key}` and `${secrets:name:key}`.
+
+When Confluent for Kubernetes CRDs are installed, KBeacon can model Kafka Connect Connector Secret references:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.confluent.connectors=true
+~~~
+
+KBeacon models `spec.connectRest.authentication.*.secretRef` and mounted Secret file references such as `${file:/mnt/secrets/<secret>/...:key}` as Kubernetes Secret dependencies.
+
+Both connector watchers are disabled by default and should be enabled only after the matching CRDs are installed.
+
+KBeacon does not call Kafka Connect REST APIs, read connector plugin payloads, inspect mounted file contents, or read Kubernetes Secret values.

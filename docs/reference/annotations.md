@@ -34,6 +34,8 @@ Workload annotations are interpreted for normalized workloads discovered by KBea
 - `Certificate` when `resourcesToWatch.certManager.certificates=true`.
 - `ExternalSecret` when `resourcesToWatch.externalSecrets.externalSecrets=true`.
 - `SecretProviderClass` when `resourcesToWatch.secretsStore.secretProviderClasses=true`.
+- `KafkaConnector` when `resourcesToWatch.strimzi.kafkaConnectors=true`.
+- `Connector` when `resourcesToWatch.confluent.connectors=true`.
 
 Ingress objects are modeled as Secret-consuming Kubernetes objects rather than runtime Pods. When Ingress watching is enabled, KBeacon reads Ingress metadata annotations for discovery mode, explicit dependencies, ignored dependencies, ownership metadata, service metadata, environment metadata, and criticality metadata.
 
@@ -216,6 +218,9 @@ KBeacon can infer dependencies from:
 - `cert-manager.certificate.spec.secretName` when cert-manager Certificate watching is enabled.
 - `external-secrets.externalsecret.spec.target.name` when ExternalSecret watching is enabled.
 - `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName` when SecretProviderClass watching is enabled.
+- `strimzi.kafkaconnector.spec.config.secrets` when Strimzi KafkaConnector watching is enabled.
+- `confluent.connector.spec.connectRest.authentication.secretRef` when Confluent Connector watching is enabled.
+- `confluent.connector.spec.configs.file.mountedSecret` when Confluent Connector watching is enabled.
 
 Explicit annotations are merged with inferred dependencies in `hybrid` mode.
 
@@ -333,3 +338,29 @@ The inferred dependency source type is `secrets-store.csi.secretproviderclass.sp
 Explicit KBeacon dependency annotations can still be used on `SecretProviderClass` objects in `explicit` or `hybrid` discovery mode. This is useful for platform relationships that are not represented by `spec.secretObjects`.
 
 Do not put external provider credentials, tokens, provider object payloads, mounted file contents, or raw secret values in `SecretProviderClass` annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.
+
+## Strimzi KafkaConnector resources
+
+When `resourcesToWatch.strimzi.kafkaConnectors=true`, Strimzi `KafkaConnector` objects can use the same KBeacon metadata annotations as workloads.
+
+KBeacon infers Kubernetes Secret dependencies from Strimzi Kubernetes Config Provider Secret references in `spec.config` string values.
+
+The inferred dependency source type is `strimzi.kafkaconnector.spec.config.secrets`.
+
+Explicit KBeacon dependency annotations can still be used on `KafkaConnector` objects in `explicit` or `hybrid` discovery mode. This is useful for connector relationships that are not represented through Strimzi Kubernetes Config Provider Secret syntax.
+
+Do not put Kafka credentials, database passwords, provider payloads, or raw Secret values in `KafkaConnector` annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.
+
+## Confluent / Kafka Connect Connector resources
+
+When `resourcesToWatch.confluent.connectors=true`, Confluent for Kubernetes `Connector` objects can use the same KBeacon metadata annotations as workloads.
+
+KBeacon infers Kubernetes Secret dependencies from `spec.connectRest.authentication.*.secretRef` and mounted Secret file references in `spec.configs` string values.
+
+The Connect REST authentication inferred dependency source type is `confluent.connector.spec.connectRest.authentication.secretRef`.
+
+The mounted Secret file inferred dependency source type is `confluent.connector.spec.configs.file.mountedSecret`.
+
+Explicit KBeacon dependency annotations can still be used on `Connector` objects in `explicit` or `hybrid` discovery mode. This is useful for Kafka Connect relationships that are not represented through supported `secretRef` or mounted file syntax.
+
+Do not put Kafka credentials, database passwords, provider payloads, mounted file contents, or raw Secret values in `Connector` annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.

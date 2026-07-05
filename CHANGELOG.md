@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added optional Strimzi KafkaConnector discovery from Strimzi Kubernetes Config Provider Secret references with Helm RBAC and validation coverage.
+- Added optional Confluent for Kubernetes Connector discovery from connect REST authentication Secret refs and mounted Secret file references with Helm RBAC and validation coverage.
+- Added Kind E2E coverage for optional Kafka connector runtime discovery.
+- Kept Kafka connector CRD watching disabled by default and opt-in through `resourcesToWatch.strimzi.kafkaConnectors` and `resourcesToWatch.confluent.connectors`.
+
 ## v0.3.8
 
 - Added Kind E2E coverage for optional SecretProviderClass runtime discovery.

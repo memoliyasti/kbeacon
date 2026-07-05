@@ -148,6 +148,28 @@ jobs:
           grep -Fq 'resources: ["secretproviderclasses"]' /tmp/kbeacon-secretproviderclass-rendered.yaml
           grep -Fq 'secretProviderClasses: true' /tmp/kbeacon-secretproviderclass-rendered.yaml
 
+      - name: Helm template Strimzi KafkaConnector watcher
+        run: |
+          helm template kbeacon ./charts/kbeacon \
+            --namespace kbeacon-system \
+            --set cluster.name=ci \
+            --set resourcesToWatch.strimzi.kafkaConnectors=true \
+            > /tmp/kbeacon-strimzi-kafkaconnector-rendered.yaml
+          grep -Fq 'apiGroups: ["kafka.strimzi.io"]' /tmp/kbeacon-strimzi-kafkaconnector-rendered.yaml
+          grep -Fq 'resources: ["kafkaconnectors"]' /tmp/kbeacon-strimzi-kafkaconnector-rendered.yaml
+          grep -Fq 'kafkaConnectors: true' /tmp/kbeacon-strimzi-kafkaconnector-rendered.yaml
+
+      - name: Helm template Confluent Connector watcher
+        run: |
+          helm template kbeacon ./charts/kbeacon \
+            --namespace kbeacon-system \
+            --set cluster.name=ci \
+            --set resourcesToWatch.confluent.connectors=true \
+            > /tmp/kbeacon-confluent-connector-rendered.yaml
+          grep -Fq 'apiGroups: ["platform.confluent.io"]' /tmp/kbeacon-confluent-connector-rendered.yaml
+          grep -Fq 'resources: ["connectors"]' /tmp/kbeacon-confluent-connector-rendered.yaml
+          grep -Fq 'connectors: true' /tmp/kbeacon-confluent-connector-rendered.yaml
+
       - name: Helm template namespace-scoped
         run: |
           helm template kbeacon ./charts/kbeacon \
@@ -171,7 +193,7 @@ jobs:
             check rules /dev/stdin < examples/prometheus/rules.yaml
 
       - name: Run extended validation targets
-        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint kind-e2e-kafka-connectors-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
 
   docker-smoke:
     name: docker smoke

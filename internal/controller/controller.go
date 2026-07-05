@@ -42,6 +42,8 @@ type ResourceConfig struct {
 	Certificates          bool
 	ExternalSecrets       bool
 	SecretProviderClasses bool
+	KafkaConnectors       bool
+	ConfluentConnectors   bool
 }
 
 func DefaultResourceConfig() ResourceConfig {
@@ -84,6 +86,10 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.ExternalSecrets
 	case "SecretProviderClass":
 		return r.SecretProviderClasses
+	case "KafkaConnector":
+		return r.KafkaConnectors
+	case "Connector":
+		return r.ConfluentConnectors
 	default:
 		return false
 	}
@@ -137,6 +143,8 @@ type Controller struct {
 	certificateInformer         cache.SharedIndexInformer
 	externalSecretInformer      cache.SharedIndexInformer
 	secretProviderClassInformer cache.SharedIndexInformer
+	kafkaConnectorInformer      cache.SharedIndexInformer
+	confluentConnectorInformer  cache.SharedIndexInformer
 
 	rebuildDebounce time.Duration
 	rebuildCh       chan string
@@ -204,6 +212,18 @@ var secretsStoreSecretProviderClassGVR = schema.GroupVersionResource{
 	Group:    "secrets-store.csi.x-k8s.io",
 	Version:  "v1",
 	Resource: "secretproviderclasses",
+}
+
+var strimziKafkaConnectorGVR = schema.GroupVersionResource{
+	Group:    "kafka.strimzi.io",
+	Version:  "v1",
+	Resource: "kafkaconnectors",
+}
+
+var confluentConnectorGVR = schema.GroupVersionResource{
+	Group:    "platform.confluent.io",
+	Version:  "v1beta1",
+	Resource: "connectors",
 }
 
 func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) *Controller {
@@ -283,7 +303,7 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		c.cronJobInformer = factory.Batch().V1().CronJobs()
 		c.synced["CronJob"] = false
 	}
-	if options.DynamicClient != nil && (resources.Certificates || resources.ExternalSecrets || resources.SecretProviderClasses) {
+	if options.DynamicClient != nil && (resources.Certificates || resources.ExternalSecrets || resources.SecretProviderClasses || resources.KafkaConnectors || resources.ConfluentConnectors) {
 		c.dynamicFactory = dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 			options.DynamicClient,
 			options.Resync,
@@ -304,6 +324,16 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		if resources.SecretProviderClasses {
 			c.secretProviderClassInformer = c.dynamicFactory.ForResource(secretsStoreSecretProviderClassGVR).Informer()
 			c.synced["SecretProviderClass"] = false
+		}
+
+		if resources.KafkaConnectors {
+			c.kafkaConnectorInformer = c.dynamicFactory.ForResource(strimziKafkaConnectorGVR).Informer()
+			c.synced["KafkaConnector"] = false
+		}
+
+		if resources.ConfluentConnectors {
+			c.confluentConnectorInformer = c.dynamicFactory.ForResource(confluentConnectorGVR).Informer()
+			c.synced["Connector"] = false
 		}
 	}
 
@@ -442,6 +472,12 @@ func (c *Controller) registerHandlers() {
 	}
 	if c.secretProviderClassInformer != nil {
 		c.registerResourceHandler("SecretProviderClass", c.secretProviderClassInformer)
+	}
+	if c.kafkaConnectorInformer != nil {
+		c.registerResourceHandler("KafkaConnector", c.kafkaConnectorInformer)
+	}
+	if c.confluentConnectorInformer != nil {
+		c.registerResourceHandler("Connector", c.confluentConnectorInformer)
 	}
 }
 
@@ -711,6 +747,32 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.kafkaConnectorInformer != nil {
+		for _, item := range c.kafkaConnectorInformer.GetStore().List() {
+			kafkaConnector, ok := item.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+			if !c.namespaceFilter.Include(kafkaConnector.GetNamespace()) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromStrimziKafkaConnector(discoveryOptions, kafkaConnector))
+		}
+	}
+
+	if c.confluentConnectorInformer != nil {
+		for _, item := range c.confluentConnectorInformer.GetStore().List() {
+			connector, ok := item.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+			if !c.namespaceFilter.Include(connector.GetNamespace()) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromConfluentConnector(discoveryOptions, connector))
+		}
+	}
+
 	c.graph.ApplySnapshot(secrets, workloads, time.Now())
 
 	duration := time.Since(start)
@@ -831,12 +893,24 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "SecretProviderClass", synced: c.secretProviderClassInformer.HasSynced})
 	}
+	if c.kafkaConnectorInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "KafkaConnector", synced: c.kafkaConnectorInformer.HasSynced})
+	}
+	if c.confluentConnectorInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "Connector", synced: c.confluentConnectorInformer.HasSynced})
+	}
 
 	return syncs
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret", "SecretProviderClass"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret", "SecretProviderClass", "KafkaConnector", "Connector"}
 }
 
 func stringSet(values []string) map[string]struct{} {

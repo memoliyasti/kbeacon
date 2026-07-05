@@ -353,3 +353,89 @@ func TestControllerEnabledSyncsIncludeSecretProviderClass(t *testing.T) {
 		t.Fatalf("expected SecretProviderClass informer in enabled syncs, got %#v", names)
 	}
 }
+
+func TestControllerStoresKafkaConnectorInformerWhenEnabled(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:       "test-cluster",
+			DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+			Resources: ResourceConfig{
+				KafkaConnectors: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.kafkaConnectorInformer == nil {
+		t.Fatal("expected KafkaConnector informer when enabled")
+	}
+
+	if _, ok := ctrl.synced["KafkaConnector"]; !ok {
+		t.Fatalf("expected KafkaConnector sync status to be registered, got %#v", ctrl.synced)
+	}
+}
+
+func TestControllerEnabledSyncsIncludeKafkaConnector(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster:       "test-cluster",
+		DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+		Resources: ResourceConfig{
+			KafkaConnectors: true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["KafkaConnector"] {
+		t.Fatalf("expected KafkaConnector informer in enabled syncs, got %#v", names)
+	}
+}
+
+func TestControllerStoresConfluentConnectorInformerWhenEnabled(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:       "test-cluster",
+			DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+			Resources: ResourceConfig{
+				ConfluentConnectors: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.confluentConnectorInformer == nil {
+		t.Fatal("expected Connector informer when enabled")
+	}
+
+	if _, ok := ctrl.synced["Connector"]; !ok {
+		t.Fatalf("expected Connector sync status to be registered, got %#v", ctrl.synced)
+	}
+}
+
+func TestControllerEnabledSyncsIncludeConfluentConnector(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster:       "test-cluster",
+		DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+		Resources: ResourceConfig{
+			ConfluentConnectors: true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["Connector"] {
+		t.Fatalf("expected Connector informer in enabled syncs, got %#v", names)
+	}
+}

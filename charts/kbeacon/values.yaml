@@ -187,6 +187,14 @@ resourcesToWatch:
     ## @param resourcesToWatch.secretsStore.secretProviderClasses Watch Secrets Store CSI Driver SecretProviderClass resources to discover spec.secretObjects target Secrets. Requires Secrets Store CSI Driver CRDs.
     secretProviderClasses: false
 
+  strimzi:
+    ## @param resourcesToWatch.strimzi.kafkaConnectors Watch Strimzi KafkaConnector resources to discover Kubernetes Config Provider Secret references. Requires Strimzi CRDs.
+    kafkaConnectors: false
+
+  confluent:
+    ## @param resourcesToWatch.confluent.connectors Watch Confluent for Kubernetes Connector resources to discover connect REST auth and mounted Secret references. Requires Confluent for Kubernetes CRDs.
+    connectors: false
+
   batch:
     ## @param resourcesToWatch.batch.jobs Watch Jobs.
     jobs: true

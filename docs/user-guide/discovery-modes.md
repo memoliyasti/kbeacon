@@ -369,3 +369,33 @@ SecretProviderClass inferred edges use dependency source type `secrets-store.csi
 KBeacon does not infer dependencies from external provider object names or mounted file contents.
 
 Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD is installed in the cluster.
+
+## Strimzi KafkaConnector discovery
+
+Strimzi `KafkaConnector` resources participate in discovery modes when `resourcesToWatch.strimzi.kafkaConnectors=true`.
+
+In `infer` or `hybrid` mode, KBeacon infers Secret dependencies from Strimzi Kubernetes Config Provider Secret references in string values under `spec.config`.
+
+In `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations on the `KafkaConnector` object.
+
+Strimzi KafkaConnector inferred edges use dependency source type `strimzi.kafkaconnector.spec.config.secrets`.
+
+KBeacon does not infer dependencies from arbitrary connector configuration values, connector class names, topic names, plugin artifacts, or Kafka Connect REST state.
+
+Leave this watcher disabled unless the `kafkaconnectors.kafka.strimzi.io` CRD is installed in the cluster.
+
+## Confluent / Kafka Connect Connector discovery
+
+Confluent for Kubernetes `Connector` resources participate in discovery modes when `resourcesToWatch.confluent.connectors=true`.
+
+In `infer` or `hybrid` mode, KBeacon infers Secret dependencies from `spec.connectRest.authentication.*.secretRef` and mounted Secret file references in string values under `spec.configs`.
+
+In `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations on the `Connector` object.
+
+Connect REST authentication edges use dependency source type `confluent.connector.spec.connectRest.authentication.secretRef`.
+
+Mounted Secret file edges use dependency source type `confluent.connector.spec.configs.file.mountedSecret`.
+
+KBeacon does not call Kafka Connect REST APIs, infer dependencies from arbitrary connector configuration values, or read mounted file contents.
+
+Leave this watcher disabled unless the `connectors.platform.confluent.io` CRD is installed in the cluster.

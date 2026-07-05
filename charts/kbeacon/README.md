@@ -341,3 +341,31 @@ KBeacon models each `spec.secretObjects[*].secretName` synced Kubernetes Secret 
 The chart adds read-only RBAC for `secrets-store.csi.x-k8s.io` `secretproviderclasses` only when the watcher is enabled.
 
 KBeacon does not read external provider values, mounted file contents, or Kubernetes Secret data.
+
+## Kafka connector discovery
+
+Enable these optional watchers only when the matching CRDs are installed.
+
+For Strimzi KafkaConnector discovery:
+
+~~~yaml
+resourcesToWatch:
+  strimzi:
+    kafkaConnectors: true
+~~~
+
+KBeacon parses Strimzi Kubernetes Config Provider Secret references in `spec.config` string values and models the referenced Kubernetes Secrets as dependency edges from the `KafkaConnector`.
+
+For Confluent for Kubernetes Connector discovery:
+
+~~~yaml
+resourcesToWatch:
+  confluent:
+    connectors: true
+~~~
+
+KBeacon models `spec.connectRest.authentication.*.secretRef` and `${file:/mnt/secrets/<secret>/...:key}` mounted Secret file references as dependency edges from the `Connector`.
+
+The chart adds read-only RBAC for `kafka.strimzi.io` `kafkaconnectors` and `platform.confluent.io` `connectors` only when the matching watcher is enabled.
+
+KBeacon does not call Kafka Connect REST APIs, read connector plugin payloads, inspect mounted file contents, or read Kubernetes Secret data.

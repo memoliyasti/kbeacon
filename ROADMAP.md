@@ -7,6 +7,8 @@ KBeacon is an early-stage personal open source project. The roadmap is intention
 Implemented today:
 
 - Optional SecretProviderClass discovery from Secrets Store CSI Driver `spec.secretObjects[*].secretName`.
+- Optional Strimzi KafkaConnector discovery from Strimzi Kubernetes Config Provider Secret references.
+- Optional Confluent for Kubernetes Connector discovery from connect REST authentication Secret refs and mounted Secret file references.
 
 - Kubernetes workload Secret dependency discovery for Pods, workload controllers, ServiceAccounts, and Ingress TLS references.
 - Secret reference discovery from environment variables, envFrom, Secret volumes, projected Secret volumes, imagePullSecrets, and KBeacon annotations.
@@ -47,8 +49,6 @@ Implemented today:
 
 These are possible future features, not current promises:
 
-- Strimzi KafkaConnector support.
-- Confluent Connector support.
 - Grafana App Plugin.
 - Historical dependency timeline using Prometheus or Mimir data.
 - Optional operator mode for larger fleets.

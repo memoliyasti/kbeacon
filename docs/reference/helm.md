@@ -194,6 +194,8 @@ Implemented watcher values:
 | `resourcesToWatch.certManager.certificates` | `Certificate` |
 | `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
 | `resourcesToWatch.secretsStore.secretProviderClasses` | `SecretProviderClass` |
+| `resourcesToWatch.strimzi.kafkaConnectors` | `KafkaConnector` |
+| `resourcesToWatch.confluent.connectors` | `Connector` |
 
 Disabled resources are not started as informers. They are represented as optional in readiness status.
 
@@ -545,3 +547,57 @@ SecretProviderClass edges use dependency source type `secrets-store.csi.secretpr
 KBeacon does not inspect external provider object names, provider payloads, mounted file contents, or Secret values.
 
 Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD exists in the cluster.
+
+## Strimzi KafkaConnector discovery
+
+Enable this optional watcher only when Strimzi KafkaConnector CRDs are installed:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.strimzi.kafkaConnectors=true
+~~~
+
+When enabled, the chart adds read-only RBAC for `kafka.strimzi.io` `kafkaconnectors`, and the Agent watches `kafka.strimzi.io/v1` `KafkaConnector` resources.
+
+KBeacon parses string values under `spec.config` for Strimzi Kubernetes Config Provider Secret references:
+
+- `${secrets:namespace/name:key}`
+- `${secrets:name:key}`
+
+The second form uses the `KafkaConnector` namespace.
+
+Strimzi KafkaConnector inferred edges use dependency source type `strimzi.kafkaconnector.spec.config.secrets`.
+
+KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, read provider systems, or read Kubernetes Secret values.
+
+Leave this watcher disabled unless the `kafkaconnectors.kafka.strimzi.io` CRD exists in the cluster.
+
+## Confluent / Kafka Connect Connector discovery
+
+Enable this optional watcher only when Confluent for Kubernetes Connector CRDs are installed:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.confluent.connectors=true
+~~~
+
+When enabled, the chart adds read-only RBAC for `platform.confluent.io` `connectors`, and the Agent watches `platform.confluent.io/v1beta1` `Connector` resources.
+
+KBeacon infers Connector Secret dependencies from:
+
+1. `spec.connectRest.authentication.*.secretRef`
+2. string values under `spec.configs` that use `${file:/mnt/secrets/<secret>/...:key}` style mounted Secret references.
+
+Connect REST authentication edges use dependency source type `confluent.connector.spec.connectRest.authentication.secretRef`.
+
+Mounted Secret file edges use dependency source type `confluent.connector.spec.configs.file.mountedSecret`.
+
+KBeacon does not call Kafka Connect REST APIs, inspect connector plugin payloads, read mounted file contents, or read Kubernetes Secret values.
+
+Leave this watcher disabled unless the `connectors.platform.confluent.io` CRD exists in the cluster.

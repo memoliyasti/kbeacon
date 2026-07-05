@@ -57,6 +57,10 @@ resourcesToWatch:
     externalSecrets: true
   secretsStore:
     secretProviderClasses: true
+  strimzi:
+    kafkaConnectors: true
+  confluent:
+    connectors: true
 privacy:
   redaction:
     secretKeys: true
@@ -124,6 +128,14 @@ privacy:
 
 	if !cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses {
 		t.Fatalf("expected SecretProviderClass watcher from YAML")
+	}
+
+	if !cfg.ResourcesToWatch.Strimzi.KafkaConnectors {
+		t.Fatalf("expected KafkaConnector watcher from YAML")
+	}
+
+	if !cfg.ResourcesToWatch.Confluent.Connectors {
+		t.Fatalf("expected Connector watcher from YAML")
 	}
 }
 

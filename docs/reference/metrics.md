@@ -370,3 +370,21 @@ Their dependency edges use source type `secrets-store.csi.secretproviderclass.sp
 If the synced Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
 
 The `SecretProviderClass` object name and namespace may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.
+
+## Kafka connector metrics behavior
+
+Strimzi `KafkaConnector` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.strimzi.kafkaConnectors=true`.
+
+Confluent for Kubernetes `Connector` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.confluent.connectors=true`.
+
+Kafka connector dependency edges contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.
+
+Strimzi inferred edges use source type `strimzi.kafkaconnector.spec.config.secrets`.
+
+Confluent Connect REST authentication edges use source type `confluent.connector.spec.connectRest.authentication.secretRef`.
+
+Confluent mounted Secret file edges use source type `confluent.connector.spec.configs.file.mountedSecret`.
+
+If the referenced Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
+
+`KafkaConnector` and `Connector` object names and namespaces may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.

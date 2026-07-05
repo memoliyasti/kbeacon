@@ -28,29 +28,6 @@ on:
       - 'hack/e2e-kind-certmanager-smoke.sh'
       - 'hack/e2e-kind-externalsecret-smoke.sh'
       - 'hack/e2e-kind-secretproviderclass-smoke.sh'
-      - '.github/workflows/e2e-kind.yaml'
-      - 'Dockerfile'
-      - 'go.mod'
-      - 'go.sum'
-
-permissions:
-  contents: read
-
-concurrency:
-  group: e2e-kind-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-jobs:
-  kind-smoke:
-    name: kind smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    env:
-      KIND_VERSION: v0.24.0
-      KBEACON_E2E_CLUSTER: kbeacon-e2e
-
-    steps:
       - name: Checkout
         uses: actions/checkout@v5
 
@@ -79,3 +56,6 @@ jobs:
 
       - name: Run SecretProviderClass Kind smoke
         run: make kind-e2e-secretproviderclass-smoke
+
+      - name: Run Kafka connector Kind smoke
+        run: ./hack/e2e-kind-kafka-connectors-smoke.sh
