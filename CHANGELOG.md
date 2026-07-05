@@ -2,9 +2,12 @@
 
 ## Unreleased
 
-- Added Kind E2E coverage for ReplicaSet owner-resolution runtime behavior.
+## v0.3.10
 
 - Added ReplicaSet owner-resolution cache so Deployment-managed Pods are deduplicated when their ReplicaSet owner can be resolved, while unresolved controlled Pods remain visible as Pod fallbacks.
+- Added Kind E2E coverage for ReplicaSet owner-resolution runtime behavior.
+- Kept ReplicaSet watching read-only and enabled by default only as an owner-resolution cache; ReplicaSets are not emitted as primary workload nodes.
+- Kept existing Agent, Helm, metrics, API, and supply-chain behavior compatible with v0.3.9.
 
 ## v0.3.9
 
