@@ -106,6 +106,9 @@ type ResourcesToWatchConfig struct {
 	CertManager struct {
 		Certificates bool `yaml:"certificates" json:"certificates"`
 	} `yaml:"certManager" json:"certManager"`
+	ExternalSecrets struct {
+		ExternalSecrets bool `yaml:"externalSecrets" json:"externalSecrets"`
+	} `yaml:"externalSecrets" json:"externalSecrets"`
 	Batch struct {
 		Jobs     bool `yaml:"jobs" json:"jobs"`
 		CronJobs bool `yaml:"cronJobs" json:"cronJobs"`

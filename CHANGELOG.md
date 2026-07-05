@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added optional External Secrets Operator ExternalSecret discovery from target Secret metadata with Helm RBAC and validation coverage.
+
 ## v0.3.6
 
 - Added optional cert-manager Certificate discovery from `spec.secretName` with Helm RBAC and validation coverage.

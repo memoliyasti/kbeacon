@@ -350,3 +350,13 @@ Dependency edges discovered from projected Secret volumes use source type `volum
 ## cert-manager Certificate metrics behavior
 
 cert-manager `Certificate` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.certManager.certificates=true`. Their dependency edges use source type `cert-manager.certificate.spec.secretName` and contribute to the same graph, impact, and dependency metrics as workload edges.
+
+## ExternalSecret metrics behavior
+
+External Secrets Operator `ExternalSecret` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.externalSecrets.externalSecrets=true`.
+
+Their dependency edges use source type `external-secrets.externalsecret.spec.target.name` and contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.
+
+If the target Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
+
+The `ExternalSecret` object name and namespace may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.

@@ -214,3 +214,19 @@ helm upgrade --install kbeacon ./charts/kbeacon   --namespace kbeacon-system   -
 ```
 
 Leave this watcher disabled unless the cert-manager `certificates.cert-manager.io` resource exists in the cluster.
+
+## Optional ExternalSecret discovery
+
+When External Secrets Operator CRDs are installed, KBeacon can model each `ExternalSecret` target Kubernetes Secret as a dependency edge:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.externalSecrets.externalSecrets=true
+~~~
+
+KBeacon uses `spec.target.name` first and falls back to the `ExternalSecret` object name when `spec.target.name` is omitted.
+
+Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD exists in the cluster.

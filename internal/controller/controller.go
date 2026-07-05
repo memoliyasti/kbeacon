@@ -40,6 +40,7 @@ type ResourceConfig struct {
 	Jobs            bool
 	CronJobs        bool
 	Certificates    bool
+	ExternalSecrets bool
 }
 
 func DefaultResourceConfig() ResourceConfig {
@@ -78,6 +79,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.CronJobs
 	case "Certificate":
 		return r.Certificates
+	case "ExternalSecret":
+		return r.ExternalSecrets
 	default:
 		return false
 	}
@@ -129,6 +132,7 @@ type Controller struct {
 	jobInformer            batchinformers.JobInformer
 	cronJobInformer        batchinformers.CronJobInformer
 	certificateInformer    cache.SharedIndexInformer
+	externalSecretInformer cache.SharedIndexInformer
 
 	rebuildDebounce time.Duration
 	rebuildCh       chan string
@@ -184,6 +188,12 @@ var certManagerCertificateGVR = schema.GroupVersionResource{
 	Group:    "cert-manager.io",
 	Version:  "v1",
 	Resource: "certificates",
+}
+
+var externalSecretsExternalSecretGVR = schema.GroupVersionResource{
+	Group:    "external-secrets.io",
+	Version:  "v1",
+	Resource: "externalsecrets",
 }
 
 func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) *Controller {
@@ -263,15 +273,23 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		c.cronJobInformer = factory.Batch().V1().CronJobs()
 		c.synced["CronJob"] = false
 	}
-	if resources.Certificates && options.DynamicClient != nil {
+	if options.DynamicClient != nil && (resources.Certificates || resources.ExternalSecrets) {
 		c.dynamicFactory = dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 			options.DynamicClient,
 			options.Resync,
 			watchNamespace,
 			nil,
 		)
-		c.certificateInformer = c.dynamicFactory.ForResource(certManagerCertificateGVR).Informer()
-		c.synced["Certificate"] = false
+
+		if resources.Certificates {
+			c.certificateInformer = c.dynamicFactory.ForResource(certManagerCertificateGVR).Informer()
+			c.synced["Certificate"] = false
+		}
+
+		if resources.ExternalSecrets {
+			c.externalSecretInformer = c.dynamicFactory.ForResource(externalSecretsExternalSecretGVR).Informer()
+			c.synced["ExternalSecret"] = false
+		}
 	}
 
 	c.registerHandlers()
@@ -403,6 +421,9 @@ func (c *Controller) registerHandlers() {
 	}
 	if c.certificateInformer != nil {
 		c.registerResourceHandler("Certificate", c.certificateInformer)
+	}
+	if c.externalSecretInformer != nil {
+		c.registerResourceHandler("ExternalSecret", c.externalSecretInformer)
 	}
 }
 
@@ -646,6 +667,19 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.externalSecretInformer != nil {
+		for _, item := range c.externalSecretInformer.GetStore().List() {
+			externalSecret, ok := item.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+			if !c.namespaceFilter.Include(externalSecret.GetNamespace()) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromExternalSecret(discoveryOptions, externalSecret))
+		}
+	}
+
 	c.graph.ApplySnapshot(secrets, workloads, time.Now())
 
 	duration := time.Since(start)
@@ -754,12 +788,18 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "Certificate", synced: c.certificateInformer.HasSynced})
 	}
+	if c.externalSecretInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "ExternalSecret", synced: c.externalSecretInformer.HasSynced})
+	}
 
 	return syncs
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret"}
 }
 
 func stringSet(values []string) map[string]struct{} {

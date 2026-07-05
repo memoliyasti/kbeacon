@@ -340,3 +340,18 @@ See the [Supported resources reference](../reference/supported-resources.md) for
 ## cert-manager Certificate discovery
 
 cert-manager `Certificate` resources participate in discovery modes when `resourcesToWatch.certManager.certificates=true`. In `infer` or `hybrid` mode, KBeacon infers the target Secret from `spec.secretName`; in `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations.
+
+## ExternalSecret discovery
+
+External Secrets Operator `ExternalSecret` resources participate in discovery modes when `resourcesToWatch.externalSecrets.externalSecrets=true`.
+
+In `infer` or `hybrid` mode, KBeacon infers the target Kubernetes Secret from:
+
+1. `spec.target.name` when it is set.
+2. `metadata.name` when `spec.target.name` is omitted.
+
+In `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations on the `ExternalSecret` object.
+
+ExternalSecret inferred edges use dependency source type `external-secrets.externalsecret.spec.target.name`.
+
+Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD is installed in the cluster.

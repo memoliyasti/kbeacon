@@ -179,6 +179,10 @@ resourcesToWatch:
     ## @param resourcesToWatch.certManager.certificates Watch cert-manager Certificate resources to discover spec.secretName target Secrets. Requires cert-manager CRDs.
     certificates: false
 
+  externalSecrets:
+    ## @param resourcesToWatch.externalSecrets.externalSecrets Watch External Secrets Operator ExternalSecret resources to discover target Kubernetes Secrets. Requires External Secrets Operator CRDs.
+    externalSecrets: false
+
   batch:
     ## @param resourcesToWatch.batch.jobs Watch Jobs.
     jobs: true

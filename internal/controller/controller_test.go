@@ -267,3 +267,46 @@ func TestControllerEnabledSyncsIncludeServiceAccountAndIngress(t *testing.T) {
 		t.Fatalf("expected Ingress informer in enabled syncs, got %#v", names)
 	}
 }
+
+func TestControllerStoresExternalSecretInformerWhenEnabled(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:       "test-cluster",
+			DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+			Resources: ResourceConfig{
+				ExternalSecrets: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.externalSecretInformer == nil {
+		t.Fatal("expected ExternalSecret informer when enabled")
+	}
+
+	if _, ok := ctrl.synced["ExternalSecret"]; !ok {
+		t.Fatalf("expected ExternalSecret sync status to be registered, got %#v", ctrl.synced)
+	}
+}
+
+func TestControllerEnabledSyncsIncludeExternalSecret(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster:       "test-cluster",
+		DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+		Resources: ResourceConfig{
+			ExternalSecrets: true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["ExternalSecret"] {
+		t.Fatalf("expected ExternalSecret informer in enabled syncs, got %#v", names)
+	}
+}

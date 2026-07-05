@@ -311,3 +311,17 @@ resourcesToWatch:
 ```
 
 KBeacon models `Certificate.spec.secretName` as a dependency edge to the target Kubernetes Secret. The chart adds read-only RBAC for `cert-manager.io` `certificates` only when the watcher is enabled.
+
+## ExternalSecret discovery
+
+Enable this optional watcher only when External Secrets Operator CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  externalSecrets:
+    externalSecrets: true
+~~~
+
+KBeacon models each `ExternalSecret` target Kubernetes Secret as a dependency edge. It uses `spec.target.name` first and falls back to the `ExternalSecret` object name when `spec.target.name` is omitted.
+
+The chart adds read-only RBAC for `external-secrets.io` `externalsecrets` only when the watcher is enabled.

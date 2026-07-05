@@ -163,6 +163,8 @@ Implemented watcher values:
 | `resourcesToWatch.batch.jobs` | `Job` |
 | `resourcesToWatch.batch.cronJobs` | `CronJob` |
 | `resourcesToWatch.networking.ingresses` | `Ingress` |
+| `resourcesToWatch.certManager.certificates` | `Certificate` |
+| `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
 
 Disabled resources are not watched and are represented as optional in readiness status.
 
@@ -376,3 +378,26 @@ This changes source paths such as `env[DB_PASSWORD].valueFrom.secretKeyRef[payme
 ## cert-manager Certificate watcher
 
 `resourcesToWatch.certManager.certificates=false` by default. Set it to `true` only when cert-manager CRDs are installed. When enabled, KBeacon watches `cert-manager.io/v1` `Certificate` resources and adds dependency edges from each Certificate to `spec.secretName`.
+
+## ExternalSecret watcher
+
+`resourcesToWatch.externalSecrets.externalSecrets=false` by default.
+
+Set it to `true` only when External Secrets Operator CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  externalSecrets:
+    externalSecrets: true
+~~~
+
+When enabled, KBeacon watches `external-secrets.io/v1` `ExternalSecret` resources and adds dependency edges from each `ExternalSecret` to its target Kubernetes Secret.
+
+Target Secret resolution:
+
+1. `spec.target.name` when it is set.
+2. `metadata.name` when `spec.target.name` is omitted.
+
+The dependency source type is `external-secrets.externalsecret.spec.target.name`.
+
+The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `external-secrets.io` `externalsecrets` only when this watcher is enabled.

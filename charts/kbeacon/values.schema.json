@@ -293,6 +293,15 @@
             }
           },
           "additionalProperties": false
+        },
+        "externalSecrets": {
+          "type": "object",
+          "properties": {
+            "externalSecrets": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

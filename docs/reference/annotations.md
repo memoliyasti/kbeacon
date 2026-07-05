@@ -31,6 +31,8 @@ Workload annotations are interpreted for normalized workloads discovered by KBea
 - `Job`;
 - `CronJob`;
 - `Ingress` when `resourcesToWatch.networking.ingresses=true`.
+- `Certificate` when `resourcesToWatch.certManager.certificates=true`.
+- `ExternalSecret` when `resourcesToWatch.externalSecrets.externalSecrets=true`.
 
 Ingress objects are modeled as Secret-consuming Kubernetes objects rather than runtime Pods. When Ingress watching is enabled, KBeacon reads Ingress metadata annotations for discovery mode, explicit dependencies, ignored dependencies, ownership metadata, service metadata, environment metadata, and criticality metadata.
 
@@ -210,6 +212,8 @@ KBeacon can infer dependencies from:
 - `envFrom.secretRef`;
 - `volumes.secret`;
 - `imagePullSecrets`.
+- `cert-manager.certificate.spec.secretName` when cert-manager Certificate watching is enabled.
+- `external-secrets.externalsecret.spec.target.name` when ExternalSecret watching is enabled.
 
 Explicit annotations are merged with inferred dependencies in `hybrid` mode.
 
@@ -300,3 +304,18 @@ KBeacon records these dependencies with source type `volumes.projected.sources.s
 ## cert-manager Certificate resources
 
 When `resourcesToWatch.certManager.certificates=true`, cert-manager `Certificate` objects can use the same KBeacon metadata annotations as workloads. The inferred dependency source type is `cert-manager.certificate.spec.secretName`.
+
+## ExternalSecret resources
+
+When `resourcesToWatch.externalSecrets.externalSecrets=true`, External Secrets Operator `ExternalSecret` objects can use the same KBeacon metadata annotations as workloads.
+
+KBeacon infers the target Kubernetes Secret from:
+
+1. `spec.target.name` when it is set.
+2. `metadata.name` when `spec.target.name` is omitted.
+
+The inferred dependency source type is `external-secrets.externalsecret.spec.target.name`.
+
+Explicit KBeacon dependency annotations can still be used on `ExternalSecret` objects in `explicit` or `hybrid` discovery mode. This is useful for non-standard platform relationships that are not visible in `spec.target.name`.
+
+Do not put external provider credentials, tokens, connection strings, or raw provider payloads in `ExternalSecret` annotations. KBeacon annotations should contain only Secret names, namespaces, and operational metadata.

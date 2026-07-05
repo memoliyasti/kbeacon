@@ -52,6 +52,9 @@ metrics:
     enabled: true
   runtime:
     enabled: true
+resourcesToWatch:
+  externalSecrets:
+    externalSecrets: true
 privacy:
   redaction:
     secretKeys: true
@@ -111,6 +114,10 @@ privacy:
 
 	if !cfg.Privacy.Redaction.SecretKeys {
 		t.Fatalf("expected Secret key redaction from YAML")
+	}
+
+	if !cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets {
+		t.Fatalf("expected ExternalSecret watcher from YAML")
 	}
 }
 

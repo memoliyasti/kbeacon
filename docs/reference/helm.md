@@ -191,6 +191,8 @@ Implemented watcher values:
 | `resourcesToWatch.batch.jobs` | `Job` |
 | `resourcesToWatch.batch.cronJobs` | `CronJob` |
 | `resourcesToWatch.networking.ingresses` | `Ingress` |
+| `resourcesToWatch.certManager.certificates` | `Certificate` |
+| `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
 
 Disabled resources are not started as informers. They are represented as optional in readiness status.
 
@@ -500,3 +502,23 @@ helm upgrade --install kbeacon ./charts/kbeacon   --namespace kbeacon-system   -
 ```
 
 The chart adds read-only RBAC for `cert-manager.io` `certificates`, and the Agent discovers `spec.secretName` target Secrets.
+
+## ExternalSecret discovery
+
+Enable this optional watcher only when External Secrets Operator CRDs are installed:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.externalSecrets.externalSecrets=true
+~~~
+
+When enabled, the chart adds read-only RBAC for `external-secrets.io` `externalsecrets`, and the Agent discovers the Kubernetes Secret managed by each `ExternalSecret`.
+
+KBeacon uses `spec.target.name` as the inferred target Secret name. If `spec.target.name` is omitted, KBeacon falls back to the `ExternalSecret` object `metadata.name`, matching the common External Secrets Operator default target Secret behavior.
+
+ExternalSecret edges use dependency source type `external-secrets.externalsecret.spec.target.name`.
+
+Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD exists in the cluster.

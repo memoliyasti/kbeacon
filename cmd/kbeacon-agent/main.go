@@ -116,7 +116,7 @@ func main() {
 	}
 
 	var dynamicClient dynamic.Interface
-	if cfg.ResourcesToWatch.CertManager.Certificates {
+	if cfg.ResourcesToWatch.CertManager.Certificates || cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets {
 		dynamicClient, err = dynamic.NewForConfig(restConfig)
 		if err != nil {
 			logger.Error("failed to create kubernetes dynamic client", "error", err)
@@ -163,6 +163,7 @@ func main() {
 			Jobs:            cfg.ResourcesToWatch.Batch.Jobs,
 			CronJobs:        cfg.ResourcesToWatch.Batch.CronJobs,
 			Certificates:    cfg.ResourcesToWatch.CertManager.Certificates,
+			ExternalSecrets: cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets,
 		},
 		ResourcesSet:  true,
 		DynamicClient: dynamicClient,

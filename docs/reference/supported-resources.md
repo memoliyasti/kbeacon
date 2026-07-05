@@ -17,6 +17,8 @@ The technical design and roadmap may mention future resources. The table below i
 | Job | batch/v1 | `resourcesToWatch.batch.jobs` | Supported | Pod template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node. |
 | CronJob | batch/v1 | `resourcesToWatch.batch.cronJobs` | Supported | Job template Secret references, KBeacon annotations, metadata labels | Rendered as one normalized workload node. |
 | Ingress | networking.k8s.io/v1 | `resourcesToWatch.networking.ingresses` | Supported, optional | `spec.tls[].secretName`, KBeacon annotations, metadata labels | Modeled as a Secret-consuming Kubernetes object in KBeacon outputs. |
+| cert-manager Certificate | cert-manager.io/v1 | `resourcesToWatch.certManager.certificates` | Supported, optional | `spec.secretName` target Secret | Requires cert-manager CRDs to be installed before enabling the watcher. |
+| ExternalSecret | external-secrets.io/v1 | `resourcesToWatch.externalSecrets.externalSecrets` | Supported, optional | `spec.target.name` target Secret, or `metadata.name` fallback when target name is omitted | Requires External Secrets Operator CRDs to be installed before enabling the watcher. |
 
 ## Dependency source types
 
@@ -30,14 +32,13 @@ The technical design and roadmap may mention future resources. The table below i
 | `serviceAccount.imagePullSecrets` | A ServiceAccount provides image pull Secret fallback discovery. |
 | `ingress.tls` | An Ingress TLS entry references a Secret. |
 | `cert-manager.certificate.spec.secretName` | A cert-manager Certificate writes or renews a target Secret. |
+| `external-secrets.externalsecret.spec.target.name` | An External Secrets Operator ExternalSecret writes or renews a target Kubernetes Secret. |
 | `annotation` | A KBeacon explicit dependency annotation declares a Secret dependency. |
 
 ## Future or not currently implemented
 
 | Resource | Status | Expected dependency model |
 | --- | --- | --- |
-| cert-manager Certificate | cert-manager.io/v1 | `resourcesToWatch.certManager.certificates` | Supported, optional | `spec.secretName` target Secret | Requires cert-manager CRDs to be installed before enabling the watcher. |
-| ExternalSecret | Planned | Target Kubernetes Secret and provider/store metadata. |
 | SecretProviderClass | Planned | CSI `secretObjects[*].secretName` outputs. |
 | Strimzi KafkaConnector | Planned | Explicit-first support, then selected config-provider patterns. |
 | Confluent Connector | Planned | Explicit-first support, then selected mounted Secret patterns. |
@@ -46,6 +47,8 @@ The technical design and roadmap may mention future resources. The table below i
 ## Operational notes
 
 Disabling a watcher removes that resource from KBeacon discovery and omits matching chart RBAC when the chart owns RBAC generation.
+
+Optional CRD watchers are disabled by default. Enable them only after the matching CRD is installed in the cluster.
 
 `resourcesToWatch.core.secrets=false` is the low-privilege mode. KBeacon still discovers workload references, but it cannot confirm whether a referenced Secret exists. In that mode, `exists=false` and `resolved=false` mean missing or unobservable.
 
