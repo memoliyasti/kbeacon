@@ -77,3 +77,9 @@ Invalid query values use `400 invalid_query`.
 - It does not expose Kubernetes Secret values.
 - Secret names and dependency metadata may still be sensitive.
 - Compatibility aliases under `/api/*` exist for older clients, but new clients should use `/api/v1/*`.
+
+## API compatibility
+
+Use `/api/v1` for new integrations.
+
+The shorter `/api/*` routes are compatibility aliases for existing clients and are covered by regression tests.

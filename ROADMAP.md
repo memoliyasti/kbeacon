@@ -16,6 +16,7 @@ Implemented today:
 - Secret reference discovery from environment variables, envFrom, Secret volumes, projected Secret volumes, imagePullSecrets, and KBeacon annotations.
 - `infer`, `explicit`, `hybrid`, and `disabled` discovery modes.
 - Read-only Agent API with filtering and bounded pagination.
+- API aliases and Prometheus metric label contracts covered by compatibility tests.
 - `kbeaconctl` API client, Secret impact report, snapshot export, and snapshot diff with text, JSON, and markdown output.
 - Prometheus metrics, recording rules, alert rules, and operator runbooks.
 - Grafana dashboard examples.

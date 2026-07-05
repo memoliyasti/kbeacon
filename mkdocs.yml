@@ -78,6 +78,7 @@ nav:
       - Supported resources: reference/supported-resources.md
       - Helm: reference/helm.md
       - Metrics: reference/metrics.md
+      - Compatibility: reference/compatibility.md
       - Annotations: reference/annotations.md
   - Developer guide:
       - Architecture: developer-guide/architecture.md

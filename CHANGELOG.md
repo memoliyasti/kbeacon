@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added API compatibility alias tests, Prometheus metric label contract tests, and a documented compatibility policy.
+
 ## v0.3.10
 
 - Added ReplicaSet owner-resolution cache so Deployment-managed Pods are deduplicated when their ReplicaSet owner can be resolved, while unresolved controlled Pods remain visible as Pod fallbacks.

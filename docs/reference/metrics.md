@@ -6,6 +6,14 @@ The metric contract is designed for Prometheus and Grafana Mimir storage, Grafan
 
 KBeacon metrics do not expose Kubernetes Secret values. They can include Secret names, workload names, namespaces, ownership metadata, and dependency state, so access should be protected as operational metadata.
 
+## Metric compatibility policy
+
+Prometheus metric family names and label sets are compatibility-sensitive.
+
+KBeacon tests the public graph metric label sets so high-cardinality implementation details such as Secret keys, dependency source paths, container names, environment variable names, UIDs, and Pod instance names do not become Prometheus labels accidentally.
+
+See [Compatibility](compatibility.md) for the project-wide API, metrics, and Helm compatibility policy.
+
 ## Label conventions
 
 Every KBeacon domain metric includes the logical cluster label.

@@ -153,6 +153,7 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Helm reference: `docs/reference/helm.md`
 - Supported resources: docs/reference/supported-resources.md
 - Metrics reference: `docs/reference/metrics.md`
+- Compatibility policy: `docs/reference/compatibility.md`
 - Annotation reference: `docs/reference/annotations.md`
 - Agent API: `docs/api/openapi.yaml`
 - Technical design: `docs/technical-design.md`
