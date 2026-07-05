@@ -10,7 +10,7 @@ KBeacon uses semantic version tags:
 
 Example:
 
-    v0.3.8
+    v0.3.9
 
 ## Release checklist
 
@@ -30,8 +30,8 @@ Before tagging:
 
 ## Tagging
 
-    git tag -a v0.3.8 -m "KBeacon v0.3.8"
-    git push origin v0.3.8
+    git tag -a v0.3.9 -m "KBeacon v0.3.9"
+    git push origin v0.3.9
 
 The release workflow publishes:
 
@@ -45,10 +45,10 @@ The release workflow publishes:
 
 ## Container image tags
 
-For release `v0.3.8`, the workflow publishes:
+For release `v0.3.9`, the workflow publishes:
 
-    ghcr.io/memoliyasti/kbeacon:v0.3.8
-    ghcr.io/memoliyasti/kbeacon:0.3.8
+    ghcr.io/memoliyasti/kbeacon:v0.3.9
+    ghcr.io/memoliyasti/kbeacon:0.3.9
     ghcr.io/memoliyasti/kbeacon:latest
     ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
 
