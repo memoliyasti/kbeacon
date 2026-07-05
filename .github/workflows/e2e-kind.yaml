@@ -10,6 +10,7 @@ on:
       - 'hack/e2e-kind-smoke.sh'
       - 'Makefile'
       - 'hack/e2e-kind-certmanager-smoke.sh'
+      - 'hack/e2e-kind-externalsecret-smoke.sh'
       - '.github/workflows/e2e-kind.yaml'
       - 'Dockerfile'
       - 'go.mod'
@@ -24,6 +25,7 @@ on:
       - 'hack/e2e-kind-smoke.sh'
       - 'Makefile'
       - 'hack/e2e-kind-certmanager-smoke.sh'
+      - 'hack/e2e-kind-externalsecret-smoke.sh'
       - '.github/workflows/e2e-kind.yaml'
       - 'Dockerfile'
       - 'go.mod'
@@ -40,7 +42,7 @@ jobs:
   kind-smoke:
     name: kind smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     env:
       KIND_VERSION: v0.24.0
@@ -69,3 +71,6 @@ jobs:
 
       - name: Run cert-manager Certificate Kind smoke
         run: make kind-e2e-certmanager-smoke
+
+      - name: Run ExternalSecret Kind smoke
+        run: make kind-e2e-externalsecret-smoke

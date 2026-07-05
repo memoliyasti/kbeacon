@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added Kind E2E coverage for optional ExternalSecret runtime discovery.
 - Added optional External Secrets Operator ExternalSecret discovery from target Secret metadata with Helm RBAC and validation coverage.
 
 ## v0.3.6
