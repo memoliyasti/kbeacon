@@ -165,6 +165,7 @@ Implemented watcher values:
 | `resourcesToWatch.networking.ingresses` | `Ingress` |
 | `resourcesToWatch.certManager.certificates` | `Certificate` |
 | `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
+| `resourcesToWatch.secretsStore.secretProviderClasses` | `SecretProviderClass` |
 
 Disabled resources are not watched and are represented as optional in readiness status.
 
@@ -401,3 +402,29 @@ Target Secret resolution:
 The dependency source type is `external-secrets.externalsecret.spec.target.name`.
 
 The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `external-secrets.io` `externalsecrets` only when this watcher is enabled.
+
+## SecretProviderClass watcher
+
+`resourcesToWatch.secretsStore.secretProviderClasses=false` by default.
+
+Set it to `true` only when Secrets Store CSI Driver CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  secretsStore:
+    secretProviderClasses: true
+~~~
+
+When enabled, KBeacon watches `secrets-store.csi.x-k8s.io/v1` `SecretProviderClass` resources and adds dependency edges from each `SecretProviderClass` to its synced Kubernetes Secrets.
+
+Target Secret resolution:
+
+1. Iterate over `spec.secretObjects`.
+2. Read every non-empty `secretName`.
+3. Model each target as a Kubernetes Secret in the same namespace as the `SecretProviderClass`.
+
+The dependency source type is `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName`.
+
+The Helm chart renders read-only `get`, `list`, and `watch` RBAC for `secrets-store.csi.x-k8s.io` `secretproviderclasses` only when this watcher is enabled.
+
+KBeacon does not read external provider object values, mounted file contents, or Kubernetes Secret data.

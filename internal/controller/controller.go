@@ -30,17 +30,18 @@ type Recorder interface {
 }
 
 type ResourceConfig struct {
-	Secrets         bool
-	ServiceAccounts bool
-	Pods            bool
-	Deployments     bool
-	StatefulSets    bool
-	DaemonSets      bool
-	Ingresses       bool
-	Jobs            bool
-	CronJobs        bool
-	Certificates    bool
-	ExternalSecrets bool
+	Secrets               bool
+	ServiceAccounts       bool
+	Pods                  bool
+	Deployments           bool
+	StatefulSets          bool
+	DaemonSets            bool
+	Ingresses             bool
+	Jobs                  bool
+	CronJobs              bool
+	Certificates          bool
+	ExternalSecrets       bool
+	SecretProviderClasses bool
 }
 
 func DefaultResourceConfig() ResourceConfig {
@@ -81,6 +82,8 @@ func (r ResourceConfig) enabled(resource string) bool {
 		return r.Certificates
 	case "ExternalSecret":
 		return r.ExternalSecrets
+	case "SecretProviderClass":
+		return r.SecretProviderClasses
 	default:
 		return false
 	}
@@ -122,17 +125,18 @@ type Controller struct {
 	dynamicClient    dynamic.Interface
 	dynamicFactory   dynamicinformer.DynamicSharedInformerFactory
 
-	secretInformer         coreinformers.SecretInformer
-	serviceAccountInformer coreinformers.ServiceAccountInformer
-	podInformer            coreinformers.PodInformer
-	deploymentInformer     appsinformers.DeploymentInformer
-	statefulSetInformer    appsinformers.StatefulSetInformer
-	daemonSetInformer      appsinformers.DaemonSetInformer
-	ingressInformer        networkinginformers.IngressInformer
-	jobInformer            batchinformers.JobInformer
-	cronJobInformer        batchinformers.CronJobInformer
-	certificateInformer    cache.SharedIndexInformer
-	externalSecretInformer cache.SharedIndexInformer
+	secretInformer              coreinformers.SecretInformer
+	serviceAccountInformer      coreinformers.ServiceAccountInformer
+	podInformer                 coreinformers.PodInformer
+	deploymentInformer          appsinformers.DeploymentInformer
+	statefulSetInformer         appsinformers.StatefulSetInformer
+	daemonSetInformer           appsinformers.DaemonSetInformer
+	ingressInformer             networkinginformers.IngressInformer
+	jobInformer                 batchinformers.JobInformer
+	cronJobInformer             batchinformers.CronJobInformer
+	certificateInformer         cache.SharedIndexInformer
+	externalSecretInformer      cache.SharedIndexInformer
+	secretProviderClassInformer cache.SharedIndexInformer
 
 	rebuildDebounce time.Duration
 	rebuildCh       chan string
@@ -194,6 +198,12 @@ var externalSecretsExternalSecretGVR = schema.GroupVersionResource{
 	Group:    "external-secrets.io",
 	Version:  "v1",
 	Resource: "externalsecrets",
+}
+
+var secretsStoreSecretProviderClassGVR = schema.GroupVersionResource{
+	Group:    "secrets-store.csi.x-k8s.io",
+	Version:  "v1",
+	Resource: "secretproviderclasses",
 }
 
 func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) *Controller {
@@ -273,7 +283,7 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		c.cronJobInformer = factory.Batch().V1().CronJobs()
 		c.synced["CronJob"] = false
 	}
-	if options.DynamicClient != nil && (resources.Certificates || resources.ExternalSecrets) {
+	if options.DynamicClient != nil && (resources.Certificates || resources.ExternalSecrets || resources.SecretProviderClasses) {
 		c.dynamicFactory = dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 			options.DynamicClient,
 			options.Resync,
@@ -289,6 +299,11 @@ func New(client kubernetes.Interface, graphCache *graph.Cache, options Options) 
 		if resources.ExternalSecrets {
 			c.externalSecretInformer = c.dynamicFactory.ForResource(externalSecretsExternalSecretGVR).Informer()
 			c.synced["ExternalSecret"] = false
+		}
+
+		if resources.SecretProviderClasses {
+			c.secretProviderClassInformer = c.dynamicFactory.ForResource(secretsStoreSecretProviderClassGVR).Informer()
+			c.synced["SecretProviderClass"] = false
 		}
 	}
 
@@ -424,6 +439,9 @@ func (c *Controller) registerHandlers() {
 	}
 	if c.externalSecretInformer != nil {
 		c.registerResourceHandler("ExternalSecret", c.externalSecretInformer)
+	}
+	if c.secretProviderClassInformer != nil {
+		c.registerResourceHandler("SecretProviderClass", c.secretProviderClassInformer)
 	}
 }
 
@@ -680,6 +698,19 @@ func (c *Controller) rebuild(reason string) {
 		}
 	}
 
+	if c.secretProviderClassInformer != nil {
+		for _, item := range c.secretProviderClassInformer.GetStore().List() {
+			secretProviderClass, ok := item.(*unstructured.Unstructured)
+			if !ok {
+				continue
+			}
+			if !c.namespaceFilter.Include(secretProviderClass.GetNamespace()) {
+				continue
+			}
+			workloads = append(workloads, discovery.WorkloadFromSecretProviderClass(discoveryOptions, secretProviderClass))
+		}
+	}
+
 	c.graph.ApplySnapshot(secrets, workloads, time.Now())
 
 	duration := time.Since(start)
@@ -794,12 +825,18 @@ func (c *Controller) enabledSyncs() []struct {
 			synced cache.InformerSynced
 		}{name: "ExternalSecret", synced: c.externalSecretInformer.HasSynced})
 	}
+	if c.secretProviderClassInformer != nil {
+		syncs = append(syncs, struct {
+			name   string
+			synced cache.InformerSynced
+		}{name: "SecretProviderClass", synced: c.secretProviderClassInformer.HasSynced})
+	}
 
 	return syncs
 }
 
 func resourceOrder() []string {
-	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret"}
+	return []string{"Secret", "ServiceAccount", "Pod", "Deployment", "StatefulSet", "DaemonSet", "Ingress", "Job", "CronJob", "Certificate", "ExternalSecret", "SecretProviderClass"}
 }
 
 func stringSet(values []string) map[string]struct{} {

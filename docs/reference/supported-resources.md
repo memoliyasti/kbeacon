@@ -19,6 +19,7 @@ The technical design and roadmap may mention future resources. The table below i
 | Ingress | networking.k8s.io/v1 | `resourcesToWatch.networking.ingresses` | Supported, optional | `spec.tls[].secretName`, KBeacon annotations, metadata labels | Modeled as a Secret-consuming Kubernetes object in KBeacon outputs. |
 | cert-manager Certificate | cert-manager.io/v1 | `resourcesToWatch.certManager.certificates` | Supported, optional | `spec.secretName` target Secret | Requires cert-manager CRDs to be installed before enabling the watcher. |
 | ExternalSecret | external-secrets.io/v1 | `resourcesToWatch.externalSecrets.externalSecrets` | Supported, optional | `spec.target.name` target Secret, or `metadata.name` fallback when target name is omitted | Requires External Secrets Operator CRDs to be installed before enabling the watcher. |
+| SecretProviderClass | secrets-store.csi.x-k8s.io/v1 | `resourcesToWatch.secretsStore.secretProviderClasses` | Supported, optional | `spec.secretObjects[*].secretName` synced Kubernetes Secret outputs | Requires Secrets Store CSI Driver CRDs to be installed before enabling the watcher. KBeacon does not inspect external provider object names or values. |
 
 ## Dependency source types
 
@@ -33,13 +34,13 @@ The technical design and roadmap may mention future resources. The table below i
 | `ingress.tls` | An Ingress TLS entry references a Secret. |
 | `cert-manager.certificate.spec.secretName` | A cert-manager Certificate writes or renews a target Secret. |
 | `external-secrets.externalsecret.spec.target.name` | An External Secrets Operator ExternalSecret writes or renews a target Kubernetes Secret. |
+| `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName` | A Secrets Store CSI Driver SecretProviderClass syncs or writes a Kubernetes Secret through `spec.secretObjects[*].secretName`. |
 | `annotation` | A KBeacon explicit dependency annotation declares a Secret dependency. |
 
 ## Future or not currently implemented
 
 | Resource | Status | Expected dependency model |
 | --- | --- | --- |
-| SecretProviderClass | Planned | CSI `secretObjects[*].secretName` outputs. |
 | Strimzi KafkaConnector | Planned | Explicit-first support, then selected config-provider patterns. |
 | Confluent Connector | Planned | Explicit-first support, then selected mounted Secret patterns. |
 | ReplicaSet owner resolution | Planned | Prefer controller workload ownership rather than adding ReplicaSet as a primary output node. |

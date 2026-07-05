@@ -6,6 +6,8 @@ KBeacon is an early-stage personal open source project. The roadmap is intention
 
 Implemented today:
 
+- Optional SecretProviderClass discovery from Secrets Store CSI Driver `spec.secretObjects[*].secretName`.
+
 - Kubernetes workload Secret dependency discovery for Pods, workload controllers, ServiceAccounts, and Ingress TLS references.
 - Secret reference discovery from environment variables, envFrom, Secret volumes, projected Secret volumes, imagePullSecrets, and KBeacon annotations.
 - `infer`, `explicit`, `hybrid`, and `disabled` discovery modes.
@@ -45,7 +47,6 @@ Implemented today:
 
 These are possible future features, not current promises:
 
-- SecretProviderClass and CSI Secret Store support.
 - Strimzi KafkaConnector support.
 - Confluent Connector support.
 - Grafana App Plugin.

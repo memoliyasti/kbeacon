@@ -325,3 +325,19 @@ resourcesToWatch:
 KBeacon models each `ExternalSecret` target Kubernetes Secret as a dependency edge. It uses `spec.target.name` first and falls back to the `ExternalSecret` object name when `spec.target.name` is omitted.
 
 The chart adds read-only RBAC for `external-secrets.io` `externalsecrets` only when the watcher is enabled.
+
+## SecretProviderClass discovery
+
+Enable this optional watcher only when Secrets Store CSI Driver CRDs are installed:
+
+~~~yaml
+resourcesToWatch:
+  secretsStore:
+    secretProviderClasses: true
+~~~
+
+KBeacon models each `spec.secretObjects[*].secretName` synced Kubernetes Secret as a dependency edge from the `SecretProviderClass`.
+
+The chart adds read-only RBAC for `secrets-store.csi.x-k8s.io` `secretproviderclasses` only when the watcher is enabled.
+
+KBeacon does not read external provider values, mounted file contents, or Kubernetes Secret data.

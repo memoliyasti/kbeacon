@@ -230,3 +230,21 @@ helm upgrade --install kbeacon ./charts/kbeacon \
 KBeacon uses `spec.target.name` first and falls back to the `ExternalSecret` object name when `spec.target.name` is omitted.
 
 Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD exists in the cluster.
+
+## Optional SecretProviderClass discovery
+
+When Secrets Store CSI Driver CRDs are installed, KBeacon can model synced Kubernetes Secrets from each `SecretProviderClass` as dependency edges:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.secretsStore.secretProviderClasses=true
+~~~
+
+KBeacon uses every non-empty `spec.secretObjects[*].secretName` entry as a target Kubernetes Secret in the same namespace as the `SecretProviderClass`.
+
+KBeacon does not inspect external provider object names, provider payloads, mounted file contents, or Kubernetes Secret values.
+
+Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD exists in the cluster.

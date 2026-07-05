@@ -193,6 +193,7 @@ Implemented watcher values:
 | `resourcesToWatch.networking.ingresses` | `Ingress` |
 | `resourcesToWatch.certManager.certificates` | `Certificate` |
 | `resourcesToWatch.externalSecrets.externalSecrets` | `ExternalSecret` |
+| `resourcesToWatch.secretsStore.secretProviderClasses` | `SecretProviderClass` |
 
 Disabled resources are not started as informers. They are represented as optional in readiness status.
 
@@ -522,3 +523,25 @@ KBeacon uses `spec.target.name` as the inferred target Secret name. If `spec.tar
 ExternalSecret edges use dependency source type `external-secrets.externalsecret.spec.target.name`.
 
 Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD exists in the cluster.
+
+## SecretProviderClass discovery
+
+Enable this optional watcher only when Secrets Store CSI Driver CRDs are installed:
+
+~~~bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=prod-eu-1 \
+  --set resourcesToWatch.secretsStore.secretProviderClasses=true
+~~~
+
+When enabled, the chart adds read-only RBAC for `secrets-store.csi.x-k8s.io` `secretproviderclasses`, and the Agent discovers synced Kubernetes Secrets listed in each `SecretProviderClass`.
+
+KBeacon models every non-empty `spec.secretObjects[*].secretName` entry as a dependency edge to a Kubernetes Secret in the same namespace as the `SecretProviderClass`.
+
+SecretProviderClass edges use dependency source type `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName`.
+
+KBeacon does not inspect external provider object names, provider payloads, mounted file contents, or Secret values.
+
+Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD exists in the cluster.

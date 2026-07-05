@@ -55,6 +55,8 @@ metrics:
 resourcesToWatch:
   externalSecrets:
     externalSecrets: true
+  secretsStore:
+    secretProviderClasses: true
 privacy:
   redaction:
     secretKeys: true
@@ -118,6 +120,10 @@ privacy:
 
 	if !cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets {
 		t.Fatalf("expected ExternalSecret watcher from YAML")
+	}
+
+	if !cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses {
+		t.Fatalf("expected SecretProviderClass watcher from YAML")
 	}
 }
 

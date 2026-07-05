@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added Kind E2E coverage for optional SecretProviderClass runtime discovery.
+- Added optional Secrets Store CSI Driver SecretProviderClass discovery from `spec.secretObjects[*].secretName` with Helm RBAC and validation coverage.
+
 ## v0.3.7
 
 - Added optional External Secrets Operator ExternalSecret discovery from target Secret metadata with Helm RBAC and validation coverage.

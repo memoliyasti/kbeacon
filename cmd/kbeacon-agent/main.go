@@ -116,7 +116,7 @@ func main() {
 	}
 
 	var dynamicClient dynamic.Interface
-	if cfg.ResourcesToWatch.CertManager.Certificates || cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets {
+	if cfg.ResourcesToWatch.CertManager.Certificates || cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets || cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses {
 		dynamicClient, err = dynamic.NewForConfig(restConfig)
 		if err != nil {
 			logger.Error("failed to create kubernetes dynamic client", "error", err)
@@ -153,17 +153,18 @@ func main() {
 		IncludeNamespaces: cfg.Discovery.Namespaces.Include,
 		ExcludeNamespaces: cfg.Discovery.Namespaces.Exclude,
 		Resources: controller.ResourceConfig{
-			Secrets:         cfg.ResourcesToWatch.Core.Secrets,
-			ServiceAccounts: cfg.ResourcesToWatch.Core.ServiceAccounts,
-			Pods:            cfg.ResourcesToWatch.Core.Pods,
-			Deployments:     cfg.ResourcesToWatch.Apps.Deployments,
-			StatefulSets:    cfg.ResourcesToWatch.Apps.StatefulSets,
-			DaemonSets:      cfg.ResourcesToWatch.Apps.DaemonSets,
-			Ingresses:       cfg.ResourcesToWatch.Networking.Ingresses,
-			Jobs:            cfg.ResourcesToWatch.Batch.Jobs,
-			CronJobs:        cfg.ResourcesToWatch.Batch.CronJobs,
-			Certificates:    cfg.ResourcesToWatch.CertManager.Certificates,
-			ExternalSecrets: cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets,
+			Secrets:               cfg.ResourcesToWatch.Core.Secrets,
+			ServiceAccounts:       cfg.ResourcesToWatch.Core.ServiceAccounts,
+			Pods:                  cfg.ResourcesToWatch.Core.Pods,
+			Deployments:           cfg.ResourcesToWatch.Apps.Deployments,
+			StatefulSets:          cfg.ResourcesToWatch.Apps.StatefulSets,
+			DaemonSets:            cfg.ResourcesToWatch.Apps.DaemonSets,
+			Ingresses:             cfg.ResourcesToWatch.Networking.Ingresses,
+			Jobs:                  cfg.ResourcesToWatch.Batch.Jobs,
+			CronJobs:              cfg.ResourcesToWatch.Batch.CronJobs,
+			Certificates:          cfg.ResourcesToWatch.CertManager.Certificates,
+			ExternalSecrets:       cfg.ResourcesToWatch.ExternalSecrets.ExternalSecrets,
+			SecretProviderClasses: cfg.ResourcesToWatch.SecretsStore.SecretProviderClasses,
 		},
 		ResourcesSet:  true,
 		DynamicClient: dynamicClient,

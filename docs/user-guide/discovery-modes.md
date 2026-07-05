@@ -355,3 +355,17 @@ In `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency 
 ExternalSecret inferred edges use dependency source type `external-secrets.externalsecret.spec.target.name`.
 
 Leave this watcher disabled unless the `externalsecrets.external-secrets.io` CRD is installed in the cluster.
+
+## SecretProviderClass discovery
+
+Secrets Store CSI Driver `SecretProviderClass` resources participate in discovery modes when `resourcesToWatch.secretsStore.secretProviderClasses=true`.
+
+In `infer` or `hybrid` mode, KBeacon infers synced Kubernetes Secret outputs from every non-empty `spec.secretObjects[*].secretName` entry.
+
+In `explicit` or `hybrid` mode, KBeacon also honors explicit KBeacon dependency annotations on the `SecretProviderClass` object.
+
+SecretProviderClass inferred edges use dependency source type `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName`.
+
+KBeacon does not infer dependencies from external provider object names or mounted file contents.
+
+Leave this watcher disabled unless the `secretproviderclasses.secrets-store.csi.x-k8s.io` CRD is installed in the cluster.

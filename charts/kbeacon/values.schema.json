@@ -302,6 +302,15 @@
             }
           },
           "additionalProperties": false
+        },
+        "secretsStore": {
+          "type": "object",
+          "properties": {
+            "secretProviderClasses": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

@@ -310,3 +310,46 @@ func TestControllerEnabledSyncsIncludeExternalSecret(t *testing.T) {
 		t.Fatalf("expected ExternalSecret informer in enabled syncs, got %#v", names)
 	}
 }
+
+func TestControllerStoresSecretProviderClassInformerWhenEnabled(t *testing.T) {
+	ctrl := New(
+		nil,
+		nil,
+		Options{
+			Cluster:       "test-cluster",
+			DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+			Resources: ResourceConfig{
+				SecretProviderClasses: true,
+			},
+			ResourcesSet: true,
+		},
+	)
+
+	if ctrl.secretProviderClassInformer == nil {
+		t.Fatal("expected SecretProviderClass informer when enabled")
+	}
+
+	if _, ok := ctrl.synced["SecretProviderClass"]; !ok {
+		t.Fatalf("expected SecretProviderClass sync status to be registered, got %#v", ctrl.synced)
+	}
+}
+
+func TestControllerEnabledSyncsIncludeSecretProviderClass(t *testing.T) {
+	ctrl := New(nil, nil, Options{
+		Cluster:       "test-cluster",
+		DynamicClient: dynamicfake.NewSimpleDynamicClient(runtime.NewScheme()),
+		Resources: ResourceConfig{
+			SecretProviderClasses: true,
+		},
+		ResourcesSet: true,
+	})
+
+	names := map[string]bool{}
+	for _, item := range ctrl.enabledSyncs() {
+		names[item.name] = true
+	}
+
+	if !names["SecretProviderClass"] {
+		t.Fatalf("expected SecretProviderClass informer in enabled syncs, got %#v", names)
+	}
+}

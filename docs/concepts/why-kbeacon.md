@@ -79,4 +79,4 @@ KBeacon may be unnecessary if:
 
 ## Current scope
 
-The current release focuses on Kubernetes workload Secret references and explicit annotations. Future roadmap items, such as ExternalSecret, SecretProviderClass, Strimzi, and Confluent Connector support, are tracked separately and should not be confused with the current stable behavior.
+The current release focuses on Kubernetes workload Secret references and explicit annotations. Optional CRD watchers such as ExternalSecret and SecretProviderClass are documented in the supported resources matrix; future connector work such as Strimzi and Confluent Connector support is tracked separately.

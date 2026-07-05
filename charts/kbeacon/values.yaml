@@ -183,6 +183,10 @@ resourcesToWatch:
     ## @param resourcesToWatch.externalSecrets.externalSecrets Watch External Secrets Operator ExternalSecret resources to discover target Kubernetes Secrets. Requires External Secrets Operator CRDs.
     externalSecrets: false
 
+  secretsStore:
+    ## @param resourcesToWatch.secretsStore.secretProviderClasses Watch Secrets Store CSI Driver SecretProviderClass resources to discover spec.secretObjects target Secrets. Requires Secrets Store CSI Driver CRDs.
+    secretProviderClasses: false
+
   batch:
     ## @param resourcesToWatch.batch.jobs Watch Jobs.
     jobs: true

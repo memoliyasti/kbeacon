@@ -33,6 +33,7 @@ Workload annotations are interpreted for normalized workloads discovered by KBea
 - `Ingress` when `resourcesToWatch.networking.ingresses=true`.
 - `Certificate` when `resourcesToWatch.certManager.certificates=true`.
 - `ExternalSecret` when `resourcesToWatch.externalSecrets.externalSecrets=true`.
+- `SecretProviderClass` when `resourcesToWatch.secretsStore.secretProviderClasses=true`.
 
 Ingress objects are modeled as Secret-consuming Kubernetes objects rather than runtime Pods. When Ingress watching is enabled, KBeacon reads Ingress metadata annotations for discovery mode, explicit dependencies, ignored dependencies, ownership metadata, service metadata, environment metadata, and criticality metadata.
 
@@ -214,6 +215,7 @@ KBeacon can infer dependencies from:
 - `imagePullSecrets`.
 - `cert-manager.certificate.spec.secretName` when cert-manager Certificate watching is enabled.
 - `external-secrets.externalsecret.spec.target.name` when ExternalSecret watching is enabled.
+- `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName` when SecretProviderClass watching is enabled.
 
 Explicit annotations are merged with inferred dependencies in `hybrid` mode.
 
@@ -319,3 +321,15 @@ The inferred dependency source type is `external-secrets.externalsecret.spec.tar
 Explicit KBeacon dependency annotations can still be used on `ExternalSecret` objects in `explicit` or `hybrid` discovery mode. This is useful for non-standard platform relationships that are not visible in `spec.target.name`.
 
 Do not put external provider credentials, tokens, connection strings, or raw provider payloads in `ExternalSecret` annotations. KBeacon annotations should contain only Secret names, namespaces, and operational metadata.
+
+## SecretProviderClass resources
+
+When `resourcesToWatch.secretsStore.secretProviderClasses=true`, Secrets Store CSI Driver `SecretProviderClass` objects can use the same KBeacon metadata annotations as workloads.
+
+KBeacon infers synced Kubernetes Secret outputs from every non-empty `spec.secretObjects[*].secretName` entry.
+
+The inferred dependency source type is `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName`.
+
+Explicit KBeacon dependency annotations can still be used on `SecretProviderClass` objects in `explicit` or `hybrid` discovery mode. This is useful for platform relationships that are not represented by `spec.secretObjects`.
+
+Do not put external provider credentials, tokens, provider object payloads, mounted file contents, or raw secret values in `SecretProviderClass` annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.

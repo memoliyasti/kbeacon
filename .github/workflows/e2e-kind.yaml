@@ -11,6 +11,7 @@ on:
       - 'Makefile'
       - 'hack/e2e-kind-certmanager-smoke.sh'
       - 'hack/e2e-kind-externalsecret-smoke.sh'
+      - 'hack/e2e-kind-secretproviderclass-smoke.sh'
       - '.github/workflows/e2e-kind.yaml'
       - 'Dockerfile'
       - 'go.mod'
@@ -26,6 +27,7 @@ on:
       - 'Makefile'
       - 'hack/e2e-kind-certmanager-smoke.sh'
       - 'hack/e2e-kind-externalsecret-smoke.sh'
+      - 'hack/e2e-kind-secretproviderclass-smoke.sh'
       - '.github/workflows/e2e-kind.yaml'
       - 'Dockerfile'
       - 'go.mod'
@@ -74,3 +76,6 @@ jobs:
 
       - name: Run ExternalSecret Kind smoke
         run: make kind-e2e-externalsecret-smoke
+
+      - name: Run SecretProviderClass Kind smoke
+        run: make kind-e2e-secretproviderclass-smoke

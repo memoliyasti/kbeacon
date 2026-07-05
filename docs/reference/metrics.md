@@ -360,3 +360,13 @@ Their dependency edges use source type `external-secrets.externalsecret.spec.tar
 If the target Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
 
 The `ExternalSecret` object name and namespace may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.
+
+## SecretProviderClass metrics behavior
+
+Secrets Store CSI Driver `SecretProviderClass` resources are normalized as Secret-consuming graph nodes when `resourcesToWatch.secretsStore.secretProviderClasses=true`.
+
+Their dependency edges use source type `secrets-store.csi.secretproviderclass.spec.secretObjects.secretName` and contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.
+
+If the synced Kubernetes Secret is observed by KBeacon, the edge is marked `resolved=true`. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with `exists=false` and the edge is marked `resolved=false`.
+
+The `SecretProviderClass` object name and namespace may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.

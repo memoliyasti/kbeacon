@@ -64,6 +64,11 @@ rules:
     resources: ["externalsecrets"]
     verbs: ["get", "list", "watch"]
   {{- end }}
+  {{- if .Values.resourcesToWatch.secretsStore.secretProviderClasses }}
+  - apiGroups: ["secrets-store.csi.x-k8s.io"]
+    resources: ["secretproviderclasses"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
   {{- with .Values.rbac.extraRules }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
@@ -129,6 +134,11 @@ rules:
   {{- if .Values.resourcesToWatch.externalSecrets.externalSecrets }}
   - apiGroups: ["external-secrets.io"]
     resources: ["externalsecrets"]
+    verbs: ["get", "list", "watch"]
+  {{- end }}
+  {{- if .Values.resourcesToWatch.secretsStore.secretProviderClasses }}
+  - apiGroups: ["secrets-store.csi.x-k8s.io"]
+    resources: ["secretproviderclasses"]
     verbs: ["get", "list", "watch"]
   {{- end }}
   {{- with .Values.rbac.extraRules }}
