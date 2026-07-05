@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added optional cert-manager Certificate discovery from `spec.secretName` with Helm RBAC and validation coverage.
+- Added Kind E2E coverage for optional cert-manager Certificate runtime discovery.
 
 ## v0.3.5
 
