@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+## v0.3.6
+
 - Added optional cert-manager Certificate discovery from `spec.secretName` with Helm RBAC and validation coverage.
 - Added Kind E2E coverage for optional cert-manager Certificate runtime discovery.
+- Kept cert-manager Certificate watching disabled by default and opt-in through `resourcesToWatch.certManager.certificates`.
+- Kept existing Agent, Helm, metrics, and API behavior compatible with v0.3.5.
 
 ## v0.3.5
 
