@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.3.13
+
+- Fixed Strimzi KafkaConnector watcher to use `kafka.strimzi.io/v1beta2`.
+- Updated Kafka connector Kind smoke coverage to use the supported Strimzi API version.
+- Prevents readiness from staying 503 when the Strimzi KafkaConnector watcher is enabled with installed Strimzi CRDs.
+
 ## v0.3.12
 
 - Added Prometheus/Mimir timeline recording rules and dashboard query docs for Secret-change history without adding Agent storage.
