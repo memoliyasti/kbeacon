@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## v0.3.12
+
 - Added Prometheus/Mimir timeline recording rules and dashboard query docs for Secret-change history without adding Agent storage.
+- Documented historical timeline usage in Prometheus operations, metric reference, and dashboard query guides.
+- Kept Agent runtime behavior, Helm defaults, API response shapes, and supply-chain behavior compatible with v0.3.11.
 
 ## v0.3.11
 
