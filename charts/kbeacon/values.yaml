@@ -13,7 +13,7 @@ image:
   repository: ghcr.io/memoliyasti/kbeacon
 
   ## @param image.tag Container image tag. Ignored when image.digest is set.
-  tag: "0.3.13"
+  tag: "0.3.14"
 
   ## @param image.digest Optional image digest for immutable deployments.
   digest: ""

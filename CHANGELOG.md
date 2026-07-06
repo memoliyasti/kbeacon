@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.3.14
+
+- Added Grafana dashboard timeline panels across the dashboard pack.
+- Added cluster overview timelines for cache sync status, Kubernetes watch events, and graph updates.
+- Added Secret dependency timelines for observed Secret changes, age since last observed change, and impact score history.
+- Added dependency graph timelines for active edges, unresolved references, and discovery mode distribution.
+- Added team overview timelines for dependency count, affected Secret count, and high/critical Secret count.
+- Kept this as a dashboard-only release over existing KBeacon metrics; no Secret values are read, logged, exported, or exposed.
+
 ## v0.3.13
 
 - Fixed Strimzi KafkaConnector watcher to use `kafka.strimzi.io/v1beta2`.
