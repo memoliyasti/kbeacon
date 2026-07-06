@@ -561,7 +561,7 @@ helm upgrade --install kbeacon ./charts/kbeacon \
   --set resourcesToWatch.strimzi.kafkaConnectors=true
 ~~~
 
-When enabled, the chart adds read-only RBAC for `kafka.strimzi.io` `kafkaconnectors`, and the Agent watches `kafka.strimzi.io/v1` `KafkaConnector` resources.
+When enabled, the chart adds read-only RBAC for `kafka.strimzi.io` `kafkaconnectors`, and the Agent watches `kafka.strimzi.io/v1beta2` `KafkaConnector` resources.
 
 KBeacon parses string values under `spec.config` for Strimzi Kubernetes Config Provider Secret references:
 

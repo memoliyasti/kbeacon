@@ -221,7 +221,7 @@ var secretsStoreSecretProviderClassGVR = schema.GroupVersionResource{
 
 var strimziKafkaConnectorGVR = schema.GroupVersionResource{
 	Group:    "kafka.strimzi.io",
-	Version:  "v1",
+	Version:  "v1beta2",
 	Resource: "kafkaconnectors",
 }
 
