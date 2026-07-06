@@ -104,7 +104,7 @@ spec:
     kind: KafkaConnector
     listKind: KafkaConnectorList
   versions:
-    - name: v1
+    - name: v1beta2
       served: true
       storage: true
       schema:
@@ -163,7 +163,7 @@ kubectl -n "${PLATFORM_NAMESPACE}" create secret generic connect-rest-auth \
 echo
 echo "===== test connector resources ====="
 cat <<YAML | kubectl apply -f -
-apiVersion: kafka.strimzi.io/v1
+apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaConnector
 metadata:
   name: mysql-source

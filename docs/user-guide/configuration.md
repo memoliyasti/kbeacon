@@ -444,7 +444,7 @@ resourcesToWatch:
     kafkaConnectors: true
 ~~~
 
-When enabled, KBeacon watches `kafka.strimzi.io/v1` `KafkaConnector` resources and adds dependency edges from each `KafkaConnector` to referenced Kubernetes Secrets.
+When enabled, KBeacon watches `kafka.strimzi.io/v1beta2` `KafkaConnector` resources and adds dependency edges from each `KafkaConnector` to referenced Kubernetes Secrets.
 
 Target Secret resolution:
 

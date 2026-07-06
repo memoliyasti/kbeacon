@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	StrimziKafkaConnectorAPIVersion = "kafka.strimzi.io/v1"
+	StrimziKafkaConnectorAPIVersion = "kafka.strimzi.io/v1beta2"
 	StrimziKafkaConnectorKind       = "KafkaConnector"
 
 	SourceStrimziKafkaConnectorConfigProviderSecrets = "strimzi.kafkaconnector.spec.config.secrets"

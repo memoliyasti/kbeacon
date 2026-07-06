@@ -439,3 +439,48 @@ func TestControllerEnabledSyncsIncludeConfluentConnector(t *testing.T) {
 		t.Fatalf("expected Connector informer in enabled syncs, got %#v", names)
 	}
 }
+
+func TestOptionalCRDGVRVersionsMatchSupportedResources(t *testing.T) {
+	tests := []struct {
+		name         string
+		group        string
+		version      string
+		resource     string
+		wantGroup    string
+		wantVersion  string
+		wantResource string
+	}{
+		{
+			name:         "Strimzi KafkaConnector",
+			group:        strimziKafkaConnectorGVR.Group,
+			version:      strimziKafkaConnectorGVR.Version,
+			resource:     strimziKafkaConnectorGVR.Resource,
+			wantGroup:    "kafka.strimzi.io",
+			wantVersion:  "v1beta2",
+			wantResource: "kafkaconnectors",
+		},
+		{
+			name:         "Confluent Connector",
+			group:        confluentConnectorGVR.Group,
+			version:      confluentConnectorGVR.Version,
+			resource:     confluentConnectorGVR.Resource,
+			wantGroup:    "platform.confluent.io",
+			wantVersion:  "v1beta1",
+			wantResource: "connectors",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.group != tt.wantGroup || tt.version != tt.wantVersion || tt.resource != tt.wantResource {
+				t.Fatalf(
+					"unexpected GVR for %s: %s/%s/%s",
+					tt.name,
+					tt.group,
+					tt.version,
+					tt.resource,
+				)
+			}
+		})
+	}
+}
