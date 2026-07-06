@@ -241,6 +241,42 @@ Safe aggregate metrics include:
 
 The read-only Agent API remains available for edge-level inspection when edge metrics are disabled.
 
+## Historical Secret timeline queries
+
+KBeacon itself exposes current graph state. Historical views come from Prometheus or Grafana Mimir samples and recording rules.
+
+Recent Secret update count over one hour:
+
+~~~promql
+kbeacon:secret_changes:increase_1h{cluster=~"$cluster",namespace=~"$namespace"}
+~~~
+
+Recent Secret update count over one day:
+
+~~~promql
+topk(20, kbeacon:secret_changes:increase_24h{cluster=~"$cluster",namespace=~"$namespace"})
+~~~
+
+Age since the last observed Secret update:
+
+~~~promql
+kbeacon:secret_age_since_change_seconds{cluster=~"$cluster",namespace=~"$namespace"}
+~~~
+
+Recently changed Secrets that currently affect workloads:
+
+~~~promql
+topk(20, kbeacon:recently_changed_affected_secrets{cluster=~"$cluster",namespace=~"$namespace",owner_team=~"$owner_team"})
+~~~
+
+Dependency edge trend by cluster:
+
+~~~promql
+kbeacon:dependency_edges:sum_by_cluster{cluster=~"$cluster"}
+~~~
+
+If the example recording rules are not installed, use the raw equivalents from the Secret change activity section. Recording rules are recommended for shared dashboards because they avoid repeating long PromQL expressions across panels.
+
 ## Related documentation
 
 - Dashboard guide: `docs/user-guide/dashboards.md`

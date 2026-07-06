@@ -137,6 +137,36 @@ groups:
       - record: kbeacon:secret_impact_score:max_by_cluster
         expr: max by (cluster) (kbeacon_secret_impact_score{job=~"kbeacon.*"})
 
+      - record: kbeacon:secret_changes:increase_1h
+        expr: |
+          sum by (cluster, namespace, secret_name) (
+            increase(kbeacon_secret_changes_total{job=~"kbeacon.*"}[1h])
+          )
+
+      - record: kbeacon:secret_changes:increase_24h
+        expr: |
+          sum by (cluster, namespace, secret_name) (
+            increase(kbeacon_secret_changes_total{job=~"kbeacon.*"}[24h])
+          )
+
+      - record: kbeacon:secret_age_since_change_seconds
+        expr: |
+          min by (cluster, namespace, secret_name) (
+            time() - kbeacon_secret_last_changed_timestamp_seconds{job=~"kbeacon.*"}
+          )
+
+      - record: kbeacon:recently_changed_affected_secrets
+        expr: |
+          max by (cluster, namespace, secret_name, owner_team, criticality, exists) (
+            kbeacon_secret_affected_workload_count{job=~"kbeacon.*"} > 0
+          )
+          and on (cluster, namespace, secret_name)
+          (
+            min by (cluster, namespace, secret_name) (
+              time() - kbeacon_secret_last_changed_timestamp_seconds{job=~"kbeacon.*"}
+            ) < 3600
+          )
+
       - record: kbeacon:dependency_edges:sum_by_cluster
         expr: sum by (cluster) (kbeacon_cluster_dependency_count{job=~"kbeacon.*"})
 

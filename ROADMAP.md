@@ -19,6 +19,7 @@ Implemented today:
 - API aliases and Prometheus metric label contracts covered by compatibility tests.
 - `kbeaconctl` API client, Secret impact report, snapshot export, and snapshot diff with text, JSON, and markdown output.
 - Prometheus metrics, recording rules, alert rules, and operator runbooks.
+- Prometheus/Mimir recording rules and query examples for Secret-change timeline views.
 - Grafana dashboard examples.
 - Helm chart with single-replica Agent mode, namespace-scoped RBAC option, low-privilege mode, ServiceMonitor support, and public chart repository index.
 - Secret key redaction controls for dependency source paths.
@@ -53,7 +54,7 @@ Implemented today:
 These are possible future features, not current promises:
 
 - Grafana App Plugin.
-- Historical dependency timeline using Prometheus or Mimir data.
+- Richer dependency edge-change timelines and Grafana annotations using Prometheus or Mimir data.
 - Optional operator mode for larger fleets.
 
 ## Out of scope for now

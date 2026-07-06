@@ -398,3 +398,16 @@ If the referenced Kubernetes Secret is observed by KBeacon, the edge is marked `
 `KafkaConnector` and `Connector` object names and namespaces may appear in workload labels such as `workload_kind`, `workload_namespace`, and `workload_name` when edge metrics are enabled.
 
 ReplicaSets are used only as an owner-resolution cache. They may appear in readiness or runtime cache-sync status when `resourcesToWatch.apps.replicaSets=true`, but they are not emitted as workload nodes and do not appear as `workload_kind="ReplicaSet"` in dependency graph metrics.
+
+## Prometheus/Mimir timeline recording rules
+
+The Agent does not emit the following metric names directly. They are recording rules defined in `examples/prometheus/rules.yaml` for Prometheus or Grafana Mimir ruler.
+
+| Recording rule | Labels | Value |
+| --- | --- | --- |
+| `kbeacon:secret_changes:increase_1h` | `cluster`, `namespace`, `secret_name` | Observed Secret update count over the last hour. |
+| `kbeacon:secret_changes:increase_24h` | `cluster`, `namespace`, `secret_name` | Observed Secret update count over the last day. |
+| `kbeacon:secret_age_since_change_seconds` | `cluster`, `namespace`, `secret_name` | Seconds since the last observed Secret update. |
+| `kbeacon:recently_changed_affected_secrets` | `cluster`, `namespace`, `secret_name`, `owner_team`, `criticality`, `exists` | Affected workload count for Secrets changed within the last hour. |
+
+These rules support historical dashboard views without adding storage to KBeacon. They rely on Prometheus or Mimir retention and should be adjusted if your production rule interval or lookback windows differ.

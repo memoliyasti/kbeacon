@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added Prometheus/Mimir timeline recording rules and dashboard query docs for Secret-change history without adding Agent storage.
+
 ## v0.3.11
 
 - Added API compatibility alias tests, Prometheus metric label contract tests, and a documented compatibility policy.

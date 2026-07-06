@@ -137,6 +137,23 @@ Recommended model:
 
 An example remote-write configuration is stored in `examples/prometheus/remote-write-mimir.yaml`.
 
+## Historical timelines with Prometheus and Mimir
+
+KBeacon keeps the current dependency graph in memory. Prometheus or Grafana Mimir provide historical retention by storing metric samples over time.
+
+The example rule pack includes timeline-oriented recording rules:
+
+| Recording rule | Meaning |
+| --- | --- |
+| `kbeacon:secret_changes:increase_1h` | Observed Secret metadata update count over the last hour, grouped by cluster, namespace, and Secret name. |
+| `kbeacon:secret_changes:increase_24h` | Observed Secret metadata update count over the last day, grouped by cluster, namespace, and Secret name. |
+| `kbeacon:secret_age_since_change_seconds` | Age in seconds since the last observed Secret update. |
+| `kbeacon:recently_changed_affected_secrets` | Recently changed Secrets with affected workloads. The sample value is the affected workload count. |
+
+This preserves KBeacon's lightweight model: no database is added to the Agent, and long-term history remains in Prometheus or Mimir.
+
+Timeline views depend on scrape interval, rule interval, and retention. KBeacon does not reconstruct events before Prometheus retention, does not read Secret values, and does not claim that a metadata update is a payload-only Secret data change.
+
 ## Alerting and recording rules
 
 Example Prometheus rules are stored in `examples/prometheus/rules.yaml`.
