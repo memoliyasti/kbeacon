@@ -8,6 +8,36 @@ entries:
         fingerprint: 4A140B3665CEC3173C9504BAA6A804C3C4B7158E
         url: https://raw.githubusercontent.com/memoliyasti/kbeacon/main/docs/charts/kbeacon-helm-signing-key.asc
     apiVersion: v2
+    appVersion: 0.3.16
+    created: "2026-07-07T21:26:19.311841+02:00"
+    description: Kubernetes-native Secret Dependency Intelligence Agent for Prometheus,
+      Grafana, and Mimir
+    digest: 9f83b673646c4bf7d0e021244c009e7454b5cd5a71f6c108a9ae6796f13766c7
+    home: https://github.com/memoliyasti/kbeacon
+    keywords:
+    - kubernetes
+    - secrets
+    - prometheus
+    - grafana
+    - mimir
+    - observability
+    maintainers:
+    - email: mehmetyasti23@gmail.com
+      name: KBeacon Maintainers
+    name: kbeacon
+    sources:
+    - https://github.com/memoliyasti/kbeacon
+    type: application
+    urls:
+    - https://github.com/memoliyasti/kbeacon/releases/download/v0.3.16/kbeacon-0.3.16.tgz
+    version: 0.3.16
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+      artifacthub.io/license: MIT
+      artifacthub.io/signKey: |
+        fingerprint: 4A140B3665CEC3173C9504BAA6A804C3C4B7158E
+        url: https://raw.githubusercontent.com/memoliyasti/kbeacon/main/docs/charts/kbeacon-helm-signing-key.asc
+    apiVersion: v2
     appVersion: 0.3.15
     created: "2026-07-07T08:54:08.919279+02:00"
     description: Kubernetes-native Secret Dependency Intelligence Agent for Prometheus,
@@ -478,4 +508,4 @@ entries:
     urls:
     - https://github.com/memoliyasti/kbeacon/releases/download/v0.3.0/kbeacon-0.3.0.tgz
     version: 0.3.0
-generated: "2026-07-07T08:54:08.917841+02:00"
+generated: "2026-07-07T21:26:19.309775+02:00"
