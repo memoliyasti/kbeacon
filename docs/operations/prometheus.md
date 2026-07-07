@@ -200,3 +200,18 @@ Recommended validation checks:
 - Dashboard guide: `docs/user-guide/dashboards.md`
 - Dashboard queries: `docs/user-guide/dashboard-queries.md`
 - Alerting guide: `docs/user-guide/alerting.md`
+
+### Dependency edge timeline rules
+
+The example recording rule pack includes aggregate dependency edge timeline rules:
+
+| Rule | Purpose |
+| --- | --- |
+| `kbeacon:dependency_edges:sum_by_workload_namespace` | Current edge count grouped by workload namespace. |
+| `kbeacon:dependency_edges:sum_by_secret_namespace` | Current edge count grouped by Secret namespace. |
+| `kbeacon:dependency_edges:sum_by_owner_team` | Current edge count grouped by owner team. |
+| `kbeacon:dependency_edges:sum_by_discovery_mode` | Current edge count grouped by discovery mode and resolution status. |
+| `kbeacon:dependency_edges:changes_1h` | Number of aggregate cluster edge-count changes over one hour. |
+| `kbeacon:dependency_edges:net_delta_1h` | Net aggregate cluster edge-count delta over one hour. |
+
+The grouped rules depend on `kbeacon_dependency_edges`, so they require `metrics.edge.enabled=true`. The `changes_1h` and `net_delta_1h` rules use the aggregate cluster dependency count and remain lower-cardinality.

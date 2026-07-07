@@ -411,3 +411,18 @@ The Agent does not emit the following metric names directly. They are recording 
 | `kbeacon:recently_changed_affected_secrets` | `cluster`, `namespace`, `secret_name`, `owner_team`, `criticality`, `exists` | Affected workload count for Secrets changed within the last hour. |
 
 These rules support historical dashboard views without adding storage to KBeacon. They rely on Prometheus or Mimir retention and should be adjusted if your production rule interval or lookback windows differ.
+
+### Dependency edge timeline recording rules
+
+The example Prometheus rule pack defines aggregate dependency edge timeline rules. The Agent does not emit these names directly.
+
+| Recording rule | Source metric | Notes |
+| --- | --- | --- |
+| `kbeacon:dependency_edges:sum_by_workload_namespace` | `kbeacon_dependency_edges` | Requires edge metrics. Groups by `cluster` and `workload_namespace`. |
+| `kbeacon:dependency_edges:sum_by_secret_namespace` | `kbeacon_dependency_edges` | Requires edge metrics. Groups by `cluster` and `secret_namespace`. |
+| `kbeacon:dependency_edges:sum_by_owner_team` | `kbeacon_dependency_edges` | Requires edge metrics. Groups by `cluster` and `owner_team`. |
+| `kbeacon:dependency_edges:sum_by_discovery_mode` | `kbeacon_dependency_edges` | Requires edge metrics. Groups by `cluster`, `discovery_mode`, and `resolved`. |
+| `kbeacon:dependency_edges:changes_1h` | `kbeacon_cluster_dependency_count` | Counts aggregate cluster edge-count value changes over one hour. |
+| `kbeacon:dependency_edges:net_delta_1h` | `kbeacon_cluster_dependency_count` | Shows net aggregate cluster edge-count delta over one hour. |
+
+These are aggregate Prometheus or Mimir timelines. They are not an exact event log of added and removed dependency edges.
