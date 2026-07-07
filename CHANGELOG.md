@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.3.15
+
+- Added Grafana data links across the dashboard pack.
+- Added `kbeacon_api_url` dashboard variable for configuring the reachable KBeacon Agent API base URL.
+- Added dashboard links to read-only API views for Secret impact, Workload dependencies, and filtered dependency-map results.
+- Documented dashboard data link configuration in the dashboard user guide and dashboard README.
+- Kept this as a dashboard-only release over existing KBeacon metric labels; no Secret values are read, logged, exported, or exposed.
+
+
 ## v0.3.14
 
 - Added Grafana dashboard timeline panels across the dashboard pack.
