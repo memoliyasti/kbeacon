@@ -67,7 +67,15 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open dependency map in KBeacon API",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {}
@@ -98,7 +106,15 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open Secrets list in KBeacon API",
+              "url": "${kbeacon_api_url}/api/v1/secrets?limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {}
@@ -129,7 +145,15 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open Workloads list in KBeacon API",
+              "url": "${kbeacon_api_url}/api/v1/workloads?limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {}
@@ -642,6 +666,18 @@
           "value": "1h"
         },
         "label": "Window"
+      },
+      {
+        "name": "kbeacon_api_url",
+        "label": "KBeacon API URL",
+        "type": "textbox",
+        "hide": 0,
+        "query": "http://127.0.0.1:8081",
+        "current": {
+          "selected": false,
+          "text": "http://127.0.0.1:8081",
+          "value": "http://127.0.0.1:8081"
+        }
       }
     ]
   },

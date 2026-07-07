@@ -38,7 +38,25 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {
@@ -74,7 +92,25 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {
@@ -110,7 +146,35 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open Secret impact in KBeacon API",
+              "url": "${kbeacon_api_url}/api/v1/secrets/${__field.labels.namespace}/${__field.labels.secret_name}/impact",
+              "targetBlank": true
+            },
+            {
+              "title": "Open dependency map filtered by Secret",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?secretNamespace=${__field.labels.namespace}&secretName=${__field.labels.secret_name}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {
@@ -177,7 +241,25 @@
         "uid": "${datasource}"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
+        },
         "overrides": []
       },
       "options": {
@@ -255,7 +337,24 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -312,7 +411,24 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -369,7 +485,24 @@
                 "value": null
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "Open dependency map filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/dependency-map?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Secrets filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/secrets?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            },
+            {
+              "title": "Open Workloads filtered by owner team",
+              "url": "${kbeacon_api_url}/api/v1/workloads?ownerTeam=${__field.labels.owner_team}&limit=100",
+              "targetBlank": true
+            }
+          ]
         },
         "overrides": []
       },
@@ -466,6 +599,18 @@
           "value": "1h"
         },
         "label": "Window"
+      },
+      {
+        "name": "kbeacon_api_url",
+        "label": "KBeacon API URL",
+        "type": "textbox",
+        "hide": 0,
+        "query": "http://127.0.0.1:8081",
+        "current": {
+          "selected": false,
+          "text": "http://127.0.0.1:8081",
+          "value": "http://127.0.0.1:8081"
+        }
       }
     ]
   },
