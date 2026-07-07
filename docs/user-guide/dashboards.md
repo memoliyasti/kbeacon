@@ -150,3 +150,15 @@ make validate-ci
 - Metrics reference: `docs/reference/metrics.md`
 - Prometheus operations: `docs/operations/prometheus.md`
 - Helm reference: `docs/reference/helm.md`
+
+## Dashboard data links
+
+The dashboards include Grafana data links to the read-only KBeacon Agent API.
+
+Set the `kbeacon_api_url` dashboard variable to the reachable Agent API base URL for your environment.
+
+For local port-forward workflows, the default is usually `http://127.0.0.1:8081`.
+
+The links open read-only API views such as Secret impact, Workload dependencies, and filtered dependency-map results.
+
+They use existing KBeacon metric labels and do not read, log, export, or expose Kubernetes Secret values.
