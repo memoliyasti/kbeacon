@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.3.16
+
+- Added dependency edge timeline recording rules for Prometheus and Grafana Mimir.
+- Added aggregate edge timelines by workload namespace, Secret namespace, owner team, and discovery mode.
+- Added aggregate one-hour edge change and net-delta recording rules.
+- Documented dependency edge timeline queries in the dashboard query guide, Prometheus operations guide, and metrics reference.
+- Kept these rules aggregate-only; they do not reconstruct exact per-edge add or remove events.
+
+
 ## v0.3.15
 
 - Added Grafana data links across the dashboard pack.
