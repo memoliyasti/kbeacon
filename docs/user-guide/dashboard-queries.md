@@ -284,3 +284,45 @@ If the example recording rules are not installed, use the raw equivalents from t
 - Prometheus operations: `docs/operations/prometheus.md`
 - Alerting guide: `docs/user-guide/alerting.md`
 - Example rules: `examples/prometheus/rules.yaml`
+
+## Dependency edge timeline recording rules
+
+The example Prometheus rule pack includes aggregate edge timeline recording rules for shared dashboards.
+
+Current dependency edge count by workload namespace:
+
+```promql
+kbeacon:dependency_edges:sum_by_workload_namespace{cluster=~"$cluster",workload_namespace=~"$namespace"}
+```
+
+Current dependency edge count by Secret namespace:
+
+```promql
+kbeacon:dependency_edges:sum_by_secret_namespace{cluster=~"$cluster"}
+```
+
+Current dependency edge count by owner team:
+
+```promql
+kbeacon:dependency_edges:sum_by_owner_team{cluster=~"$cluster",owner_team=~"$owner_team"}
+```
+
+Current dependency edge count by discovery mode and resolution status:
+
+```promql
+kbeacon:dependency_edges:sum_by_discovery_mode{cluster=~"$cluster",discovery_mode=~"$discovery_mode",resolved=~"$resolved"}
+```
+
+Aggregate dependency edge count change events over one hour:
+
+```promql
+kbeacon:dependency_edges:changes_1h{cluster=~"$cluster"}
+```
+
+Net dependency edge count delta over one hour:
+
+```promql
+kbeacon:dependency_edges:net_delta_1h{cluster=~"$cluster"}
+```
+
+These rules are aggregate timelines. They do not reconstruct exact per-edge add or remove events. Exact edge-level troubleshooting still uses the current `kbeacon_dependency_edges` metric and the read-only Agent API.

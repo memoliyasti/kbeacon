@@ -170,6 +170,42 @@ groups:
       - record: kbeacon:dependency_edges:sum_by_cluster
         expr: sum by (cluster) (kbeacon_cluster_dependency_count{job=~"kbeacon.*"})
 
+      - record: kbeacon:dependency_edges:sum_by_workload_namespace
+        expr: |
+          sum by (cluster, workload_namespace) (
+            kbeacon_dependency_edges{job=~"kbeacon.*"}
+          )
+
+      - record: kbeacon:dependency_edges:sum_by_secret_namespace
+        expr: |
+          sum by (cluster, secret_namespace) (
+            kbeacon_dependency_edges{job=~"kbeacon.*"}
+          )
+
+      - record: kbeacon:dependency_edges:sum_by_owner_team
+        expr: |
+          sum by (cluster, owner_team) (
+            kbeacon_dependency_edges{job=~"kbeacon.*"}
+          )
+
+      - record: kbeacon:dependency_edges:sum_by_discovery_mode
+        expr: |
+          sum by (cluster, discovery_mode, resolved) (
+            kbeacon_dependency_edges{job=~"kbeacon.*"}
+          )
+
+      - record: kbeacon:dependency_edges:changes_1h
+        expr: |
+          sum by (cluster) (
+            changes(kbeacon_cluster_dependency_count{job=~"kbeacon.*"}[1h])
+          )
+
+      - record: kbeacon:dependency_edges:net_delta_1h
+        expr: |
+          sum by (cluster) (
+            delta(kbeacon_cluster_dependency_count{job=~"kbeacon.*"}[1h])
+          )
+
       - record: kbeacon:watch_events:rate5m
         expr: |
           sum by (cluster, resource, event) (
