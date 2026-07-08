@@ -2,6 +2,18 @@ name: pages
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "examples/**"
+      - "hack/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "SECURITY.md"
+      - ".github/workflows/pages.yaml"
   push:
     branches:
       - main
@@ -63,9 +75,11 @@ jobs:
           grep -q "owners:" site/charts/artifacthub-repo.yml
 
       - name: Disable Jekyll processing
+        if: github.event_name != 'pull_request'
         run: touch site/.nojekyll
 
       - name: Publish site to gh-pages
+        if: github.event_name != 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

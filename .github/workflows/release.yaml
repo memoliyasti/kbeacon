@@ -68,49 +68,8 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Helm lint
-        run: helm lint ./charts/kbeacon --set cluster.name=release
-
-      - name: Helm template
-        run: |
-          helm template kbeacon ./charts/kbeacon \
-            --namespace kbeacon-system \
-            --set cluster.name=release \
-            --set dashboards.enabled=true \
-            > /tmp/kbeacon-rendered.yaml
-
-      - name: Helm template low-privilege
-        run: |
-          helm template kbeacon ./charts/kbeacon \
-            --namespace kbeacon-system \
-            --set cluster.name=release \
-            --set resourcesToWatch.core.secrets=false \
-            > /tmp/kbeacon-low-privilege-rendered.yaml
-          if grep -n 'resources: \["secrets"\]' /tmp/kbeacon-low-privilege-rendered.yaml; then
-            echo "low-privilege render unexpectedly contains Secret RBAC"
-            exit 1
-          fi
-          grep -n 'secrets: false' /tmp/kbeacon-low-privilege-rendered.yaml
-
-      - name: Helm template edge-disabled metrics
-        run: |
-          helm template kbeacon ./charts/kbeacon \
-            --namespace kbeacon-system \
-            --set cluster.name=release \
-            --set metrics.edge.enabled=false \
-            > /tmp/kbeacon-edge-disabled-rendered.yaml
-          grep -n 'edge:' /tmp/kbeacon-edge-disabled-rendered.yaml
-          grep -n 'enabled: false' /tmp/kbeacon-edge-disabled-rendered.yaml
-
-      - name: Check Prometheus rules
-        run: |
-          docker run --rm -i \
-            --entrypoint=promtool \
-            prom/prometheus:v3.1.0 \
-            check rules /dev/stdin < examples/prometheus/rules.yaml
-
-      - name: Run extended validation targets
-        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint api-contract-lint helm-schema-lint helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-namespace docs demo-lint scale-lint stale-check release-metadata-check
+      - name: Run release validation targets
+        run: make ctl-smoke supply-chain-lint supported-resources-lint runbooks-lint kind-e2e-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint api-contract-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint stale-check release-metadata-check
 
       - name: Build release binaries
         run: |
