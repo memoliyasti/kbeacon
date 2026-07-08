@@ -29,12 +29,12 @@ cluster:
 
 ## Image
 
-The default image is published to GitHub Container Registry:
+The default image is published to GitHub Container Registry. Published chart packages set `values.yaml` `image.tag` to the matching chart application version:
 
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.3.17"
+  tag: "<release version>"
   pullPolicy: IfNotPresent
 ```
 
