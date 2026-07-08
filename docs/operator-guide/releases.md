@@ -34,3 +34,5 @@ Use `checksums.txt` to verify downloaded release assets. Use GitHub CLI artifact
 ## kbeaconctl release assets
 
 Release assets include preferred kbeacon binaries, backwards-compatible kbeaconctl binaries, and kbeacon-agent binaries for Linux and macOS. Verify downloaded binaries with checksums.txt.
+
+<!-- ci-docs-only-skip-check -->
