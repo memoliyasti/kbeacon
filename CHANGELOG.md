@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.18
+
+- Fixed the Helm chart README rendered by ArtifactHub so image examples no longer show stale hard-coded tags.
+
 ## v0.3.17
 
 - Added kube-native `kbeacon` CLI access through Kubernetes Service proxy, persistent CLI defaults, dual `kbeacon`/`kbeaconctl` binaries, and release asset updates.
