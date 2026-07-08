@@ -69,6 +69,9 @@ nav:
       - Alerting: user-guide/alerting.md
   - Operator guide:
       - Releases: operator-guide/releases.md
+      - Upgrades and rollback: operator-guide/upgrades.md
+      - Access control: operator-guide/access-control.md
+      - Compatibility: operator-guide/compatibility.md
       - Security: operator-guide/security.md
       - Runbooks: operator-guide/runbooks.md
       - Troubleshooting: operator-guide/troubleshooting.md
@@ -78,6 +81,7 @@ nav:
       - Supported resources: reference/supported-resources.md
       - Helm: reference/helm.md
       - Metrics: reference/metrics.md
+      - Benchmarks: reference/benchmarks.md
       - Compatibility: reference/compatibility.md
       - Annotations: reference/annotations.md
   - Developer guide:
