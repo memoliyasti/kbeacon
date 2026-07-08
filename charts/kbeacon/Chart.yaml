@@ -3,8 +3,8 @@ apiVersion: v2
 name: kbeacon
 description: Kubernetes-native Secret Dependency Intelligence Agent for Prometheus, Grafana, and Mimir
 type: application
-version: 0.3.17
-appVersion: "0.3.17"
+version: 0.3.18
+appVersion: "0.3.18"
 home: https://github.com/memoliyasti/kbeacon
 sources:
   - https://github.com/memoliyasti/kbeacon
