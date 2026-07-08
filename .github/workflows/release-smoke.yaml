@@ -1,0 +1,78 @@
+name: release-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify. Empty means latest release.
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/charts/index.yaml"
+      - ".github/workflows/release-smoke.yaml"
+      - "hack/verify-release-artifacts.sh"
+      - "hack/post-release-smoke.sh"
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: release-smoke-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  public-artifacts:
+    name: public artifact consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Verify public release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: hack/verify-release-artifacts.sh "${{ github.event.inputs.tag }}"
+
+  public-kind-smoke:
+    name: public Helm install and CLI smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Kind
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/kind https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64
+          chmod +x /tmp/kind
+          sudo mv /tmp/kind /usr/local/bin/kind
+          kind version
+
+      - name: Create Kind cluster
+        run: kind create cluster --name kbeacon-release-smoke --wait 120s
+
+      - name: Public release smoke
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: hack/post-release-smoke.sh "${{ github.event.inputs.tag }}"
+
+      - name: Cleanup Kind cluster
+        if: always()
+        run: kind delete cluster --name kbeacon-release-smoke
