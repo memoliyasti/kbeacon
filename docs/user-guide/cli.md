@@ -1,165 +1,174 @@
-# KBeacon CLI
+# CLI
 
-`kbeaconctl` is a small command-line client for the read-only KBeacon Agent API.
+KBeacon ships a Kubernetes-native CLI.
 
-It is intended for platform and SRE workflows where a shell-friendly client is easier than hand-written `curl` commands.
+The preferred executable name is `kbeacon`. The backwards-compatible executable name is `kbeaconctl`.
 
-## Server address
+By default, the CLI uses your current kubeconfig context and talks to the in-cluster KBeacon Agent through the Kubernetes API server Service proxy.
 
-By default, `kbeaconctl` connects to:
+No `kubectl port-forward` is required for normal CLI usage.
 
-```text
-http://127.0.0.1:8081
-```
+## Default connection
 
-Use a port-forward during local access:
+The default Agent Service target is:
 
-```bash
+~~~text
+kbeacon-system/kbeacon:http
+~~~
+
+That means this works when your kubeconfig context can access the cluster and the KBeacon Agent is installed in the default namespace:
+
+~~~bash
+kbeacon ready
+kbeacon get config
+kbeacon get secrets --limit 20
+~~~
+
+Use a temporary namespace override when KBeacon is installed elsewhere:
+
+~~~bash
+kbeacon --namespace platform-observability ready
+kbeacon -n platform-observability get dependency-map --limit 100
+~~~
+
+## Persistent defaults
+
+Set the Agent namespace once:
+
+~~~bash
+kbeacon config set namespace kbeacon-system
+~~~
+
+Then use the CLI without repeating `--namespace`:
+
+~~~bash
+kbeacon ready
+kbeacon impact report payments payments-db
+~~~
+
+Inspect and manage stored defaults:
+
+~~~bash
+kbeacon config path
+kbeacon config view
+kbeacon config get namespace
+kbeacon config unset namespace
+kbeacon config reset
+~~~
+
+Supported persistent keys:
+
+~~~text
+namespace
+service
+service-port
+kubeconfig
+context
+server
+~~~
+
+## Temporary overrides
+
+Global flags must be placed before the command:
+
+~~~bash
+kbeacon --namespace kbeacon-system ready
+kbeacon --service kbeacon --service-port http ready
+kbeacon --context minikube ready
+kbeacon --kubeconfig ~/.kube/config ready
+~~~
+
+## Direct Agent URL mode
+
+For local debugging or compatibility with older workflows, pass `--server`.
+
+This disables Kubernetes service proxy mode and sends HTTP requests directly to the Agent URL.
+
+~~~bash
 kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-```
+kbeacon --server http://127.0.0.1:8081 ready
+~~~
 
-Then run:
+## Common commands
 
-```bash
-kbeaconctl ready
-kbeaconctl get secrets --limit 20
-kbeaconctl get workloads --namespace payments
-kbeaconctl get dependency-map --secret-name payments-db --resolved true
-kbeaconctl impact payments payments-db
-kbeaconctl impact report payments payments-db
-kbeaconctl snapshot export --output kbeacon-snapshot.json
-```
+Check Agent health and readiness:
 
-You can also set the server explicitly:
+~~~bash
+kbeacon health
+kbeacon ready
+~~~
 
-```bash
-kbeaconctl --server http://127.0.0.1:8081 ready
-```
+Discover API resources and graph summary:
 
-Or by environment variable:
+~~~bash
+kbeacon api
+kbeacon get config
+~~~
 
-```bash
-export KBEACONCTL_SERVER=http://127.0.0.1:8081
-kbeaconctl get secrets
-```
+List graph resources:
 
-## Commands
+~~~bash
+kbeacon get secrets --limit 50
+kbeacon get workloads --namespace payments
+kbeacon get dependency-map --secret-name payments-db --limit 100
+~~~
 
-| Command | Purpose |
-| --- | --- |
-| `version` | Print CLI version metadata. |
-| `health` | Query `/healthz`. |
-| `ready` | Query `/readyz`. |
-| `api` | Query API discovery at `/api/v1`. |
-| `get secrets` | List observed and referenced Secrets. |
-| `get workloads` | List normalized workloads. |
-| `get dependency-map` | Query the current dependency graph. |
-| `get config` | Query Agent graph summary. |
-| `impact <namespace> <secret>` | Query Secret impact details as JSON. |
-| `impact report <namespace> <secret>` | Print a human-readable Secret impact report. |
-| `dependencies <namespace> <kind> <name>` | Query workload dependencies. |
-| `snapshot export` | Export a portable JSON snapshot from the Agent API. |
-| `snapshot diff` | Compare two exported snapshots. |
-| `raw <path>` | Query an arbitrary Agent API path. |
+Inspect Secret blast radius:
 
-## Filtering
+~~~bash
+kbeacon impact report payments payments-db
+kbeacon impact --format json payments payments-db
+~~~
 
-The list and dependency-map commands pass supported Agent API filters through to the server.
+Fetch workload dependencies:
 
-Useful filters include:
+~~~bash
+kbeacon dependencies payments Deployment payments-api
+~~~
 
-```bash
-kbeaconctl get secrets --namespace payments --exists true
-kbeaconctl get workloads --workload-kind Deployment --discovery-mode hybrid
-kbeaconctl get dependency-map --secret-name payments-db --resolved true
-kbeaconctl get dependency-map --owner-team payments-platform --criticality critical
-```
+Export and diff snapshots:
 
-Pagination is also supported:
+~~~bash
+kbeacon snapshot export --output before.json
+kbeacon snapshot export --output after.json
+kbeacon snapshot diff --format markdown before.json after.json
+~~~
 
-```bash
-kbeaconctl get secrets --limit 100 --offset 200
-```
+Request a raw Agent API path:
 
-## Secret impact report
+~~~bash
+kbeacon raw /api/v1/config
+~~~
 
-Use the report form when reviewing a Secret rotation or preparing a change review:
+## RBAC notes
 
-```bash
-kbeaconctl impact report payments payments-db
-```
+The CLI uses your kubeconfig credentials.
 
-The same report can be selected with a format flag:
+In Kubernetes proxy mode, the user or service account running the CLI must be allowed to access the KBeacon Service proxy in the target namespace.
 
-```bash
-kbeaconctl impact --format report payments payments-db
-```
+A restricted user may need permission for the `services/proxy` subresource for the `kbeacon` Service.
 
-The report includes:
+The CLI does not read Kubernetes Secret values. It only queries the KBeacon Agent API, which exposes Secret names, metadata, and dependency relationships.
 
-- Secret identity and impact score;
-- affected workload, team, namespace, and unresolved-reference counts;
-- discovery mode distribution;
-- affected teams;
-- affected workloads;
-- dependency edges and source types.
+## Troubleshooting
 
-The plain `impact <namespace> <secret>` form still prints the original Agent API JSON response for scripts and automation.
+Show the active CLI configuration:
 
-## Release binaries
+~~~bash
+kbeacon config view
+~~~
 
-Semantic KBeacon releases publish kbeaconctl binaries for Linux and macOS alongside the Agent binaries. Binary names follow this pattern:
+Try an explicit namespace:
 
-    kbeaconctl_vX.Y.Z_linux_amd64
-    kbeaconctl_vX.Y.Z_linux_arm64
-    kbeaconctl_vX.Y.Z_darwin_amd64
-    kbeaconctl_vX.Y.Z_darwin_arm64
+~~~bash
+kbeacon --namespace kbeacon-system ready
+~~~
 
-Use the release checksums.txt file to verify downloaded CLI binaries.
+Try a direct port-forward fallback:
 
-## Snapshot export
+~~~bash
+kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+kbeacon --server http://127.0.0.1:8081 ready
+~~~
 
-Use snapshot export when you need a portable point-in-time view of the Agent API for offline review, support bundles, CI artifacts, or later diffing.
-
-Snapshot documents include top-level `cluster`, `generatedAt`, `server`, and a `resources` object keyed by exported Agent API resources.
-
-    kbeaconctl snapshot export --output kbeacon-snapshot.json
-
-By default, the snapshot includes:
-
-- Agent graph summary from `/api/v1/config`;
-- Secrets from `/api/v1/secrets`;
-- workloads from `/api/v1/workloads`;
-- dependency map from `/api/v1/dependency-map`.
-
-You can export only selected resources:
-
-    kbeaconctl snapshot export --include secrets,dependency-map --output dependencies.json
-
-Use `--output -` to write JSON to stdout.
-
-## Snapshot diff
-
-Compare two exported KBeacon snapshots:
-
-    kbeaconctl snapshot diff old-snapshot.json new-snapshot.json
-
-Emit machine-readable JSON:
-
-    kbeaconctl snapshot diff --format json old-snapshot.json new-snapshot.json
-
-    kbeaconctl snapshot diff --format markdown old-snapshot.json new-snapshot.json
-
-Limit the comparison to selected resources:
-
-    kbeaconctl snapshot diff --include secrets,edges old-snapshot.json new-snapshot.json
-
-Fail CI when any change is detected:
-
-    kbeaconctl snapshot diff --fail-on-change old-snapshot.json new-snapshot.json
-
-The diff reports added, removed, and changed Secrets, workloads, and dependency edges. Snapshot diff is offline and does not contact the Agent API.
-
-Markdown output is intended for pull request comments and CI summaries:
-
-    kbeaconctl snapshot diff --format markdown old-snapshot.json new-snapshot.json > snapshot-diff.md
+If Kubernetes proxy mode returns `403`, check the current kubeconfig identity and RBAC for the KBeacon Service proxy.

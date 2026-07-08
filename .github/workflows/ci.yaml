@@ -74,13 +74,27 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Build agent
+      - name: Build binaries
         run: |
+          set -euo pipefail
+          mkdir -p ./bin
+
           go build \
             -trimpath \
             -ldflags="-s -w -X main.version=ci -X main.commit=${GITHUB_SHA}" \
             -o ./bin/kbeacon-agent \
             ./cmd/kbeacon-agent
+
+          go build \
+            -trimpath \
+            -ldflags="-s -w -X main.version=ci -X main.commit=${GITHUB_SHA}" \
+            -o ./bin/kbeacon \
+            ./cmd/kbeaconctl
+
+          cp ./bin/kbeacon ./bin/kbeaconctl
+
+          ./bin/kbeacon version | grep -q "kbeacon version=ci"
+          ./bin/kbeaconctl version | grep -q "kbeaconctl version=ci"
 
       - name: Helm lint
         run: helm lint ./charts/kbeacon --set cluster.name=ci
