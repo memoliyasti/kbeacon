@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -156,7 +157,7 @@ func TestRunUnknownGetResource(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
-	code := run([]string{"get", "widgets"}, &stdout, &stderr)
+	code := run([]string{"--server", "http://127.0.0.1:1", "get", "widgets"}, &stdout, &stderr)
 	if code == 0 {
 		t.Fatal("expected non-zero exit for unknown resource")
 	}
@@ -356,4 +357,135 @@ func impactTestServer(t *testing.T) *httptest.Server {
 			}
 		}`))
 	}))
+}
+
+func TestRunConfigSetViewUnsetNamespace(t *testing.T) {
+	configPath := filepath.Join(t.TempDir(), "config.json")
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{
+		"--config-file", configPath,
+		"config", "set", "namespace", "kbeacon-system",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "set namespace=kbeacon-system") {
+		t.Fatalf("unexpected set output: %q", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = run([]string{
+		"--config-file", configPath,
+		"config", "view",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), `"namespace": "kbeacon-system"`) {
+		t.Fatalf("expected namespace in config view, got %q", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = run([]string{
+		"--config-file", configPath,
+		"config", "get", "namespace",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+	if strings.TrimSpace(stdout.String()) != "kbeacon-system" {
+		t.Fatalf("expected namespace get output, got %q", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = run([]string{
+		"--config-file", configPath,
+		"config", "unset", "namespace",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = run([]string{
+		"--config-file", configPath,
+		"config", "view",
+	}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+	if strings.Contains(stdout.String(), `"namespace"`) {
+		t.Fatalf("expected namespace to be unset, got %q", stdout.String())
+	}
+}
+
+func TestProgramNameAffectsUsageAndVersion(t *testing.T) {
+	oldProgramName := programName
+	programName = "kbeacon"
+	defer func() {
+		programName = oldProgramName
+	}()
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := run([]string{"help"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	if !strings.Contains(stdout.String(), "usage: kbeacon [global flags] <command> [args]") {
+		t.Fatalf("expected kbeacon usage, got:\n%s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = run([]string{"version"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d stderr=%s", code, stderr.String())
+	}
+
+	if !strings.Contains(stdout.String(), "kbeacon version=") {
+		t.Fatalf("expected kbeacon version output, got %q", stdout.String())
+	}
+}
+
+func TestCommandUsageNameNormalizesReleaseAssetNames(t *testing.T) {
+	oldProgramName := programName
+	defer func() {
+		programName = oldProgramName
+	}()
+
+	tests := []struct {
+		name string
+		want string
+	}{
+		{name: "kbeacon", want: "kbeacon"},
+		{name: "kbeaconctl", want: "kbeaconctl"},
+		{name: "kbeacon_v0.3.17_darwin_arm64", want: "kbeacon"},
+		{name: "kbeaconctl_v0.3.17_darwin_arm64", want: "kbeaconctl"},
+		{name: "/tmp/kbeacon_v0.3.17_linux_amd64", want: "kbeacon"},
+		{name: `/tmp/kbeaconctl_v0.3.17_linux_amd64`, want: "kbeaconctl"},
+		{name: `C:\tmp\kbeacon_v0.3.17_windows_amd64.exe`, want: "kbeacon"},
+		{name: `C:\tmp\kbeaconctl_v0.3.17_windows_amd64.exe`, want: "kbeaconctl"},
+	}
+
+	for _, tt := range tests {
+		programName = tt.name
+		if got := commandUsageName(); got != tt.want {
+			t.Fatalf("commandUsageName(%q) = %q, want %q", tt.name, got, tt.want)
+		}
+	}
 }

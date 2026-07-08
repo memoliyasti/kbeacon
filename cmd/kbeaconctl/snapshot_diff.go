@@ -54,7 +54,7 @@ func runSnapshotDiff(args []string, stdout, stderr io.Writer) int {
 	}
 
 	if fs.NArg() != 2 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot diff [--format text|json|markdown] [--include LIST] [--fail-on-change] <old-snapshot.json> <new-snapshot.json>")
+		fmt.Fprintln(stderr, usage("snapshot diff [--format text|json|markdown] [--include LIST] [--fail-on-change] <old-snapshot.json> <new-snapshot.json>"))
 		return 2
 	}
 

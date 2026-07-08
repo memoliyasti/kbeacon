@@ -6,32 +6,74 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 )
 
 var (
-	version = "dev"
-	commit  = "unknown"
+	version     = "dev"
+	commit      = "unknown"
+	programName = "kbeaconctl"
 )
 
 func main() {
+	if name := strings.TrimSpace(filepath.Base(os.Args[0])); name != "" && name != "." {
+		programName = name
+	}
+
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+}
+
+func commandUsageName() string {
+	name := strings.TrimSpace(programName)
+	if name == "" {
+		return "kbeaconctl"
+	}
+
+	if slash := strings.LastIndexAny(name, `/\`); slash >= 0 {
+		name = name[slash+1:]
+	}
+
+	name = strings.TrimSuffix(name, ".exe")
+
+	switch {
+	case name == "kbeaconctl" || strings.HasPrefix(name, "kbeaconctl_") || strings.HasPrefix(name, "kbeaconctl-"):
+		return "kbeaconctl"
+	case name == "kbeacon" || strings.HasPrefix(name, "kbeacon_") || strings.HasPrefix(name, "kbeacon-"):
+		return "kbeacon"
+	default:
+		return name
+	}
+}
+
+func usage(command string) string {
+	return fmt.Sprintf("usage: %s %s", commandUsageName(), command)
 }
 
 func run(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("kbeaconctl", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
-	serverRaw := fs.String("server", getenv("KBEACONCTL_SERVER", "http://127.0.0.1:8081"), "KBeacon Agent base URL")
-	timeoutRaw := fs.String("timeout", getenv("KBEACONCTL_TIMEOUT", "10s"), "HTTP timeout, for example 5s or 30s")
+	serverRaw := fs.String("server", "", "Optional direct KBeacon Agent base URL; empty uses the Kubernetes service proxy")
+	namespaceRaw := fs.String("namespace", "", "KBeacon Agent namespace for Kubernetes service proxy")
+	namespaceAlias := fs.String("n", "", "Alias for --namespace")
+	serviceRaw := fs.String("service", "", "KBeacon Agent Service name for Kubernetes service proxy")
+	servicePortRaw := fs.String("service-port", "", "KBeacon Agent Service port name or number for Kubernetes service proxy")
+	kubeconfigRaw := fs.String("kubeconfig", "", "Path to kubeconfig file")
+	contextRaw := fs.String("context", "", "Kubeconfig context override")
+	configFileRaw := fs.String("config-file", getenv("KBEACONCTL_CONFIG", ""), "Path to kbeaconctl config file")
+	timeoutRaw := fs.String("timeout", getenv("KBEACONCTL_TIMEOUT", "10s"), "Request timeout, for example 5s or 30s")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
+	}
+
+	if strings.TrimSpace(*namespaceAlias) != "" {
+		*namespaceRaw = *namespaceAlias
 	}
 
 	rest := fs.Args()
@@ -43,8 +85,29 @@ func run(args []string, stdout, stderr io.Writer) int {
 	command := rest[0]
 
 	if command == "version" {
-		fmt.Fprintf(stdout, "kbeaconctl version=%s commit=%s\n", version, commit)
+		fmt.Fprintf(stdout, "%s version=%s commit=%s\n", commandUsageName(), version, commit)
 		return 0
+	}
+
+	if command == "help" || command == "-h" || command == "--help" {
+		printUsage(stdout)
+		return 0
+	}
+
+	if command == "snapshot" && len(rest) > 1 && rest[1] == "diff" {
+		return runSnapshotDiff(rest[2:], stdout, stderr)
+	}
+
+	if command == "config" {
+		return runConfig(*configFileRaw, rest[1:], stdout, stderr)
+	}
+
+	switch command {
+	case "health", "ready", "api", "get", "impact", "dependencies", "snapshot", "raw":
+	default:
+		fmt.Fprintf(stderr, "unknown command %q\n\n", command)
+		printUsage(stderr)
+		return 2
 	}
 
 	timeout, err := time.ParseDuration(*timeoutRaw)
@@ -53,33 +116,73 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 
-	baseURL, err := normalizeBaseURL(*serverRaw)
+	storedConfig, _, err := loadCLIConfig(*configFileRaw)
 	if err != nil {
-		fmt.Fprintf(stderr, "invalid --server value %q: %v\n", *serverRaw, err)
+		fmt.Fprintf(stderr, "load CLI config: %v\n", err)
 		return 2
 	}
 
-	client := &http.Client{Timeout: timeout}
+	agent, err := newAgentClient(clientOptions{
+		Server: firstNonEmpty(
+			*serverRaw,
+			getenv("KBEACONCTL_SERVER", ""),
+			storedConfig.Server,
+		),
+		Namespace: firstNonEmpty(
+			*namespaceRaw,
+			getenv("KBEACONCTL_NAMESPACE", getenv("KBEACON_NAMESPACE", "")),
+			storedConfig.Namespace,
+			defaultKBeaconNamespace,
+		),
+		Service: firstNonEmpty(
+			*serviceRaw,
+			getenv("KBEACONCTL_SERVICE", ""),
+			storedConfig.Service,
+			defaultKBeaconService,
+		),
+		ServicePort: firstNonEmpty(
+			*servicePortRaw,
+			getenv("KBEACONCTL_SERVICE_PORT", ""),
+			storedConfig.ServicePort,
+			defaultKBeaconServicePort,
+		),
+		Kubeconfig: firstNonEmpty(
+			*kubeconfigRaw,
+			getenv("KBEACONCTL_KUBECONFIG", ""),
+			storedConfig.Kubeconfig,
+		),
+		Context: firstNonEmpty(
+			*contextRaw,
+			getenv("KBEACONCTL_CONTEXT", ""),
+			storedConfig.Context,
+		),
+		Timeout: timeout,
+	})
+	if err != nil {
+		fmt.Fprintf(stderr, "create KBeacon client: %v\n", err)
+		return 2
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	switch command {
 	case "health":
-		return requestJSON(ctx, client, baseURL, "/healthz", nil, stdout, stderr)
+		return requestJSON(ctx, agent, "/healthz", nil, stdout, stderr)
 	case "ready":
-		return requestJSON(ctx, client, baseURL, "/readyz", nil, stdout, stderr)
+		return requestJSON(ctx, agent, "/readyz", nil, stdout, stderr)
 	case "api":
-		return requestJSON(ctx, client, baseURL, "/api/v1", nil, stdout, stderr)
+		return requestJSON(ctx, agent, "/api/v1", nil, stdout, stderr)
 	case "get":
-		return runGet(ctx, client, baseURL, rest[1:], stdout, stderr)
+		return runGet(ctx, agent, rest[1:], stdout, stderr)
 	case "impact":
-		return runImpact(ctx, client, baseURL, rest[1:], stdout, stderr)
+		return runImpact(ctx, agent, rest[1:], stdout, stderr)
 	case "dependencies":
-		return runDependencies(ctx, client, baseURL, rest[1:], stdout, stderr)
+		return runDependencies(ctx, agent, rest[1:], stdout, stderr)
 	case "snapshot":
-		return runSnapshot(ctx, client, baseURL, rest[1:], stdout, stderr)
+		return runSnapshot(ctx, agent, rest[1:], stdout, stderr)
 	case "raw":
-		return runRaw(ctx, client, baseURL, rest[1:], stdout, stderr)
+		return runRaw(ctx, agent, rest[1:], stdout, stderr)
 	case "help", "-h", "--help":
 		printUsage(stdout)
 		return 0
@@ -90,9 +193,17 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 }
 
-func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func newAgentClient(opts clientOptions) (agentClient, error) {
+	if strings.TrimSpace(opts.Server) != "" {
+		return newDirectAgentClient(opts.Server, opts.Timeout)
+	}
+
+	return newKubeServiceProxyClient(opts)
+}
+
+func runGet(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl get <secrets|workloads|dependency-map|config> [filters]")
+		fmt.Fprintln(stderr, usage("get <secrets|workloads|dependency-map|config> [filters]"))
 		return 2
 	}
 
@@ -130,7 +241,7 @@ func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 		addNonEmpty(q, "secretName", *secretName)
 		addNonEmpty(q, "limit", *limit)
 		addNonEmpty(q, "offset", *offset)
-		return requestJSON(ctx, client, baseURL, "/api/v1/secrets", q, stdout, stderr)
+		return requestJSON(ctx, agent, "/api/v1/secrets", q, stdout, stderr)
 
 	case "workloads", "workload":
 		addNonEmpty(q, "namespace", *namespace)
@@ -141,7 +252,7 @@ func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 		addNonEmpty(q, "discoveryMode", *discoveryMode)
 		addNonEmpty(q, "limit", *limit)
 		addNonEmpty(q, "offset", *offset)
-		return requestJSON(ctx, client, baseURL, "/api/v1/workloads", q, stdout, stderr)
+		return requestJSON(ctx, agent, "/api/v1/workloads", q, stdout, stderr)
 
 	case "dependency-map", "dependency", "dependencies", "map":
 		addNonEmpty(q, "namespace", *namespace)
@@ -156,10 +267,10 @@ func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 		addNonEmpty(q, "discoveryMode", *discoveryMode)
 		addNonEmpty(q, "limit", *limit)
 		addNonEmpty(q, "offset", *offset)
-		return requestJSON(ctx, client, baseURL, "/api/v1/dependency-map", q, stdout, stderr)
+		return requestJSON(ctx, agent, "/api/v1/dependency-map", q, stdout, stderr)
 
 	case "config":
-		return requestJSON(ctx, client, baseURL, "/api/v1/config", nil, stdout, stderr)
+		return requestJSON(ctx, agent, "/api/v1/config", nil, stdout, stderr)
 
 	default:
 		fmt.Fprintf(stderr, "unknown get resource %q\n", resource)
@@ -168,9 +279,9 @@ func runGet(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 	}
 }
 
-func runImpact(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func runImpact(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "report" {
-		return runImpactReport(ctx, client, baseURL, args[1:], stdout, stderr)
+		return runImpactReport(ctx, agent, args[1:], stdout, stderr)
 	}
 
 	fs := flag.NewFlagSet("impact", flag.ContinueOnError)
@@ -184,8 +295,8 @@ func runImpact(ctx context.Context, client *http.Client, baseURL *url.URL, args 
 
 	rest := fs.Args()
 	if len(rest) != 2 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl impact [--format json|report] <namespace> <secret-name>")
-		fmt.Fprintln(stderr, "       kbeaconctl impact report <namespace> <secret-name>")
+		fmt.Fprintln(stderr, usage("impact [--format json|report] <namespace> <secret-name>"))
+		fmt.Fprintf(stderr, "       %s impact report <namespace> <secret-name>\n", commandUsageName())
 		return 2
 	}
 
@@ -193,27 +304,27 @@ func runImpact(ctx context.Context, client *http.Client, baseURL *url.URL, args 
 
 	switch strings.ToLower(strings.TrimSpace(*format)) {
 	case "json":
-		return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+		return requestJSON(ctx, agent, endpoint, nil, stdout, stderr)
 	case "report", "text":
-		return requestImpactReport(ctx, client, baseURL, endpoint, stdout, stderr)
+		return requestImpactReport(ctx, agent, endpoint, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "unsupported impact format %q; expected json or report\n", *format)
 		return 2
 	}
 }
 
-func runImpactReport(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func runImpactReport(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) != 2 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl impact report <namespace> <secret-name>")
+		fmt.Fprintln(stderr, usage("impact report <namespace> <secret-name>"))
 		return 2
 	}
 
 	endpoint := "/api/v1/secrets/" + url.PathEscape(args[0]) + "/" + url.PathEscape(args[1]) + "/impact"
-	return requestImpactReport(ctx, client, baseURL, endpoint, stdout, stderr)
+	return requestImpactReport(ctx, agent, endpoint, stdout, stderr)
 }
 
-func requestImpactReport(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, stdout, stderr io.Writer) int {
-	body, requestURL, status, err := requestBody(ctx, client, baseURL, endpoint, nil)
+func requestImpactReport(ctx context.Context, agent agentClient, endpoint string, stdout, stderr io.Writer) int {
+	body, requestURL, status, err := requestBody(ctx, agent, endpoint, nil)
 	if err != nil {
 		fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
 		return 1
@@ -237,19 +348,19 @@ func requestImpactReport(ctx context.Context, client *http.Client, baseURL *url.
 	return 0
 }
 
-func runDependencies(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func runDependencies(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) != 3 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl dependencies <namespace> <workload-kind> <workload-name>")
+		fmt.Fprintln(stderr, usage("dependencies <namespace> <workload-kind> <workload-name>"))
 		return 2
 	}
 
 	endpoint := "/api/v1/workloads/" + url.PathEscape(args[0]) + "/" + url.PathEscape(args[1]) + "/" + url.PathEscape(args[2]) + "/dependencies"
-	return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+	return requestJSON(ctx, agent, endpoint, nil, stdout, stderr)
 }
 
-func runRaw(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func runRaw(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl raw <api-path>")
+		fmt.Fprintln(stderr, usage("raw <api-path>"))
 		return 2
 	}
 
@@ -258,12 +369,12 @@ func runRaw(ctx context.Context, client *http.Client, baseURL *url.URL, args []s
 		endpoint = "/" + endpoint
 	}
 
-	return requestJSON(ctx, client, baseURL, endpoint, nil, stdout, stderr)
+	return requestJSON(ctx, agent, endpoint, nil, stdout, stderr)
 }
 
-func runSnapshot(ctx context.Context, client *http.Client, baseURL *url.URL, args []string, stdout, stderr io.Writer) int {
+func runSnapshot(ctx context.Context, agent agentClient, args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot <export|diff> [args]")
+		fmt.Fprintln(stderr, usage("snapshot <export|diff> [args]"))
 		return 2
 	}
 
@@ -272,7 +383,7 @@ func runSnapshot(ctx context.Context, client *http.Client, baseURL *url.URL, arg
 	}
 
 	if args[0] != "export" {
-		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot <export|diff> [args]")
+		fmt.Fprintln(stderr, usage("snapshot <export|diff> [args]"))
 		return 2
 	}
 
@@ -288,11 +399,11 @@ func runSnapshot(ctx context.Context, client *http.Client, baseURL *url.URL, arg
 	}
 
 	if fs.NArg() != 0 {
-		fmt.Fprintln(stderr, "usage: kbeaconctl snapshot export [--output FILE] [--include LIST] [--pretty=false]")
+		fmt.Fprintln(stderr, usage("snapshot export [--output FILE] [--include LIST] [--pretty=false]"))
 		return 2
 	}
 
-	return requestSnapshotExport(ctx, client, baseURL, *include, *output, *pretty, stdout, stderr)
+	return requestSnapshotExport(ctx, agent, *include, *output, *pretty, stdout, stderr)
 }
 
 type snapshotExport struct {
@@ -337,8 +448,7 @@ type snapshotResourceRequest struct {
 
 func requestSnapshotExport(
 	ctx context.Context,
-	client *http.Client,
-	baseURL *url.URL,
+	agent agentClient,
 	include string,
 	output string,
 	pretty bool,
@@ -354,7 +464,7 @@ func requestSnapshotExport(
 	resources := make(map[string]json.RawMessage, len(requests))
 
 	for _, item := range requests {
-		body, requestURL, status, err := requestBody(ctx, client, baseURL, item.Endpoint, nil)
+		body, requestURL, status, err := requestBody(ctx, agent, item.Endpoint, nil)
 		if err != nil {
 			fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
 			return 1
@@ -381,7 +491,7 @@ func requestSnapshotExport(
 		Kind:        "KBeaconSnapshot",
 		GeneratedAt: time.Now().UTC().Format(time.RFC3339),
 		Cluster:     clusterFromSnapshotResources(resources),
-		Server:      baseURL.String(),
+		Server:      agent.Description(),
 		Resources:   resources,
 	}
 
@@ -459,8 +569,8 @@ func canonicalSnapshotResource(value string) (snapshotResourceRequest, bool) {
 	}
 }
 
-func requestJSON(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, query url.Values, stdout, stderr io.Writer) int {
-	body, requestURL, status, err := requestBody(ctx, client, baseURL, endpoint, query)
+func requestJSON(ctx context.Context, agent agentClient, endpoint string, query url.Values, stdout, stderr io.Writer) int {
+	body, requestURL, status, err := requestBody(ctx, agent, endpoint, query)
 	if err != nil {
 		fmt.Fprintf(stderr, "request %s failed: %v\n", requestURL, err)
 		return 1
@@ -484,32 +594,8 @@ func requestJSON(ctx context.Context, client *http.Client, baseURL *url.URL, end
 	return 0
 }
 
-func requestBody(ctx context.Context, client *http.Client, baseURL *url.URL, endpoint string, query url.Values) ([]byte, string, int, error) {
-	u := *baseURL
-	u.Path = strings.TrimRight(u.Path, "/") + endpoint
-	if query != nil {
-		u.RawQuery = query.Encode()
-	}
-
-	requestURL := u.String()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
-	if err != nil {
-		return nil, requestURL, 0, fmt.Errorf("build request: %w", err)
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, requestURL, 0, err
-	}
-	defer resp.Body.Close()
-
-	body, readErr := io.ReadAll(resp.Body)
-	if readErr != nil {
-		return nil, requestURL, resp.StatusCode, fmt.Errorf("read response: %w", readErr)
-	}
-
-	return body, requestURL, resp.StatusCode, nil
+func requestBody(ctx context.Context, agent agentClient, endpoint string, query url.Values) ([]byte, string, int, error) {
+	return agent.Get(ctx, endpoint, query)
 }
 
 type impactEnvelope struct {
@@ -758,32 +844,6 @@ func valueOr(value, fallback string) string {
 	return value
 }
 
-func normalizeBaseURL(raw string) (*url.URL, error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return nil, fmt.Errorf("empty URL")
-	}
-
-	if !strings.Contains(raw, "://") {
-		raw = "http://" + raw
-	}
-
-	u, err := url.Parse(raw)
-	if err != nil {
-		return nil, err
-	}
-
-	if u.Scheme == "" || u.Host == "" {
-		return nil, fmt.Errorf("URL must include scheme and host")
-	}
-
-	u.Path = strings.TrimRight(u.Path, "/")
-	u.RawQuery = ""
-	u.Fragment = ""
-
-	return u, nil
-}
-
 func addNonEmpty(values url.Values, key, value string) {
 	value = strings.TrimSpace(value)
 	if value != "" {
@@ -792,31 +852,58 @@ func addNonEmpty(values url.Values, key, value string) {
 }
 
 func printUsage(w io.Writer) {
-	fmt.Fprintln(w, "usage: kbeaconctl [--server URL] [--timeout DURATION] <command> [args]")
+	cmd := commandUsageName()
+
+	fmt.Fprintf(w, "usage: %s [global flags] <command> [args]\n", cmd)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "commands:")
+	fmt.Fprintln(w, "Default connection:")
+	fmt.Fprintln(w, "  Uses the current kubeconfig context and the Kubernetes service proxy.")
+	fmt.Fprintln(w, "  No kubectl port-forward is required.")
+	fmt.Fprintf(w, "  Default Agent Service: %s/%s:%s\n", defaultKBeaconNamespace, defaultKBeaconService, defaultKBeaconServicePort)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Global flags must be placed before the command:")
+	fmt.Fprintln(w, "  --namespace, -n NAME       KBeacon Agent namespace")
+	fmt.Fprintln(w, "  --service NAME             KBeacon Agent Service name")
+	fmt.Fprintln(w, "  --service-port NAME        KBeacon Agent Service port name or number")
+	fmt.Fprintln(w, "  --kubeconfig FILE          kubeconfig path")
+	fmt.Fprintln(w, "  --context NAME             kubeconfig context")
+	fmt.Fprintln(w, "  --config-file FILE         kbeaconctl config file")
+	fmt.Fprintln(w, "  --server URL               direct Agent URL override; disables Kubernetes proxy mode")
+	fmt.Fprintln(w, "  --timeout DURATION         request timeout")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Commands:")
 	fmt.Fprintln(w, "  version                                      Print CLI version")
-	fmt.Fprintln(w, "  health                                       GET /healthz")
-	fmt.Fprintln(w, "  ready                                        GET /readyz")
-	fmt.Fprintln(w, "  api                                          GET /api/v1")
-	fmt.Fprintln(w, "  get secrets [filters]                        List Secrets")
-	fmt.Fprintln(w, "  get workloads [filters]                      List workloads")
-	fmt.Fprintln(w, "  get dependency-map [filters]                 Get dependency map")
-	fmt.Fprintln(w, "  get config                                   Get Agent graph summary")
-	fmt.Fprintln(w, "  impact <namespace> <secret-name>             Get Secret impact JSON")
-	fmt.Fprintln(w, "  impact report <namespace> <secret-name>      Print a human-readable Secret impact report")
-	fmt.Fprintln(w, "  dependencies <namespace> <kind> <name>       Get workload dependency JSON")
-	fmt.Fprintln(w, "  raw <api-path>                               GET an arbitrary Agent API path")
+	fmt.Fprintln(w, "  health                                       Get Agent liveness")
+	fmt.Fprintln(w, "  ready                                        Get Agent readiness")
+	fmt.Fprintln(w, "  api                                          Get API discovery")
+	fmt.Fprintln(w, "  get secrets [filters]                       List Secrets")
+	fmt.Fprintln(w, "  get workloads [filters]                     List workloads")
+	fmt.Fprintln(w, "  get dependency-map [filters]                Get dependency map")
+	fmt.Fprintln(w, "  get config                                  Get graph summary")
+	fmt.Fprintln(w, "  impact <namespace> <secret-name>            Get Secret impact JSON")
+	fmt.Fprintln(w, "  impact report <namespace> <secret-name>     Print a human-readable Secret impact report")
+	fmt.Fprintln(w, "  dependencies <ns> <kind> <name>             Get workload dependencies")
+	fmt.Fprintln(w, "  snapshot export [flags]                     Export a KBeacon snapshot")
+	fmt.Fprintln(w, "  snapshot diff [flags] OLD NEW               Diff two snapshot files")
+	fmt.Fprintln(w, "  config view|get|set|unset|path|reset        Manage persistent CLI defaults")
+	fmt.Fprintln(w, "  raw <api-path>                              Request an arbitrary Agent API path")
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "common filters:")
-	fmt.Fprintln(w, "  --namespace, --owner-team, --criticality, --secret-name")
-	fmt.Fprintln(w, "  --workload-namespace, --workload-kind, --workload-name")
-	fmt.Fprintln(w, "  --secret-namespace, --exists, --resolved, --discovery-mode")
-	fmt.Fprintln(w, "  --limit, --offset")
+	fmt.Fprintln(w, "Examples:")
+	fmt.Fprintf(w, "  %s config set namespace kbeacon-system\n", cmd)
+	fmt.Fprintf(w, "  %s ready\n", cmd)
+	fmt.Fprintf(w, "  %s get secrets --namespace payments\n", cmd)
+	fmt.Fprintf(w, "  %s impact report payments payments-db\n", cmd)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "environment:")
-	fmt.Fprintln(w, "  KBEACONCTL_SERVER   default Agent URL")
-	fmt.Fprintln(w, "  KBEACONCTL_TIMEOUT  default HTTP timeout")
+	fmt.Fprintln(w, "Environment:")
+	fmt.Fprintln(w, "  KBEACONCTL_CONFIG         kbeaconctl config file")
+	fmt.Fprintln(w, "  KBEACONCTL_NAMESPACE      default Agent namespace")
+	fmt.Fprintln(w, "  KBEACON_NAMESPACE         default Agent namespace fallback")
+	fmt.Fprintln(w, "  KBEACONCTL_SERVICE        default Agent Service name")
+	fmt.Fprintln(w, "  KBEACONCTL_SERVICE_PORT   default Agent Service port")
+	fmt.Fprintln(w, "  KBEACONCTL_KUBECONFIG    kubeconfig path override")
+	fmt.Fprintln(w, "  KBEACONCTL_CONTEXT        kubeconfig context override")
+	fmt.Fprintln(w, "  KBEACONCTL_SERVER         direct Agent URL override")
+	fmt.Fprintln(w, "  KBEACONCTL_TIMEOUT        request timeout")
 }
 
 func getenv(key, fallback string) string {

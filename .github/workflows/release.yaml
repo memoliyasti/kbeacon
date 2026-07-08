@@ -157,6 +157,7 @@ jobs:
           pids=()
 
           build_all "kbeacon-agent" "./cmd/kbeacon-agent"
+          build_all "kbeacon" "./cmd/kbeaconctl"
           build_all "kbeaconctl" "./cmd/kbeaconctl"
 
           for pid in "${pids[@]}"; do
@@ -202,7 +203,7 @@ jobs:
 
           syft dir:.             --exclude './dist/**'             --exclude './site/**'             --exclude './.venv/**'             --exclude './.venv-docs/**'             -o spdx-json="dist/kbeacon-source-${VERSION}.spdx.json"
 
-          for artifact in dist/kbeacon-agent_${VERSION}_* dist/kbeaconctl_${VERSION}_* dist/kbeacon-${VERSION_NO_V}.tgz
+          for artifact in dist/kbeacon-agent_${VERSION}_* dist/kbeacon_${VERSION}_* dist/kbeaconctl_${VERSION}_* dist/kbeacon-${VERSION_NO_V}.tgz
           do
             if [ -f "${artifact}" ]; then
               syft "file:${artifact}" -o spdx-json="${artifact}.spdx.json"
