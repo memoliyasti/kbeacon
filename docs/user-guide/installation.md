@@ -21,7 +21,7 @@ The default image is published to GitHub Container Registry:
 ```yaml
 image:
   repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.3.12"
+  tag: "0.3.17"
   pullPolicy: IfNotPresent
 ```
 
@@ -232,7 +232,7 @@ The default Service type is `ClusterIP`. This keeps the Agent API internal to th
 
 Use port-forwarding for ad hoc local access:
 
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
+    kbeacon --namespace kbeacon-system ready
 
 Avoid exposing the Agent API through `NodePort` or `LoadBalancer` unless your environment applies authentication, authorization, and network restrictions outside KBeacon.
 

@@ -157,7 +157,7 @@ The dashboards include Grafana data links to the read-only KBeacon Agent API.
 
 Set the `kbeacon_api_url` dashboard variable to the reachable Agent API base URL for your environment.
 
-For local port-forward workflows, the default is usually `http://127.0.0.1:8081`.
+For kube-native CLI workflows, use `kbeacon` from a shell with kubeconfig access. Grafana API data links still require a browser-reachable Agent API URL when you enable them; set `kbeacon_api_url` to an approved internal endpoint for that environment.
 
 The links open read-only API views such as Secret impact, Workload dependencies, and filtered dependency-map results.
 

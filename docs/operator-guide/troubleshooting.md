@@ -18,9 +18,8 @@ Start with the deployment, logs, readiness endpoint, and graph summary.
 kubectl -n kbeacon-system get deploy,pod,svc,serviceaccount
 kubectl -n kbeacon-system rollout status deploy/kbeacon
 kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-curl -sS http://127.0.0.1:8081/readyz | jq
-curl -sS http://127.0.0.1:8081/api/v1/config | jq
+kbeacon --namespace kbeacon-system ready
+kbeacon --namespace kbeacon-system get config
 ```
 
 A healthy Agent reports `status` as `ready` and shows all enabled informer caches as synced.
@@ -93,7 +92,7 @@ In that profile, Secret objects are unobservable. Referenced Secrets are represe
 Inspect `/readyz`.
 
 ```bash
-curl -sS http://127.0.0.1:8081/readyz | jq
+kbeacon --namespace kbeacon-system ready
 ```
 
 Use the resource name in the readiness response to decide the next check.
@@ -112,9 +111,9 @@ Disabled resources are not started as informers and should not block readiness.
 Check the graph summary and filters.
 
 ```bash
-curl -sS http://127.0.0.1:8081/api/v1/config | jq
-curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
-curl -sS http://127.0.0.1:8081/api/v1/secrets | jq
+kbeacon --namespace kbeacon-system get config
+kbeacon --namespace kbeacon-system get workloads --limit 100
+kbeacon --namespace kbeacon-system get secrets --limit 100
 ```
 
 Likely causes:
@@ -171,7 +170,7 @@ Check whether Secret watching is enabled.
 ```bash
 helm get values kbeacon -n kbeacon-system -a | grep -A5 resourcesToWatch
 kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
-curl -sS http://127.0.0.1:8081/readyz | jq
+kbeacon --namespace kbeacon-system ready
 ```
 
 ## Metrics are not scraped
@@ -180,8 +179,7 @@ Check the Service and scrape integration.
 
 ```bash
 kubectl -n kbeacon-system get svc kbeacon -o yaml
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-curl -sS http://127.0.0.1:8081/metrics | head
+kbeacon --namespace kbeacon-system raw /metrics | head
 ```
 
 For Prometheus Operator, verify the ServiceMonitor.
@@ -268,8 +266,7 @@ Check the Service, Pod, and HTTP listener.
 
 ```bash
 kubectl -n kbeacon-system get svc,pod -l app.kubernetes.io/name=kbeacon
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-curl -sS http://127.0.0.1:8081/api/v1 | jq
+kbeacon --namespace kbeacon-system api
 ```
 
 Compatibility aliases under `/api/...` exist, but `/api/v1/...` is the preferred API path.

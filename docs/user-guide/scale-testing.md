@@ -35,7 +35,6 @@ The live benchmark requires a running KBeacon Agent and a reachable local Agent 
 Start a port-forward:
 
 ```bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 ```
 
 Run a small benchmark:
@@ -66,7 +65,7 @@ Useful environment variables:
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `KBEACON_URL` | `http://127.0.0.1:8081` | Local Agent API URL. |
+| `KBEACON_URL` | unset | Optional direct Agent API URL for benchmark harnesses. Normal inspection should use the kube-native `kbeacon` CLI. |
 | `PROMETHEUS_URL` | `http://127.0.0.1:9090` | Optional Prometheus API URL. |
 | `KBEACON_SCALE_LEVELS` | `100 1000` | Space-separated workload counts. |
 | `KBEACON_SCALE_SECRET_RATIO` | `4` | Approximate workloads-per-Secret ratio. |

@@ -14,9 +14,9 @@ apply_demo() {
   echo "Demo resources applied."
   echo
   echo "Next:"
-  echo "  kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080"
-  echo "  curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/payments-db/impact | jq \".data.summary\""
-  echo "  curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/legacy-payment-token/impact | jq \".data.secret\""
+  echo "  kbeacon config set namespace kbeacon-system"
+  echo "  kbeacon impact --format json payments payments-db | jq \".data.summary\""
+  echo "  kbeacon impact --format json payments legacy-payment-token | jq \".data.secret\""
 }
 
 delete_demo() {

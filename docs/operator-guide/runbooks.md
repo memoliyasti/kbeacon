@@ -16,19 +16,18 @@ Useful baseline commands:
 
     kubectl -n kbeacon-system rollout status deploy/kbeacon
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-    curl -sS http://127.0.0.1:8081/readyz | jq
-    curl -sS http://127.0.0.1:8081/api/v1/config | jq
+    kbeacon --namespace kbeacon-system ready
+    kbeacon --namespace kbeacon-system get config
 
 When the alert names a Secret, use:
 
-    kbeaconctl impact report <namespace> <secret-name>
+    kbeacon impact report <namespace> <secret-name>
 
 When reviewing before and after state, use:
 
-    kbeaconctl snapshot export --output before.json
-    kbeaconctl snapshot export --output after.json
-    kbeaconctl snapshot diff --format markdown before.json after.json
+    kbeacon snapshot export --output before.json
+    kbeacon snapshot export --output after.json
+    kbeacon snapshot diff --format markdown before.json after.json
 
 ## KBeaconAgentDown
 
@@ -47,8 +46,7 @@ Prometheus cannot scrape the KBeacon Agent target or the Agent is unavailable.
     kubectl -n kbeacon-system get deploy,pod,svc -l app.kubernetes.io/name=kbeacon
     kubectl -n kbeacon-system describe deploy/kbeacon
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=200
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-    curl -sS http://127.0.0.1:8081/healthz | jq
+    kbeacon --namespace kbeacon-system health
 
 ### Resolution
 
@@ -71,7 +69,7 @@ A Kubernetes informer cache has not reported synced state for a watched resource
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=200
     kubectl auth can-i list pods --as=system:serviceaccount:kbeacon-system:kbeacon
     kubectl auth can-i list secrets --as=system:serviceaccount:kbeacon-system:kbeacon
-    curl -sS http://127.0.0.1:8081/readyz | jq
+    kbeacon --namespace kbeacon-system ready
 
 ### Resolution
 
@@ -92,8 +90,8 @@ Dependency graph rebuild p95 latency is above the configured alert threshold.
 ### Useful commands
 
     kubectl -n kbeacon-system logs deploy/kbeacon --tail=200
-    curl -sS http://127.0.0.1:8081/api/v1/config | jq
-    curl -sS http://127.0.0.1:8081/api/v1/dependency-map | jq ".data.edges | length"
+    kbeacon --namespace kbeacon-system get config
+    kbeacon --namespace kbeacon-system get dependency-map | jq ".data.edges | length"
 
 ### Resolution
 
@@ -113,7 +111,7 @@ A Secret changed recently and currently affects at least one workload.
 
 ### Useful commands
 
-    kbeaconctl impact report <namespace> <secret-name>
+    kbeacon impact report <namespace> <secret-name>
     kubectl -n <namespace> get secret <secret-name>
     kubectl get deploy,statefulset,daemonset,job,cronjob -A
 
@@ -135,7 +133,7 @@ A high or critical Secret changed recently and affects workloads.
 
 ### Useful commands
 
-    kbeaconctl impact report <namespace> <secret-name>
+    kbeacon impact report <namespace> <secret-name>
     kubectl -n <namespace> get events --sort-by=.lastTimestamp
     kubectl -n <namespace> rollout status deploy/<workload-name>
 
@@ -157,7 +155,7 @@ A Secret has an impact score above the configured high-impact threshold.
 
 ### Useful commands
 
-    kbeaconctl impact report <namespace> <secret-name>
+    kbeacon impact report <namespace> <secret-name>
     kbeaconctl get secrets --namespace <namespace>
 
 ### Resolution
@@ -178,7 +176,7 @@ A Secret affects many workloads.
 
 ### Useful commands
 
-    kbeaconctl impact report <namespace> <secret-name>
+    kbeacon impact report <namespace> <secret-name>
     kbeaconctl get dependency-map --secret-name <secret-name>
 
 ### Resolution
@@ -222,9 +220,9 @@ KBeacon sees workloads but no Secret dependencies have been discovered.
 
 ### Useful commands
 
-    curl -sS http://127.0.0.1:8081/api/v1/config | jq
-    curl -sS http://127.0.0.1:8081/api/v1/workloads | jq
-    curl -sS http://127.0.0.1:8081/api/v1/dependency-map | jq ".data.edges | length"
+    kbeacon --namespace kbeacon-system get config
+    kbeacon --namespace kbeacon-system get workloads --limit 100
+    kbeacon --namespace kbeacon-system get dependency-map | jq ".data.edges | length"
 
 ### Resolution
 

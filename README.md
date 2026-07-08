@@ -135,6 +135,19 @@ charts/kbeacon/dashboards/
 
 The dashboard set includes cluster overview, team overview, Secret dependency map, and dependency graph exploration.
 
+## CLI usage
+
+The preferred command is `kbeacon`. It uses the current kubeconfig context and reaches the in-cluster Agent through the Kubernetes API server Service proxy, so normal CLI usage does not require `kubectl port-forward`.
+
+```bash
+kbeacon config set namespace kbeacon-system
+kbeacon ready
+kbeacon get config
+kbeacon impact report payments payments-db
+```
+
+`kbeaconctl` remains available as a backwards-compatible binary name.
+
 ## Documentation
 
 - Website: https://memoliyasti.github.io/kbeacon/
@@ -142,11 +155,11 @@ The dashboard set includes cluster overview, team overview, Secret dependency ma
 - Installation: `docs/user-guide/installation.md`
 - CLI: `docs/user-guide/cli.md`
 - Alert runbooks: `docs/operator-guide/runbooks.md`
-- Human-readable Secret impact reports: `kbeaconctl impact report <namespace> <secret>`
-- Portable API snapshots: `kbeaconctl snapshot export --output kbeacon-snapshot.json`.
-- Snapshot diffs: `kbeaconctl snapshot diff old.json new.json`.
-- Snapshot diff markdown for PR comments: `kbeaconctl snapshot diff --format markdown old.json new.json`.
-- Release assets include `kbeaconctl` binaries for Linux and macOS.
+- Human-readable Secret impact reports: `kbeacon impact report <namespace> <secret>`
+- Portable API snapshots: `kbeacon snapshot export --output kbeacon-snapshot.json`.
+- Snapshot diffs: `kbeacon snapshot diff old.json new.json`.
+- Snapshot diff markdown for PR comments: `kbeacon snapshot diff --format markdown old.json new.json`.
+- Release assets include preferred `kbeacon` binaries and backwards-compatible `kbeaconctl` binaries for Linux and macOS.
 - Configuration: `docs/user-guide/configuration.md`
 - Discovery modes: `docs/user-guide/discovery-modes.md`
 - Dashboards: `docs/user-guide/dashboards.md`
@@ -176,7 +189,7 @@ Releases use semantic version tags and publish GitHub Release assets, Linux and 
 Current release line:
 
 ```text
-v0.3.12
+v0.3.17
 ```
 
 ## Community

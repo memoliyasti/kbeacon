@@ -67,6 +67,8 @@ context
 server
 ~~~
 
+The default persistent config file is `~/.kbeaconctl/config.json`. The path keeps the historical `kbeaconctl` name so both `kbeacon` and `kbeaconctl` share the same defaults.
+
 ## Temporary overrides
 
 Global flags must be placed before the command:
@@ -78,15 +80,20 @@ kbeacon --context minikube ready
 kbeacon --kubeconfig ~/.kube/config ready
 ~~~
 
+## Release binaries
+
+Semantic releases publish preferred `kbeacon` binaries and backwards-compatible `kbeaconctl` binaries for Linux and macOS. Both binaries use the same implementation and differ only by executable name in help and version output.
+
+Download the matching asset for your OS and architecture, verify it with `checksums.txt`, and install it as `kbeacon` on your PATH.
+
 ## Direct Agent URL mode
 
-For local debugging or compatibility with older workflows, pass `--server`.
+For controlled debugging or compatibility with older automation, pass `--server`.
 
-This disables Kubernetes service proxy mode and sends HTTP requests directly to the Agent URL.
+This disables Kubernetes service proxy mode and sends HTTP requests directly to the Agent URL. Use this only when the Agent API is exposed through an approved internal endpoint.
 
 ~~~bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-kbeacon --server http://127.0.0.1:8081 ready
+kbeacon --server https://kbeacon.example.internal ready
 ~~~
 
 ## Common commands
@@ -164,11 +171,6 @@ Try an explicit namespace:
 kbeacon --namespace kbeacon-system ready
 ~~~
 
-Try a direct port-forward fallback:
-
-~~~bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
-kbeacon --server http://127.0.0.1:8081 ready
-~~~
-
 If Kubernetes proxy mode returns `403`, check the current kubeconfig identity and RBAC for the KBeacon Service proxy.
+
+Use `--server` only when the Agent API is intentionally exposed through an approved internal endpoint.
