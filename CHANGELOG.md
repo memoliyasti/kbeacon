@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.3.17
+
+- Added kube-native `kbeacon` CLI access through Kubernetes Service proxy, persistent CLI defaults, dual `kbeacon`/`kbeaconctl` binaries, and release asset updates.
+
 ## v0.3.16
 
 - Added dependency edge timeline recording rules for Prometheus and Grafana Mimir.
