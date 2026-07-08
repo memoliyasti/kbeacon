@@ -35,13 +35,12 @@ Expected blast-radius story:
 
 Install or upgrade KBeacon first, then port-forward the Agent API.
 
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 
 In another terminal:
 
-    curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/payments-db/impact | jq ".data.summary"
-    curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/legacy-payment-token/impact | jq ".data.secret"
-    curl -sS http://127.0.0.1:8081/api/v1/workloads/payments/Deployment/payments-api/dependencies | jq ".data.dependencies"
+    kbeacon impact --format json payments payments-db | jq ".data.summary"
+    kbeacon impact --format json payments legacy-payment-token | jq ".data.secret"
+    kbeacon dependencies payments Deployment payments-api | jq ".data.dependencies"
 
 <!-- kbeacon-demo-verified-output:start -->
 ## Verified demo output

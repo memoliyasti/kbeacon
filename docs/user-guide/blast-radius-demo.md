@@ -28,11 +28,10 @@ The blast-radius demo creates a small multi-namespace graph that demonstrates th
 
 Port-forward the Agent API:
 
-    kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 
 Query the blast radius for the main Secret:
 
-    curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/payments-db/impact | jq ".data"
+    kbeacon impact --format json payments payments-db | jq ".data"
 
 Expected result:
 
@@ -42,7 +41,7 @@ Expected result:
 
 Query the intentionally unresolved Secret:
 
-    curl -sS http://127.0.0.1:8081/api/v1/secrets/payments/legacy-payment-token/impact | jq ".data.secret"
+    kbeacon impact --format json payments legacy-payment-token | jq ".data.secret"
 
 Expected result:
 
@@ -51,7 +50,7 @@ Expected result:
 
 Query workload dependencies:
 
-    curl -sS http://127.0.0.1:8081/api/v1/workloads/payments/Deployment/payments-api/dependencies | jq ".data.dependencies"
+    kbeacon dependencies payments Deployment payments-api | jq ".data.dependencies"
 
 ## Prometheus checks
 

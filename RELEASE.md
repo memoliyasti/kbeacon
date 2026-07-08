@@ -10,7 +10,7 @@ KBeacon uses semantic version tags:
 
 Example:
 
-    v0.3.12
+    v0.3.17
 
 ## Release checklist
 
@@ -30,8 +30,8 @@ Before tagging:
 
 ## Tagging
 
-    git tag -a v0.3.12 -m "KBeacon v0.3.12"
-    git push origin v0.3.12
+    git tag -a v0.3.17 -m "KBeacon v0.3.17"
+    git push origin v0.3.17
 
 The release workflow publishes:
 
@@ -45,10 +45,10 @@ The release workflow publishes:
 
 ## Container image tags
 
-For release `v0.3.12`, the workflow publishes:
+For release `v0.3.17`, the workflow publishes:
 
-    ghcr.io/memoliyasti/kbeacon:v0.3.12
-    ghcr.io/memoliyasti/kbeacon:0.3.12
+    ghcr.io/memoliyasti/kbeacon:v0.3.17
+    ghcr.io/memoliyasti/kbeacon:0.3.17
     ghcr.io/memoliyasti/kbeacon:latest
     ghcr.io/memoliyasti/kbeacon:sha-<short-sha>
 
@@ -66,4 +66,4 @@ Release consumers can verify artifact checksums from `checksums.txt`. GitHub art
 
 ## kbeaconctl release assets
 
-Release assets include kbeaconctl binaries for Linux and macOS alongside the kbeacon-agent binaries. Verify downloaded CLI binaries with checksums.txt.
+Release assets include preferred kbeacon binaries, backwards-compatible kbeaconctl binaries, and kbeacon-agent binaries for Linux and macOS. Verify downloaded binaries with checksums.txt.

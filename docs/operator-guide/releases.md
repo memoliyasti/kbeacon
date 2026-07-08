@@ -4,8 +4,8 @@ KBeacon releases are produced from semantic version tags.
 
 Create a release tag:
 
-    git tag -a v0.3.12 -m "KBeacon v0.3.12"
-    git push origin v0.3.12
+    git tag -a v0.3.17 -m "KBeacon v0.3.17"
+    git push origin v0.3.17
 
 The release workflow publishes:
 
@@ -33,4 +33,4 @@ Use `checksums.txt` to verify downloaded release assets. Use GitHub CLI artifact
 
 ## kbeaconctl release assets
 
-Release assets include kbeaconctl binaries for Linux and macOS alongside the kbeacon-agent binaries. Verify downloaded CLI binaries with checksums.txt.
+Release assets include preferred kbeacon binaries, backwards-compatible kbeaconctl binaries, and kbeacon-agent binaries for Linux and macOS. Verify downloaded binaries with checksums.txt.

@@ -2,6 +2,13 @@
 
 This directory documents KBeacon scale testing helpers.
 
+Use the kube-native CLI for normal verification:
+
+```bash
+kbeacon --namespace kbeacon-system ready
+kbeacon --namespace kbeacon-system get config
+```
+
 ## Deterministic fixture generator
 
 ```bash
@@ -15,7 +22,6 @@ The generator writes Kubernetes manifests and an `expected-summary.json` file. I
 Run against a live KBeacon Agent API:
 
 ```bash
-kubectl -n kbeacon-system port-forward svc/kbeacon 8081:8080
 make scale-benchmark
 ```
 

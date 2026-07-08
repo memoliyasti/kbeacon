@@ -38,7 +38,7 @@ Paginated responses include a top-level `pagination` object. When no more result
 
 Example:
 
-    curl -sS "http://127.0.0.1:8081/api/v1/secrets?namespace=payments&exists=true&limit=50" | jq
+    kbeacon get secrets --namespace payments --exists true --limit 50 | jq
 
 `/api/v1/workloads` supports exact filters: `namespace`, `ownerTeam`, `criticality`, `workloadKind`, `workloadName`, and `discoveryMode`.
 
@@ -46,7 +46,7 @@ Example:
 
 Example:
 
-    curl -sS "http://127.0.0.1:8081/api/v1/workloads?namespace=payments&workloadKind=Deployment" | jq
+    kbeacon get workloads --namespace payments --workload-kind Deployment | jq
 
 `/api/v1/dependency-map` supports edge filters: `namespace`, `workloadNamespace`, `secretNamespace`, `workloadKind`, `workloadName`, `secretName`, `ownerTeam`, `criticality`, `resolved`, and `discoveryMode`.
 
@@ -54,7 +54,7 @@ For dependency-map responses, pagination is applied to filtered edges. The retur
 
 Example:
 
-    curl -sS "http://127.0.0.1:8081/api/v1/dependency-map?secretName=payments-db&resolved=true&limit=100" | jq
+    kbeacon get dependency-map --secret-name payments-db --resolved true --limit 100 | jq
 
 ## Error behavior
 
