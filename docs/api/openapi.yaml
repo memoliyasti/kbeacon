@@ -342,9 +342,24 @@ components:
             $ref: "#/components/schemas/ErrorEnvelope"
 
   schemas:
+    BuildInfo:
+      type: object
+      properties:
+        version:
+          type: string
+        commit:
+          type: string
+      required:
+        - version
+        - commit
+
     HealthResponse:
       type: object
       properties:
+        version:
+          type: string
+        commit:
+          type: string
         status:
           type: string
           example: ok
@@ -352,6 +367,10 @@ components:
     ReadyResponse:
       type: object
       properties:
+        version:
+          type: string
+        commit:
+          type: string
         status:
           type: string
           enum:
@@ -377,6 +396,10 @@ components:
     DiscoveryResponse:
       type: object
       properties:
+        version:
+          type: string
+        commit:
+          type: string
         apiVersion:
           type: string
           example: kbeacon.io/v1
@@ -439,6 +462,8 @@ components:
     ConfigSummary:
       type: object
       properties:
+        agent:
+          $ref: "#/components/schemas/BuildInfo"
         cluster:
           type: object
           properties:
