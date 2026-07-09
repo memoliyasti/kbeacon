@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.3.19
+
+- Exposed Agent version and commit metadata in health, readiness, discovery, and config API responses.
+- Added no-secret-leak regression coverage for Agent API and Prometheus metrics.
+- Added Helm upgrade/rollback e2e coverage for release validation.
+- Hardened release consistency checks and post-release public artifact smoke coverage.
+- Recorded a Minikube benchmark baseline and simplified install documentation around the public Helm repo and kube-native CLI.
+
 ## v0.3.18
 
 - Fixed the Helm chart README rendered by ArtifactHub so image examples no longer show stale hard-coded tags.

@@ -16,7 +16,7 @@ kbeacon --namespace kbeacon-system snapshot export --output kbeacon-before.json
 ## Upgrade
 
 ```bash
-VERSION=0.3.18
+VERSION=0.3.19
 
 helm upgrade --install kbeacon kbeacon-release/kbeacon \
   --version "${VERSION}" \
@@ -50,5 +50,5 @@ kbeacon --namespace kbeacon-system ready
 ## Public artifact verification
 
 ```bash
-hack/verify-release-artifacts.sh v0.3.18
+hack/verify-release-artifacts.sh v0.3.19
 ```
