@@ -1,253 +1,150 @@
 # Installation
 
-KBeacon is packaged as a Helm chart and runs as one read-only Agent Deployment per Kubernetes cluster.
+KBeacon is installed with Helm and verified with the kube-native `kbeacon` CLI.
 
-The recommended production pattern is to manage deployment through version-controlled Helm values rather than long command-line overrides.
+## Recommended install path
 
-## Deployment prerequisites
+Use the public Helm chart repository:
 
-KBeacon requires:
+```bash
+helm repo add kbeacon-release https://memoliyasti.github.io/kbeacon/charts
+helm repo update kbeacon-release
 
-- a Kubernetes cluster;
-- Helm-compatible deployment tooling;
-- read-only RBAC for the Kubernetes resources selected in `resourcesToWatch`;
-- a Prometheus scrape path if metrics are required;
-- optional Grafana dashboard discovery when dashboard ConfigMaps are enabled.
-
-## Release image
-
-The default image is published to GitHub Container Registry:
-
-```yaml
-image:
-  repository: ghcr.io/memoliyasti/kbeacon
-  tag: "0.3.18"
-  pullPolicy: IfNotPresent
+helm search repo kbeacon-release/kbeacon --versions | head
 ```
 
-The project GHCR package is intended to be public. The default deployment path does not require an image pull Secret.
+Install the latest published chart:
 
-For production, prefer digest pinning when your deployment process supports it:
+```bash
+VERSION="$(helm search repo kbeacon-release/kbeacon --versions | awk 'NR==2 {print $2}')"
 
-```yaml
-image:
-  repository: ghcr.io/memoliyasti/kbeacon
-  digest: sha256:<digest>
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set dashboards.enabled=true \
+  --set serviceMonitor.enabled=true \
+  --set prometheus.scrapeAnnotations.enabled=true \
+  --wait \
+  --timeout 10m
 ```
 
-When `image.digest` is set, the chart renders `repository@digest` and ignores `image.tag`.
+For production, pin `VERSION` to a reviewed chart version instead of always selecting the newest entry.
 
-## Required cluster identity
+## Verify the Agent
 
-`cluster.name` is required and should be stable for the lifetime of the logical cluster.
+```bash
+kubectl -n kbeacon-system rollout status deploy/kbeacon --timeout=5m
+kubectl -n kbeacon-system get deploy,pod,svc,cm,servicemonitor
+kubectl -n kbeacon-system logs deploy/kbeacon --tail=100
 
-```yaml
-cluster:
-  name: prod-eu-1
-  environment: prod
-  region: eu
+kbeacon config set namespace kbeacon-system
+kbeacon ready
+kbeacon get config
+kbeacon get secrets --limit 100
+kbeacon get workloads --limit 100
 ```
 
-The cluster name is emitted in metrics, API responses, generated Agent configuration, and dashboard variables.
+The CLI uses the current kubeconfig context and Kubernetes API server Service proxy by default.
 
-## Standard deployment profile
+## Low-privilege install
 
-The default profile runs cluster-wide discovery with all implemented Kubernetes resource watchers enabled.
+Use this mode when the KBeacon ServiceAccount must not read Kubernetes Secret objects:
 
-```yaml
-rbac:
-  create: true
-  scope: cluster
+```bash
+VERSION="$(helm search repo kbeacon-release/kbeacon --versions | awk 'NR==2 {print $2}')"
 
-resourcesToWatch:
-  core:
-    secrets: true
-    serviceAccounts: true
-    pods: true
-  apps:
-    deployments: true
-    statefulSets: true
-    daemonSets: true
-  networking:
-    ingresses: true
-  batch:
-    jobs: true
-    cronJobs: true
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set resourcesToWatch.core.secrets=false \
+  --wait \
+  --timeout 10m
 ```
 
-Use this profile when the Agent is allowed to observe Secret metadata and workload specifications across the cluster.
+KBeacon still discovers workload-to-Secret references from workload specs and explicit annotations. Referenced Secrets are marked as unobservable because the Agent cannot confirm Secret object metadata.
 
-## Namespace-scoped profile
+## Prometheus and Grafana integration
 
-Namespace-scoped deployment renders namespace-local RBAC and should be paired with an explicit namespace allow-list.
+Enable Prometheus Operator `ServiceMonitor` support when the CRDs are installed:
 
-```yaml
-rbac:
-  scope: namespace
-
-discovery:
-  namespaces:
-    include:
-      - payments
+```bash
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set serviceMonitor.enabled=true \
+  --set dashboards.enabled=true \
+  --wait \
+  --timeout 10m
 ```
 
-Use this profile when each namespace or tenant has an independently managed Agent deployment.
+Enable scrape annotations for Prometheus setups that discover Services through `prometheus.io/*` annotations:
 
-For namespace-scoped RBAC, configure exactly one `discovery.namespaces.include` entry matching the release namespace. In that mode, the Agent uses namespace-scoped Kubernetes informers instead of cluster-wide list/watch calls.\n
-## Low-privilege profile
-
-KBeacon can run without reading Kubernetes Secret objects.
-
-```yaml
-resourcesToWatch:
-  core:
-    secrets: false
+```bash
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set prometheus.scrapeAnnotations.enabled=true \
+  --wait \
+  --timeout 10m
 ```
 
-In this profile:
+## Private registry or fork
 
-- workload-to-Secret references are still discovered from workload specs and annotations;
-- referenced Secrets are represented as unobservable;
-- API responses and metrics use `exists=false` and `resolved=false` for unobserved Secret objects;
-- Secret type, Secret annotation metadata, and Secret change counters are unavailable.
+The official GHCR image for this repository is intended to be public. Use `imagePullSecrets` only for private forks or private registries.
 
-Use this profile when cluster policy does not allow observability components to read Secret objects.
+```bash
+kubectl create namespace kbeacon-system --dry-run=client -o yaml | kubectl apply -f -
 
-## Prometheus integration
+kubectl -n kbeacon-system create secret docker-registry ghcr-pull-secret \
+  --docker-server=ghcr.io \
+  --docker-username=<github-username> \
+  --docker-password=<token-with-read-packages> \
+  --docker-email=<email> \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-KBeacon exposes metrics on the Agent HTTP port at `/metrics`.
-
-Prometheus Operator profile:
-
-```yaml
-serviceMonitor:
-  enabled: true
-  labels:
-    release: kube-prometheus-stack
-  honorLabels: true
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set 'imagePullSecrets[0].name=ghcr-pull-secret' \
+  --wait \
+  --timeout 10m
 ```
 
-Annotation-based scrape profile:
+## Digest pinning
 
-```yaml
-prometheus:
-  scrapeAnnotations:
-    enabled: true
-    target: service
-    path: /metrics
-    port: "8080"
+```bash
+helm upgrade --install kbeacon kbeacon-release/kbeacon \
+  --version "${VERSION}" \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=my-cluster \
+  --set image.repository=ghcr.io/memoliyasti/kbeacon \
+  --set image.digest=sha256:<digest> \
+  --wait \
+  --timeout 10m
 ```
 
-Centralized Prometheus configurations can scrape the chart-rendered Service directly.
+When `image.digest` is set, the chart renders `repository@digest` instead of `repository:tag`.
 
-## Grafana dashboards
+## Local development from source
 
-Dashboard ConfigMaps are optional.
+For local chart and image development, build into Minikube or Kind and install from `./charts/kbeacon`. The public Helm repository remains the recommended user-facing install path.
 
-```yaml
-dashboards:
-  enabled: true
-  labels:
-    grafana_dashboard: "1"
+```bash
+helm upgrade --install kbeacon ./charts/kbeacon \
+  --namespace kbeacon-system \
+  --create-namespace \
+  --set cluster.name=local-dev \
+  --wait \
+  --timeout 10m
 ```
-
-Enable this only when your Grafana deployment discovers dashboard ConfigMaps by label.
-
-Included dashboards:
-
-- `KBeacon / Cluster Overview`
-- `KBeacon / Secret Dependency Map`
-- `KBeacon / Team Overview`
-- `KBeacon / Dependency Graph Explorer`
-
-The Dependency Graph Explorer requires `metrics.edge.enabled=true`.
-
-## Metrics cardinality profile
-
-The detailed edge metric powers edge-level troubleshooting and graph dashboards.
-
-```yaml
-metrics:
-  edge:
-    enabled: true
-```
-
-For very large clusters or strict cardinality budgets, disable detailed edge metrics:
-
-```yaml
-metrics:
-  edge:
-    enabled: false
-```
-
-Aggregate metrics and the read-only Agent API remain available.
-
-## Security posture
-
-The chart defaults to a non-root, read-only container security posture.
-
-```yaml
-podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 65532
-  runAsGroup: 65532
-  fsGroup: 65532
-
-securityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  capabilities:
-    drop:
-      - ALL
-```
-
-KBeacon uses read-only Kubernetes permissions and does not export Kubernetes Secret values. Secret names and dependency metadata may still be sensitive and should be protected in Prometheus, Grafana, logs, and Agent API access.
-
-## Validation
-
-Validate rendered manifests before promoting values into production.
-
-Recommended validation coverage:
-
-- chart linting;
-- default manifest rendering;
-- low-privilege manifest rendering;
-- namespace-scoped RBAC rendering;
-- dashboard JSON validation when dashboards are enabled;
-- Prometheus rule validation when alerting rules are used.
-
-The repository validation target covers these checks through `make validate-ci`.
-
-## Next steps
-
-- Configuration reference: `docs/user-guide/configuration.md`
-- Helm values reference: `docs/reference/helm.md`
-- Metrics reference: `docs/reference/metrics.md`
-- Dashboard guide: `docs/user-guide/dashboards.md`
-- Security guide: `docs/operator-guide/security.md`
-
-## Internal Agent API access
-
-The default Service type is `ClusterIP`. This keeps the Agent API internal to the cluster.
-
-Use port-forwarding for ad hoc local access:
-
-    kbeacon --namespace kbeacon-system ready
-
-Avoid exposing the Agent API through `NodePort` or `LoadBalancer` unless your environment applies authentication, authorization, and network restrictions outside KBeacon.
-
-## Replica count and availability
-
-KBeacon v0.3.x runs as one Agent replica per cluster.
-
-Keep `replicaCount=1` for normal installs. Multi-replica operation is not supported until leader election is implemented, because each Agent replica independently watches Kubernetes and builds its own in-memory graph.
-
-## Kind E2E smoke test
-
-KBeacon includes a Kind-based end-to-end smoke test for the chart, RBAC, Kubernetes informers, projected Secret volume discovery, privacy redaction, and the read-only Agent API.
-
-Run it locally when docker, kind, kubectl, helm, and python3 are available:
-
-    make kind-e2e-smoke
-
-The test builds a local kbeacon-agent:e2e image, loads it into a temporary Kind cluster, installs the Helm chart, creates a small workload graph, and verifies the Agent API.
