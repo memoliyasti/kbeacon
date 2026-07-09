@@ -86,8 +86,30 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("/api/dependency-map", s.dependencyMap)
 }
 
+func (s *Server) buildInfo() map[string]string {
+	version := strings.TrimSpace(s.options.Version)
+	if version == "" {
+		version = "unknown"
+	}
+
+	commit := strings.TrimSpace(s.options.Commit)
+	if commit == "" {
+		commit = "unknown"
+	}
+
+	return map[string]string{
+		"version": version,
+		"commit":  commit,
+	}
+}
+
 func (s *Server) healthz(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	build := s.buildInfo()
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":  "ok",
+		"version": build["version"],
+		"commit":  build["commit"],
+	})
 }
 
 func (s *Server) readyz(w http.ResponseWriter, _ *http.Request) {
@@ -105,17 +127,23 @@ func (s *Server) readyz(w http.ResponseWriter, _ *http.Request) {
 		statusText = "not ready"
 	}
 
+	build := s.buildInfo()
 	writeJSON(w, status, map[string]any{
 		"status":  statusText,
 		"cluster": s.options.Cluster,
+		"version": build["version"],
+		"commit":  build["commit"],
 		"caches":  caches,
 	})
 }
 
 func (s *Server) discovery(w http.ResponseWriter, _ *http.Request) {
+	build := s.buildInfo()
 	writeJSON(w, http.StatusOK, map[string]any{
 		"apiVersion": "kbeacon.io/v1",
 		"cluster":    s.options.Cluster,
+		"version":    build["version"],
+		"commit":     build["commit"],
 		"resources":  []string{"secrets", "workloads", "dependency-map", "config"},
 	})
 }
@@ -321,6 +349,7 @@ func (s *Server) config(w http.ResponseWriter, _ *http.Request) {
 	snapshot := s.options.Graph.Snapshot()
 	s.writeEnvelope(w, map[string]any{
 		"cluster": map[string]string{"name": s.options.Cluster},
+		"agent":   s.buildInfo(),
 		"graph": map[string]int{
 			"secrets":   len(snapshot.Secrets),
 			"workloads": len(snapshot.Workloads),

@@ -60,6 +60,16 @@ Example:
 
 Invalid query values return `400` with `invalid_query`.
 
+## Version visibility
+
+The Agent exposes its build metadata for operational debugging:
+
+- `/healthz`, `/readyz`, and `/api/v1` include top-level `version` and `commit` fields.
+- `/api/v1/config` includes `data.agent.version` and `data.agent.commit`.
+- Prometheus metrics include `kbeacon_build_info{version,commit,...} 1`.
+
+This lets operators verify which Agent binary is running without shelling into the Pod.
+
 ## OpenAPI
 
 The OpenAPI source is stored at:
