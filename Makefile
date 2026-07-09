@@ -12,11 +12,11 @@ CLUSTER_NAME ?= ci
 NAMESPACE ?= kbeacon-system
 CHART_VERSION := $(shell awk '/^version:/ {print $$2; exit}' charts/kbeacon/Chart.yaml)
 
-.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build build-cli build-agent run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check release-metadata-check release-consistency-lint package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint ctl-build ctl-smoke runbooks-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
+.PHONY: validate validate-ci ci fmt test api-contract-lint supply-chain-lint build build-cli build-agent run docker-build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs demo-lint demo-dry-run demo-metrics-live scale-generate scale-lint scale-dry-run scale-benchmark-lint scale-benchmark scale-delete stale-check no-secret-leak-test release-metadata-check release-consistency-lint package clean dashboards-lint kind-e2e-smoke-lint kind-e2e-smoke supported-resources-lint ctl-build ctl-smoke runbooks-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
 
 validate: validate-ci demo-dry-run
 
-validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint runbooks-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check release-metadata-check release-consistency-lint kind-e2e-smoke-lint ctl-smoke kind-e2e-certmanager-smoke-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
+validate-ci: fmt test api-contract-lint supply-chain-lint supported-resources-lint runbooks-lint build helm-lint helm-schema-lint helm-template helm-template-low-privilege helm-template-serviceaccount-disabled helm-template-ingress-disabled helm-template-certmanager helm-template-externalsecret helm-template-secretproviderclass helm-template-strimzi-kafkaconnector helm-template-confluent-connector helm-template-replicaset-owner-resolution helm-template-networkpolicy helm-template-privacy-redaction helm-template-edge-disabled helm-template-prometheus-annotations helm-template-namespace prom-rules docs dashboards-lint demo-lint scale-lint scale-benchmark-lint stale-check no-secret-leak-test release-metadata-check release-consistency-lint kind-e2e-smoke-lint ctl-smoke kind-e2e-certmanager-smoke-lint kind-e2e-externalsecret-smoke-lint kind-e2e-secretproviderclass-smoke-lint kind-e2e-kafka-connectors-smoke-lint kind-e2e-replicaset-owner-resolution-smoke-lint
 
 ci: validate-ci
 
@@ -208,6 +208,9 @@ dashboards-lint:
 
 stale-check:
 	./hack/stale-check.sh
+
+no-secret-leak-test:
+	$(GO) test ./internal/server -run TestAgentOutputsDoNotExposeSecretValues
 
 release-metadata-check:
 	grep -q "version: $(CHART_VERSION)" charts/kbeacon/Chart.yaml
