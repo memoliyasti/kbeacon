@@ -23,3 +23,7 @@ tree.txt
 # Editor noise
 .idea/
 .vscode/
+
+# Prevent accidental recommit of historical local-copy artifacts.
+/bin copy/
+/go copy.sum
