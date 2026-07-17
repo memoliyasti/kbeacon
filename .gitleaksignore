@@ -1,0 +1,4 @@
+# Historical Go module checksum false positives.
+# Verified as standard h1 checksum lines, not credentials.
+f5da106b3aefbc7bdac29d10d3fe8ea3458d7467:go copy.sum:generic-api-key:144
+f5da106b3aefbc7bdac29d10d3fe8ea3458d7467:go copy.sum:generic-api-key:214
