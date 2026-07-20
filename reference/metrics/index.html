@@ -1,0 +1,3232 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Kubernetes-native Secret Dependency Intelligence for Prometheus, Grafana, and Mimir.">
+      
+      
+      
+        <link rel="canonical" href="https://memoliyasti.github.io/kbeacon/reference/metrics/">
+      
+      
+        <link rel="prev" href="../helm/">
+      
+      
+        <link rel="next" href="../benchmarks/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Metrics - KBeacon</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#metrics-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="KBeacon" class="md-header__button md-logo" aria-label="KBeacon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KBeacon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Metrics
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/memoliyasti/kbeacon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    memoliyasti/kbeacon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="KBeacon" class="md-nav__button md-logo" aria-label="KBeacon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KBeacon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/memoliyasti/kbeacon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    memoliyasti/kbeacon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/why-kbeacon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why KBeacon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/discovery-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/blast-radius-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blast-radius demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/scale-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/dashboards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/dashboard-queries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard queries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/alerting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operator guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/upgrades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrades and rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/access-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Access control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/runbooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/prometheus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prometheus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../supported-resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metric-compatibility-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric compatibility policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#label-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Label conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Domain metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_dependency_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_dependency_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_secret_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_secret_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_workload_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_workload_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_dependency_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_dependency_edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_workload_dependency_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_workload_dependency_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_affected_workload_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_affected_workload_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_impact_score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_impact_score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_last_changed_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_last_changed_timestamp_seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_changes_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_changes_total
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_unresolved_secret_references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_unresolved_secret_references
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_build_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_build_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_agent_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_agent_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cache_sync_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cache_sync_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cache_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cache_objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_kubernetes_watch_events_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_kubernetes_watch_events_total
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_graph_update_duration_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_graph_update_duration_seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#low-privilege-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Low-privilege behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-metric-cardinality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge metric cardinality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-graph-dashboard-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node Graph dashboard usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics-intentionally-not-emitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics intentionally not emitted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#projected-secret-volume-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projected Secret volume source
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cert-manager-certificate-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cert-manager Certificate metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalsecret-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalSecret metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secretproviderclass-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SecretProviderClass metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kafka-connector-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka connector metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prometheusmimir-timeline-recording-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prometheus/Mimir timeline recording rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prometheus/Mimir timeline recording rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependency-edge-timeline-recording-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency edge timeline recording rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annotations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/maintainers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/adopters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adopters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metric-compatibility-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric compatibility policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#label-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Label conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Domain metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_dependency_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_dependency_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_secret_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_secret_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cluster_workload_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cluster_workload_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_dependency_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_dependency_edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_workload_dependency_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_workload_dependency_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_affected_workload_count" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_affected_workload_count
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_impact_score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_impact_score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_last_changed_timestamp_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_last_changed_timestamp_seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_changes_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_changes_total
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_secret_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_secret_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_unresolved_secret_references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_unresolved_secret_references
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_build_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_build_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_agent_info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_agent_info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cache_sync_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cache_sync_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_cache_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_cache_objects
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_kubernetes_watch_events_total" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_kubernetes_watch_events_total
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kbeacon_graph_update_duration_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon_graph_update_duration_seconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#low-privilege-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Low-privilege behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edge-metric-cardinality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edge metric cardinality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-graph-dashboard-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node Graph dashboard usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics-intentionally-not-emitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics intentionally not emitted
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#projected-secret-volume-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projected Secret volume source
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cert-manager-certificate-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cert-manager Certificate metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalsecret-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalSecret metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secretproviderclass-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SecretProviderClass metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kafka-connector-metrics-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka connector metrics behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prometheusmimir-timeline-recording-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prometheus/Mimir timeline recording rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prometheus/Mimir timeline recording rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependency-edge-timeline-recording-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency edge timeline recording rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/memoliyasti/kbeacon/edit/main/docs/reference/metrics.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="metrics-reference">Metrics Reference<a class="headerlink" href="#metrics-reference" title="Permanent link">&para;</a></h1>
+<p>KBeacon exposes Prometheus metrics from the Agent HTTP endpoint at <code>/metrics</code>.</p>
+<p>The metric contract is designed for Prometheus and Grafana Mimir storage, Grafana dashboards, alerting rules, and platform automation.</p>
+<p>KBeacon metrics do not expose Kubernetes Secret values. They can include Secret names, workload names, namespaces, ownership metadata, and dependency state, so access should be protected as operational metadata.</p>
+<h2 id="metric-compatibility-policy">Metric compatibility policy<a class="headerlink" href="#metric-compatibility-policy" title="Permanent link">&para;</a></h2>
+<p>Prometheus metric family names and label sets are compatibility-sensitive.</p>
+<p>KBeacon tests the public graph metric label sets so high-cardinality implementation details such as Secret keys, dependency source paths, container names, environment variable names, UIDs, and Pod instance names do not become Prometheus labels accidentally.</p>
+<p>See <a href="../compatibility/">Compatibility</a> for the project-wide API, metrics, and Helm compatibility policy.</p>
+<h2 id="label-conventions">Label conventions<a class="headerlink" href="#label-conventions" title="Permanent link">&para;</a></h2>
+<p>Every KBeacon domain metric includes the logical cluster label.</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cluster</code></td>
+<td>Logical cluster name from KBeacon configuration.</td>
+</tr>
+</tbody>
+</table>
+<p>Prometheus adds scrape labels depending on the scrape integration profile.</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>job</code></td>
+<td>Prometheus scrape job.</td>
+</tr>
+<tr>
+<td><code>instance</code></td>
+<td>Prometheus scrape target.</td>
+</tr>
+</tbody>
+</table>
+<p>Dashboard queries should use <code>$cluster</code> for KBeacon domain identity and <code>$job</code> only as a scrape selector.</p>
+<h2 id="domain-metrics">Domain metrics<a class="headerlink" href="#domain-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="kbeacon_cluster_dependency_count"><code>kbeacon_cluster_dependency_count</code><a class="headerlink" href="#kbeacon_cluster_dependency_count" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Current number of workload-to-Secret dependency edges in the graph.</p>
+<p>Labels: <code>cluster</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">kbeacon_cluster_dependency_count</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}</span>
+</code></pre></div>
+<h3 id="kbeacon_cluster_secret_count"><code>kbeacon_cluster_secret_count</code><a class="headerlink" href="#kbeacon_cluster_secret_count" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Current number of observed or referenced Secrets in the graph.</p>
+<p>Labels: <code>cluster</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">kbeacon_cluster_secret_count</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}</span>
+</code></pre></div>
+<h3 id="kbeacon_cluster_workload_count"><code>kbeacon_cluster_workload_count</code><a class="headerlink" href="#kbeacon_cluster_workload_count" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Current number of normalized workloads in the graph.</p>
+<p>Labels: <code>cluster</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nv">kbeacon_cluster_workload_count</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}</span>
+</code></pre></div>
+<h3 id="kbeacon_dependency_edges"><code>kbeacon_dependency_edges</code><a class="headerlink" href="#kbeacon_dependency_edges" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>One active workload-to-Secret dependency edge. The value is always <code>1</code> for an active edge.</p>
+<p>Labels:</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cluster</code></td>
+<td>Logical cluster name.</td>
+</tr>
+<tr>
+<td><code>workload_namespace</code></td>
+<td>Workload namespace.</td>
+</tr>
+<tr>
+<td><code>workload_kind</code></td>
+<td>Workload kind, such as <code>Deployment</code> or <code>CronJob</code>.</td>
+</tr>
+<tr>
+<td><code>workload_name</code></td>
+<td>Workload name.</td>
+</tr>
+<tr>
+<td><code>secret_namespace</code></td>
+<td>Secret namespace.</td>
+</tr>
+<tr>
+<td><code>secret_name</code></td>
+<td>Secret name.</td>
+</tr>
+<tr>
+<td><code>discovery_mode</code></td>
+<td><code>infer</code>, <code>explicit</code>, or <code>hybrid</code>.</td>
+</tr>
+<tr>
+<td><code>owner_team</code></td>
+<td>Workload owner team metadata when available.</td>
+</tr>
+<tr>
+<td><code>criticality</code></td>
+<td>Workload or Secret criticality classification.</td>
+</tr>
+<tr>
+<td><code>resolved</code></td>
+<td>Whether the referenced Secret exists in the observed cache.</td>
+</tr>
+<tr>
+<td><code>optional</code></td>
+<td>Whether all merged references for the edge are optional.</td>
+</tr>
+</tbody>
+</table>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nv">kbeacon_dependency_edges</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">workload_namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;}</span>
+</code></pre></div>
+<p>This is the highest-cardinality KBeacon metric family because it includes workload and Secret names.</p>
+<p>Grafana Node Graph panels require this metric. If <code>metrics.edge.enabled=false</code>, this metric is not emitted and edge-level graph panels are empty.</p>
+<h3 id="kbeacon_workload_dependency_count"><code>kbeacon_workload_dependency_count</code><a class="headerlink" href="#kbeacon_workload_dependency_count" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Unique Secret dependency count by workload.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>workload_kind</code>, <code>workload_name</code>, <code>owner_team</code>, <code>criticality</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">topk</span><span class="o">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="nv">kbeacon_workload_dependency_count</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;}</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="kbeacon_secret_affected_workload_count"><code>kbeacon_secret_affected_workload_count</code><a class="headerlink" href="#kbeacon_secret_affected_workload_count" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Number of unique workloads affected by a Secret.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code>, <code>owner_team</code>, <code>criticality</code>, <code>exists</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">topk</span><span class="o">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="nv">kbeacon_secret_affected_workload_count</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;}</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="kbeacon_secret_impact_score"><code>kbeacon_secret_impact_score</code><a class="headerlink" href="#kbeacon_secret_impact_score" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Calculated Secret impact score from <code>0</code> to <code>100</code>.</p>
+<p>The current scoring model is deterministic and based on fan-out, affected owner teams, affected namespaces, unresolved references, and criticality.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code>, <code>owner_team</code>, <code>criticality</code>, <code>exists</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">topk</span><span class="o">(</span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="nv">kbeacon_secret_impact_score</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;,</span><span class="nl">owner_team</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$owner_team</span><span class="p">&quot;}</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="kbeacon_secret_last_changed_timestamp_seconds"><code>kbeacon_secret_last_changed_timestamp_seconds</code><a class="headerlink" href="#kbeacon_secret_last_changed_timestamp_seconds" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Last observed Secret metadata change timestamp as Unix seconds.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kr">time</span><span class="o">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nv">kbeacon_secret_last_changed_timestamp_seconds</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;}</span>
+</code></pre></div>
+<p>This metric is emitted only for observed Secret objects.</p>
+<h3 id="kbeacon_secret_changes_total"><code>kbeacon_secret_changes_total</code><a class="headerlink" href="#kbeacon_secret_changes_total" title="Permanent link">&para;</a></h3>
+<p>Type: counter</p>
+<p>Observed Secret metadata update count during the current Agent lifecycle.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kr">increase</span><span class="o">(</span><span class="nv">kbeacon_secret_changes_total</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">namespace</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$namespace</span><span class="p">&quot;}[</span><span class="s">1h</span><span class="p">]</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="kbeacon_secret_info"><code>kbeacon_secret_info</code><a class="headerlink" href="#kbeacon_secret_info" title="Permanent link">&para;</a></h3>
+<p>Type: gauge info</p>
+<p>Secret metadata information. The value is always <code>1</code>.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code>, <code>type</code>, <code>owner_team</code>, <code>criticality</code>, <code>exists</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nv">kbeacon_secret_info</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;,</span><span class="nl">criticality</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">high|critical</span><span class="p">&quot;}</span>
+</code></pre></div>
+<h3 id="kbeacon_unresolved_secret_references"><code>kbeacon_unresolved_secret_references</code><a class="headerlink" href="#kbeacon_unresolved_secret_references" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Number of unresolved references by Secret.</p>
+<p>Labels: <code>cluster</code>, <code>namespace</code>, <code>secret_name</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nv">kbeacon_unresolved_secret_references</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
+</code></pre></div>
+<p>Unresolved references represent missing Secrets or Secrets that are unobservable because Secret object watching is disabled.</p>
+<h2 id="runtime-metrics">Runtime metrics<a class="headerlink" href="#runtime-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="kbeacon_build_info"><code>kbeacon_build_info</code><a class="headerlink" href="#kbeacon_build_info" title="Permanent link">&para;</a></h3>
+<p>Type: gauge info</p>
+<p>Build metadata. The value is always <code>1</code>.</p>
+<p>Labels: <code>version</code>, <code>commit</code>, <code>go_version</code></p>
+<h3 id="kbeacon_agent_info"><code>kbeacon_agent_info</code><a class="headerlink" href="#kbeacon_agent_info" title="Permanent link">&para;</a></h3>
+<p>Type: gauge info</p>
+<p>Agent runtime metadata. The value is always <code>1</code>.</p>
+<p>Labels: <code>cluster</code>, <code>version</code>, <code>commit</code></p>
+<h3 id="kbeacon_cache_sync_status"><code>kbeacon_cache_sync_status</code><a class="headerlink" href="#kbeacon_cache_sync_status" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Kubernetes informer cache sync status. <code>1</code> means synced, <code>0</code> means not synced.</p>
+<p>Labels: <code>cluster</code>, <code>resource</code></p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">min</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">cluster</span><span class="p">,</span><span class="w"> </span><span class="nv">resource</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="nv">kbeacon_cache_sync_status</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}</span><span class="o">)</span>
+</code></pre></div>
+<p>Disabled resources are not emitted in this metric.</p>
+<h3 id="kbeacon_cache_objects"><code>kbeacon_cache_objects</code><a class="headerlink" href="#kbeacon_cache_objects" title="Permanent link">&para;</a></h3>
+<p>Type: gauge</p>
+<p>Current object count in the KBeacon graph cache.</p>
+<p>Labels: <code>cluster</code>, <code>resource</code></p>
+<p>Known resource values include <code>Secret</code>, <code>Workload</code>, and <code>DependencyEdge</code>.</p>
+<h3 id="kbeacon_kubernetes_watch_events_total"><code>kbeacon_kubernetes_watch_events_total</code><a class="headerlink" href="#kbeacon_kubernetes_watch_events_total" title="Permanent link">&para;</a></h3>
+<p>Type: counter</p>
+<p>Kubernetes informer events observed by KBeacon.</p>
+<p>Labels: <code>cluster</code>, <code>resource</code>, <code>event</code></p>
+<p>Known event values include <code>add</code>, <code>update</code>, and <code>delete</code>.</p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">sum</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">cluster</span><span class="p">,</span><span class="w"> </span><span class="nv">resource</span><span class="p">,</span><span class="w"> </span><span class="nv">event</span><span class="o">)</span><span class="w"> </span><span class="o">(</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="kr">rate</span><span class="o">(</span><span class="nv">kbeacon_kubernetes_watch_events_total</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}[</span><span class="s">5m</span><span class="p">]</span><span class="o">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="o">)</span>
+</code></pre></div>
+<h3 id="kbeacon_graph_update_duration_seconds"><code>kbeacon_graph_update_duration_seconds</code><a class="headerlink" href="#kbeacon_graph_update_duration_seconds" title="Permanent link">&para;</a></h3>
+<p>Type: histogram</p>
+<p>Duration of dependency graph rebuilds.</p>
+<p>Labels: <code>cluster</code>, <code>reason</code></p>
+<p>Known reason values include <code>initial-sync</code>, <code>add</code>, <code>update</code>, and <code>delete</code>.</p>
+<div class="language-promql highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kr">histogram_quantile</span><span class="o">(</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="mf">0.95</span><span class="p">,</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="k">sum</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="o">(</span><span class="nv">cluster</span><span class="p">,</span><span class="w"> </span><span class="nv">le</span><span class="o">)</span><span class="w"> </span><span class="o">(</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="kr">rate</span><span class="o">(</span><span class="nv">kbeacon_graph_update_duration_seconds_bucket</span><span class="p">{</span><span class="nl">cluster</span><span class="o">=~</span><span class="p">&quot;</span><span class="s">$cluster</span><span class="p">&quot;}[</span><span class="s">5m</span><span class="p">]</span><span class="o">)</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="o">)</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="o">)</span>
+</code></pre></div>
+<h2 id="low-privilege-behavior">Low-privilege behavior<a class="headerlink" href="#low-privilege-behavior" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.core.secrets=false</code>, KBeacon does not observe Kubernetes Secret objects.</p>
+<p>In this profile:</p>
+<ul>
+<li>workload-to-Secret references are still discovered from workload specs and annotations;</li>
+<li><code>kbeacon_cluster_secret_count</code> reports observed and referenced graph Secret nodes, but Secret metadata is limited;</li>
+<li>referenced Secret series use <code>exists="false"</code> when the Secret object is unobservable;</li>
+<li>dependency edge series use <code>resolved="false"</code>;</li>
+<li><code>kbeacon_secret_last_changed_timestamp_seconds</code> is not emitted for unobserved Secrets;</li>
+<li>Secret type and Secret annotation metadata are unavailable.</li>
+</ul>
+<p>Treat <code>exists="false"</code> and <code>resolved="false"</code> as missing or unobservable in low-privilege environments.</p>
+<h2 id="edge-metric-cardinality">Edge metric cardinality<a class="headerlink" href="#edge-metric-cardinality" title="Permanent link">&para;</a></h2>
+<p><code>kbeacon_dependency_edges</code> is optional because it includes workload and Secret names as labels.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">metrics</span><span class="p">:</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">edge</span><span class="p">:</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>When disabled:</p>
+<ul>
+<li><code>kbeacon_dependency_edges</code> is not emitted;</li>
+<li>aggregate metrics remain available;</li>
+<li>the read-only Agent API remains available for edge-level inspection;</li>
+<li>Grafana Node Graph panels and edge detail tables are empty.</li>
+</ul>
+<p>Keep edge metrics enabled when graph exploration is required. Disable them when Prometheus cardinality budgets are more important than edge-level visualization.</p>
+<h2 id="node-graph-dashboard-usage">Node Graph dashboard usage<a class="headerlink" href="#node-graph-dashboard-usage" title="Permanent link">&para;</a></h2>
+<p>Grafana Node Graph dashboards require <code>kbeacon_dependency_edges</code>.</p>
+<p>The built-in graph dashboards use this metric to construct:</p>
+<ul>
+<li>workload nodes from <code>workload_kind</code>, <code>workload_namespace</code>, and <code>workload_name</code>;</li>
+<li>Secret nodes from <code>secret_namespace</code> and <code>secret_name</code>;</li>
+<li>edge identifiers from workload-to-Secret pairs;</li>
+<li>edge details from <code>discovery_mode</code>, <code>resolved</code>, <code>owner_team</code>, and <code>criticality</code>.</li>
+</ul>
+<p>If <code>metrics.edge.enabled=false</code>, the dashboards can still load, but edge-level graph panels do not show dependency data.</p>
+<h2 id="security-considerations">Security considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<p>KBeacon metrics do not expose Kubernetes Secret values.</p>
+<p>Metric labels may expose sensitive operational metadata:</p>
+<ul>
+<li>Secret names;</li>
+<li>workload names;</li>
+<li>namespace names;</li>
+<li>owner teams;</li>
+<li>criticality labels;</li>
+<li>unresolved or unobservable dependency state.</li>
+</ul>
+<p>Protect Prometheus, Grafana Mimir, Grafana dashboards, exported metrics, and alert payloads according to the security model used for production operational metadata.</p>
+<h2 id="metrics-intentionally-not-emitted">Metrics intentionally not emitted<a class="headerlink" href="#metrics-intentionally-not-emitted" title="Permanent link">&para;</a></h2>
+<p>KBeacon intentionally avoids unbounded or high-risk labels such as:</p>
+<ul>
+<li>Secret key;</li>
+<li>environment variable name;</li>
+<li>full dependency source path;</li>
+<li>container name;</li>
+<li>Pod UID;</li>
+<li>Kubernetes <code>resourceVersion</code>;</li>
+<li>arbitrary Kubernetes labels;</li>
+<li>arbitrary Kubernetes annotations;</li>
+<li>raw error message text.</li>
+</ul>
+<p>Use the read-only Agent API for detailed dependency source paths and Secret key-level inspection.</p>
+<h2 id="related-documentation">Related documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Dashboard queries: <code>docs/user-guide/dashboard-queries.md</code></li>
+<li>Prometheus operations: <code>docs/operations/prometheus.md</code></li>
+<li>Helm reference: <code>docs/reference/helm.md</code></li>
+<li>API contract: <code>docs/api/openapi.yaml</code></li>
+</ul>
+<h2 id="projected-secret-volume-source">Projected Secret volume source<a class="headerlink" href="#projected-secret-volume-source" title="Permanent link">&para;</a></h2>
+<p>Dependency edges discovered from projected Secret volumes use source type <code>volumes.projected.sources.secret</code>.</p>
+<h2 id="cert-manager-certificate-metrics-behavior">cert-manager Certificate metrics behavior<a class="headerlink" href="#cert-manager-certificate-metrics-behavior" title="Permanent link">&para;</a></h2>
+<p>cert-manager <code>Certificate</code> resources are normalized as Secret-consuming graph nodes when <code>resourcesToWatch.certManager.certificates=true</code>. Their dependency edges use source type <code>cert-manager.certificate.spec.secretName</code> and contribute to the same graph, impact, and dependency metrics as workload edges.</p>
+<h2 id="externalsecret-metrics-behavior">ExternalSecret metrics behavior<a class="headerlink" href="#externalsecret-metrics-behavior" title="Permanent link">&para;</a></h2>
+<p>External Secrets Operator <code>ExternalSecret</code> resources are normalized as Secret-consuming graph nodes when <code>resourcesToWatch.externalSecrets.externalSecrets=true</code>.</p>
+<p>Their dependency edges use source type <code>external-secrets.externalsecret.spec.target.name</code> and contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.</p>
+<p>If the target Kubernetes Secret is observed by KBeacon, the edge is marked <code>resolved=true</code>. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with <code>exists=false</code> and the edge is marked <code>resolved=false</code>.</p>
+<p>The <code>ExternalSecret</code> object name and namespace may appear in workload labels such as <code>workload_kind</code>, <code>workload_namespace</code>, and <code>workload_name</code> when edge metrics are enabled.</p>
+<h2 id="secretproviderclass-metrics-behavior">SecretProviderClass metrics behavior<a class="headerlink" href="#secretproviderclass-metrics-behavior" title="Permanent link">&para;</a></h2>
+<p>Secrets Store CSI Driver <code>SecretProviderClass</code> resources are normalized as Secret-consuming graph nodes when <code>resourcesToWatch.secretsStore.secretProviderClasses=true</code>.</p>
+<p>Their dependency edges use source type <code>secrets-store.csi.secretproviderclass.spec.secretObjects.secretName</code> and contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.</p>
+<p>If the synced Kubernetes Secret is observed by KBeacon, the edge is marked <code>resolved=true</code>. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with <code>exists=false</code> and the edge is marked <code>resolved=false</code>.</p>
+<p>The <code>SecretProviderClass</code> object name and namespace may appear in workload labels such as <code>workload_kind</code>, <code>workload_namespace</code>, and <code>workload_name</code> when edge metrics are enabled.</p>
+<h2 id="kafka-connector-metrics-behavior">Kafka connector metrics behavior<a class="headerlink" href="#kafka-connector-metrics-behavior" title="Permanent link">&para;</a></h2>
+<p>Strimzi <code>KafkaConnector</code> resources are normalized as Secret-consuming graph nodes when <code>resourcesToWatch.strimzi.kafkaConnectors=true</code>.</p>
+<p>Confluent for Kubernetes <code>Connector</code> resources are normalized as Secret-consuming graph nodes when <code>resourcesToWatch.confluent.connectors=true</code>.</p>
+<p>Kafka connector dependency edges contribute to the same graph, impact, dependency-map, workload dependency, and edge metrics as workload edges.</p>
+<p>Strimzi inferred edges use source type <code>strimzi.kafkaconnector.spec.config.secrets</code>.</p>
+<p>Confluent Connect REST authentication edges use source type <code>confluent.connector.spec.connectRest.authentication.secretRef</code>.</p>
+<p>Confluent mounted Secret file edges use source type <code>confluent.connector.spec.configs.file.mountedSecret</code>.</p>
+<p>If the referenced Kubernetes Secret is observed by KBeacon, the edge is marked <code>resolved=true</code>. If Secret watching is disabled or the target Secret does not exist in the observed cache, the referenced Secret is represented with <code>exists=false</code> and the edge is marked <code>resolved=false</code>.</p>
+<p><code>KafkaConnector</code> and <code>Connector</code> object names and namespaces may appear in workload labels such as <code>workload_kind</code>, <code>workload_namespace</code>, and <code>workload_name</code> when edge metrics are enabled.</p>
+<p>ReplicaSets are used only as an owner-resolution cache. They may appear in readiness or runtime cache-sync status when <code>resourcesToWatch.apps.replicaSets=true</code>, but they are not emitted as workload nodes and do not appear as <code>workload_kind="ReplicaSet"</code> in dependency graph metrics.</p>
+<h2 id="prometheusmimir-timeline-recording-rules">Prometheus/Mimir timeline recording rules<a class="headerlink" href="#prometheusmimir-timeline-recording-rules" title="Permanent link">&para;</a></h2>
+<p>The Agent does not emit the following metric names directly. They are recording rules defined in <code>examples/prometheus/rules.yaml</code> for Prometheus or Grafana Mimir ruler.</p>
+<table>
+<thead>
+<tr>
+<th>Recording rule</th>
+<th>Labels</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kbeacon:secret_changes:increase_1h</code></td>
+<td><code>cluster</code>, <code>namespace</code>, <code>secret_name</code></td>
+<td>Observed Secret update count over the last hour.</td>
+</tr>
+<tr>
+<td><code>kbeacon:secret_changes:increase_24h</code></td>
+<td><code>cluster</code>, <code>namespace</code>, <code>secret_name</code></td>
+<td>Observed Secret update count over the last day.</td>
+</tr>
+<tr>
+<td><code>kbeacon:secret_age_since_change_seconds</code></td>
+<td><code>cluster</code>, <code>namespace</code>, <code>secret_name</code></td>
+<td>Seconds since the last observed Secret update.</td>
+</tr>
+<tr>
+<td><code>kbeacon:recently_changed_affected_secrets</code></td>
+<td><code>cluster</code>, <code>namespace</code>, <code>secret_name</code>, <code>owner_team</code>, <code>criticality</code>, <code>exists</code></td>
+<td>Affected workload count for Secrets changed within the last hour.</td>
+</tr>
+</tbody>
+</table>
+<p>These rules support historical dashboard views without adding storage to KBeacon. They rely on Prometheus or Mimir retention and should be adjusted if your production rule interval or lookback windows differ.</p>
+<h3 id="dependency-edge-timeline-recording-rules">Dependency edge timeline recording rules<a class="headerlink" href="#dependency-edge-timeline-recording-rules" title="Permanent link">&para;</a></h3>
+<p>The example Prometheus rule pack defines aggregate dependency edge timeline rules. The Agent does not emit these names directly.</p>
+<table>
+<thead>
+<tr>
+<th>Recording rule</th>
+<th>Source metric</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kbeacon:dependency_edges:sum_by_workload_namespace</code></td>
+<td><code>kbeacon_dependency_edges</code></td>
+<td>Requires edge metrics. Groups by <code>cluster</code> and <code>workload_namespace</code>.</td>
+</tr>
+<tr>
+<td><code>kbeacon:dependency_edges:sum_by_secret_namespace</code></td>
+<td><code>kbeacon_dependency_edges</code></td>
+<td>Requires edge metrics. Groups by <code>cluster</code> and <code>secret_namespace</code>.</td>
+</tr>
+<tr>
+<td><code>kbeacon:dependency_edges:sum_by_owner_team</code></td>
+<td><code>kbeacon_dependency_edges</code></td>
+<td>Requires edge metrics. Groups by <code>cluster</code> and <code>owner_team</code>.</td>
+</tr>
+<tr>
+<td><code>kbeacon:dependency_edges:sum_by_discovery_mode</code></td>
+<td><code>kbeacon_dependency_edges</code></td>
+<td>Requires edge metrics. Groups by <code>cluster</code>, <code>discovery_mode</code>, and <code>resolved</code>.</td>
+</tr>
+<tr>
+<td><code>kbeacon:dependency_edges:changes_1h</code></td>
+<td><code>kbeacon_cluster_dependency_count</code></td>
+<td>Counts aggregate cluster edge-count value changes over one hour.</td>
+</tr>
+<tr>
+<td><code>kbeacon:dependency_edges:net_delta_1h</code></td>
+<td><code>kbeacon_cluster_dependency_count</code></td>
+<td>Shows net aggregate cluster edge-count delta over one hour.</td>
+</tr>
+</tbody>
+</table>
+<p>These are aggregate Prometheus or Mimir timelines. They are not an exact event log of added and removed dependency edges.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../helm/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Helm">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Helm
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../benchmarks/" class="md-footer__link md-footer__link--next" aria-label="Next: Benchmarks">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Benchmarks
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "content.code.copy", "content.action.edit", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

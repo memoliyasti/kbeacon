@@ -1,0 +1,2978 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Kubernetes-native Secret Dependency Intelligence for Prometheus, Grafana, and Mimir.">
+      
+      
+      
+        <link rel="canonical" href="https://memoliyasti.github.io/kbeacon/reference/annotations/">
+      
+      
+        <link rel="prev" href="../compatibility/">
+      
+      
+        <link rel="next" href="../../developer-guide/architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Annotations - KBeacon</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#annotations-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="KBeacon" class="md-header__button md-logo" aria-label="KBeacon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KBeacon
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Annotations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/memoliyasti/kbeacon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    memoliyasti/kbeacon
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="KBeacon" class="md-nav__button md-logo" aria-label="KBeacon" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    KBeacon
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/memoliyasti/kbeacon" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    memoliyasti/kbeacon
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/why-kbeacon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why KBeacon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/discovery-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discovery modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/blast-radius-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blast-radius demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/scale-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scale testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/dashboards/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/dashboard-queries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard queries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/alerting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alerting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operator guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/upgrades/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrades and rollback
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/access-control/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Access control
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/runbooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operator-guide/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/prometheus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prometheus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../supported-resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported resources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helm
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compatibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annotations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annotations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-annotation-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported annotation keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workload-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secret-metadata-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secret metadata annotations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-or-disable-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable discovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-mode-override" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery mode override
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explicit-secret-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explicit Secret references
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference grammar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kbeaconiowatch-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon.io/watch-secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kbeaconiowatch-secrets-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon.io/watch-secrets-json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ignoring-selected-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ignoring selected Secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ownership-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ownership metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#annotation-and-label-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation and label precedence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inferred-dependency-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inferred dependency sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-workload-annotation-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example workload annotation block
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serviceaccount-imagepullsecrets-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceAccount imagePullSecrets fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingress-tls-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress TLS references
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#projected-secret-volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projected Secret volumes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cert-manager-certificate-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cert-manager Certificate resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalsecret-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalSecret resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secretproviderclass-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SecretProviderClass resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strimzi-kafkaconnector-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strimzi KafkaConnector resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confluent-kafka-connect-connector-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent / Kafka Connect Connector resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Design
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/maintainers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintainers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/adopters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adopters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../community/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-annotation-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported annotation keys
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workload-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workload coverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secret-metadata-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secret metadata annotations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-or-disable-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or disable discovery
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-mode-override" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery mode override
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explicit-secret-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explicit Secret references
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference grammar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kbeaconiowatch-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon.io/watch-secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kbeaconiowatch-secrets-json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        kbeacon.io/watch-secrets-json
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ignoring-selected-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ignoring selected Secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ownership-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ownership metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#annotation-and-label-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation and label precedence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inferred-dependency-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inferred dependency sources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-workload-annotation-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example workload annotation block
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security considerations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serviceaccount-imagepullsecrets-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ServiceAccount imagePullSecrets fallback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingress-tls-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress TLS references
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#projected-secret-volumes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Projected Secret volumes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cert-manager-certificate-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cert-manager Certificate resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#externalsecret-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ExternalSecret resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secretproviderclass-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SecretProviderClass resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strimzi-kafkaconnector-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strimzi KafkaConnector resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#confluent-kafka-connect-connector-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confluent / Kafka Connect Connector resources
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/memoliyasti/kbeacon/edit/main/docs/reference/annotations.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="annotations-reference">Annotations Reference<a class="headerlink" href="#annotations-reference" title="Permanent link">&para;</a></h1>
+<p>KBeacon annotations provide explicit workload dependency modeling and ownership metadata on top of standard Kubernetes workload specs.</p>
+<p>Annotations are optional. KBeacon can infer most Secret references from Pod specs, and it can derive ownership metadata from existing labels when metadata label fallback is enabled.</p>
+<p>Use annotations when a workload needs an explicit override, a non-standard dependency, or metadata that should not be inferred from labels.</p>
+<h2 id="supported-annotation-keys">Supported annotation keys<a class="headerlink" href="#supported-annotation-keys" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Applies to</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kbeacon.io/enabled</code></td>
+<td>Workloads</td>
+<td>Enable or disable KBeacon discovery for the workload.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/discovery-mode</code></td>
+<td>Workloads</td>
+<td>Override the default discovery mode.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/watch-secrets</code></td>
+<td>Workloads</td>
+<td>Add explicit Secret dependencies with comma-separated references.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/watch-secrets-json</code></td>
+<td>Workloads</td>
+<td>Add explicit Secret dependencies with a JSON string array.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/ignore-secrets</code></td>
+<td>Workloads</td>
+<td>Suppress selected inferred or explicit Secret dependencies.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/owner-team</code></td>
+<td>Workloads and Secrets</td>
+<td>Ownership metadata.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/service</code></td>
+<td>Workloads</td>
+<td>Service or application metadata.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/environment</code></td>
+<td>Workloads</td>
+<td>Environment metadata.</td>
+</tr>
+<tr>
+<td><code>kbeacon.io/criticality</code></td>
+<td>Workloads and Secrets</td>
+<td>Criticality metadata.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workload-coverage">Workload coverage<a class="headerlink" href="#workload-coverage" title="Permanent link">&para;</a></h2>
+<p>Workload annotations are interpreted for normalized workloads discovered by KBeacon:</p>
+<ul>
+<li><code>Pod</code>;</li>
+<li><code>Deployment</code>;</li>
+<li><code>StatefulSet</code>;</li>
+<li><code>DaemonSet</code>;</li>
+<li><code>Job</code>;</li>
+<li><code>CronJob</code>;</li>
+<li><code>Ingress</code> when <code>resourcesToWatch.networking.ingresses=true</code>.</li>
+<li><code>Certificate</code> when <code>resourcesToWatch.certManager.certificates=true</code>.</li>
+<li><code>ExternalSecret</code> when <code>resourcesToWatch.externalSecrets.externalSecrets=true</code>.</li>
+<li><code>SecretProviderClass</code> when <code>resourcesToWatch.secretsStore.secretProviderClasses=true</code>.</li>
+<li><code>KafkaConnector</code> when <code>resourcesToWatch.strimzi.kafkaConnectors=true</code>.</li>
+<li><code>Connector</code> when <code>resourcesToWatch.confluent.connectors=true</code>.</li>
+</ul>
+<p>Ingress objects are modeled as Secret-consuming Kubernetes objects rather than runtime Pods. When Ingress watching is enabled, KBeacon reads Ingress metadata annotations for discovery mode, explicit dependencies, ignored dependencies, ownership metadata, service metadata, environment metadata, and criticality metadata.</p>
+<p>For controller workloads, annotations can be placed on the workload object. Pod template annotations can also be read when <code>discovery.readPodTemplateAnnotations=true</code>.</p>
+<p>When both object annotations and Pod template annotations are present, object-level annotations are the preferred source for workload-level intent.</p>
+<h2 id="secret-metadata-annotations">Secret metadata annotations<a class="headerlink" href="#secret-metadata-annotations" title="Permanent link">&para;</a></h2>
+<p>Secret annotations are used only as metadata. KBeacon does not read, export, or store Secret values.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">kbeacon.io/owner-team</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-platform</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">kbeacon.io/criticality</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">critical</span>
+</code></pre></div>
+<p>Secret metadata can affect API responses, metric labels, dashboard grouping, and impact scoring. Secret data and stringData are never exported.</p>
+<h2 id="enable-or-disable-discovery">Enable or disable discovery<a class="headerlink" href="#enable-or-disable-discovery" title="Permanent link">&para;</a></h2>
+<p><code>kbeacon.io/enabled</code> is a workload-level switch.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">kbeacon.io/enabled</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;false&quot;</span>
+</code></pre></div>
+<p>Behavior:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>absent</td>
+<td>Use the configured default discovery behavior.</td>
+</tr>
+<tr>
+<td><code>"true"</code></td>
+<td>Allow discovery for the workload.</td>
+</tr>
+<tr>
+<td><code>"false"</code></td>
+<td>Ignore the workload and emit no dependency edges for it.</td>
+</tr>
+</tbody>
+</table>
+<p>Use this annotation to suppress discovery for infrastructure helper workloads, noisy test workloads, or objects that should not appear in dependency views.</p>
+<h2 id="discovery-mode-override">Discovery mode override<a class="headerlink" href="#discovery-mode-override" title="Permanent link">&para;</a></h2>
+<p><code>kbeacon.io/discovery-mode</code> overrides <code>discovery.defaultMode</code> for one workload.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">kbeacon.io/discovery-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hybrid</span>
+</code></pre></div>
+<p>Supported values:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>infer</code></td>
+<td>Discover Secret references from Kubernetes workload specs.</td>
+</tr>
+<tr>
+<td><code>explicit</code></td>
+<td>Use only explicit KBeacon dependency annotations.</td>
+</tr>
+<tr>
+<td><code>hybrid</code></td>
+<td>Combine inferred and explicit dependencies.</td>
+</tr>
+<tr>
+<td><code>disabled</code></td>
+<td>Ignore the workload.</td>
+</tr>
+</tbody>
+</table>
+<p><code>hybrid</code> is the recommended default for most workloads.</p>
+<h2 id="explicit-secret-references">Explicit Secret references<a class="headerlink" href="#explicit-secret-references" title="Permanent link">&para;</a></h2>
+<p>Use explicit dependency annotations when a Secret dependency is not visible in a standard Pod spec field.</p>
+<p>Common examples:</p>
+<ul>
+<li>application configuration references a Secret by name;</li>
+<li>a controller or sidecar resolves a Secret dynamically;</li>
+<li>a third-party resource is represented through a workload annotation;</li>
+<li>dependency ownership is known by the platform team even when it is not inferable.</li>
+</ul>
+<h2 id="reference-grammar">Reference grammar<a class="headerlink" href="#reference-grammar" title="Permanent link">&para;</a></h2>
+<p>Explicit Secret references use this grammar:</p>
+<div class="language-text highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>secret
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>secret#key
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>namespace/secret
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>namespace/secret#key
+</code></pre></div>
+<p>Rules:</p>
+<ul>
+<li><code>secret</code> refers to a Secret in the workload namespace;</li>
+<li><code>namespace/secret</code> models a cross-namespace dependency;</li>
+<li><code>#key</code> is accepted for readability and compatibility, but KBeacon impact and graph aggregation are Secret-object level;</li>
+<li>comma-separated annotations should not include empty trailing entries.</li>
+</ul>
+<h2 id="kbeaconiowatch-secrets"><code>kbeacon.io/watch-secrets</code><a class="headerlink" href="#kbeaconiowatch-secrets" title="Permanent link">&para;</a></h2>
+<p>Comma-separated explicit dependency list.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">kbeacon.io/watch-secrets</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-db,shared/platform-ca,legacy-token#token</span>
+</code></pre></div>
+<p>This annotation is easy to read and works well for short dependency lists.</p>
+<h2 id="kbeaconiowatch-secrets-json"><code>kbeacon.io/watch-secrets-json</code><a class="headerlink" href="#kbeaconiowatch-secrets-json" title="Permanent link">&para;</a></h2>
+<p>JSON string array explicit dependency list.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">kbeacon.io/watch-secrets-json</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="no">[&quot;payments-db&quot;,&quot;shared/platform-ca&quot;,&quot;legacy-token#token&quot;]</span>
+</code></pre></div>
+<p>Use the JSON form when values are generated by automation or when comma-separated strings become difficult to manage.</p>
+<p>The supported JSON contract is an array of string references. Object-form dependency definitions are not part of the current implemented annotation contract.</p>
+<h2 id="ignoring-selected-secrets">Ignoring selected Secrets<a class="headerlink" href="#ignoring-selected-secrets" title="Permanent link">&para;</a></h2>
+<p><code>kbeacon.io/ignore-secrets</code> suppresses selected dependencies after discovery.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">kbeacon.io/ignore-secrets</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">default-token,shared/noisy-secret</span>
+</code></pre></div>
+<p>Use this annotation carefully. It removes matching Secret references from the workload dependency graph and can hide real blast-radius relationships.</p>
+<p>Typical use cases:</p>
+<ul>
+<li>suppressing known platform-managed references that are not useful for team dashboards;</li>
+<li>excluding test-only or generated references;</li>
+<li>reducing noise during phased adoption.</li>
+</ul>
+<h2 id="ownership-metadata">Ownership metadata<a class="headerlink" href="#ownership-metadata" title="Permanent link">&para;</a></h2>
+<p>Workload metadata annotations are optional but useful for grouping dashboards, alerts, and API responses.</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">kbeacon.io/owner-team</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-platform</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">kbeacon.io/service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-api</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">kbeacon.io/environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">kbeacon.io/criticality</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">critical</span>
+</code></pre></div>
+<p>Recommended conventions:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Recommended value style</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>owner-team</code></td>
+<td>stable platform or application team id</td>
+<td><code>payments-platform</code></td>
+</tr>
+<tr>
+<td><code>service</code></td>
+<td>stable service or application id</td>
+<td><code>payments-api</code></td>
+</tr>
+<tr>
+<td><code>environment</code></td>
+<td>deployment environment</td>
+<td><code>prod</code></td>
+</tr>
+<tr>
+<td><code>criticality</code></td>
+<td>one of <code>unknown</code>, <code>low</code>, <code>medium</code>, <code>high</code>, <code>critical</code></td>
+<td><code>critical</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="annotation-and-label-precedence">Annotation and label precedence<a class="headerlink" href="#annotation-and-label-precedence" title="Permanent link">&para;</a></h2>
+<p>KBeacon supports workload metadata label fallback through <code>discovery.metadataLabels</code>.</p>
+<p>Precedence for ownership and classification metadata:</p>
+<ol>
+<li>KBeacon annotations.</li>
+<li>Workload object labels.</li>
+<li>Pod template labels when pod template metadata is enabled.</li>
+</ol>
+<p>Use annotations for explicit overrides. Use label fallback for broad adoption across workloads that already have standard ownership labels.</p>
+<h2 id="inferred-dependency-sources">Inferred dependency sources<a class="headerlink" href="#inferred-dependency-sources" title="Permanent link">&para;</a></h2>
+<p>Annotations are not required for standard Kubernetes Secret references.</p>
+<p>KBeacon can infer dependencies from:</p>
+<ul>
+<li><code>env.valueFrom.secretKeyRef</code>;</li>
+<li><code>envFrom.secretRef</code>;</li>
+<li><code>volumes.secret</code>;</li>
+<li><code>imagePullSecrets</code>.</li>
+<li><code>cert-manager.certificate.spec.secretName</code> when cert-manager Certificate watching is enabled.</li>
+<li><code>external-secrets.externalsecret.spec.target.name</code> when ExternalSecret watching is enabled.</li>
+<li><code>secrets-store.csi.secretproviderclass.spec.secretObjects.secretName</code> when SecretProviderClass watching is enabled.</li>
+<li><code>strimzi.kafkaconnector.spec.config.secrets</code> when Strimzi KafkaConnector watching is enabled.</li>
+<li><code>confluent.connector.spec.connectRest.authentication.secretRef</code> when Confluent Connector watching is enabled.</li>
+<li><code>confluent.connector.spec.configs.file.mountedSecret</code> when Confluent Connector watching is enabled.</li>
+</ul>
+<p>Explicit annotations are merged with inferred dependencies in <code>hybrid</code> mode.</p>
+<h2 id="example-workload-annotation-block">Example workload annotation block<a class="headerlink" href="#example-workload-annotation-block" title="Permanent link">&para;</a></h2>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-api</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">annotations</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">kbeacon.io/enabled</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">kbeacon.io/discovery-mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hybrid</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="nt">kbeacon.io/owner-team</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-platform</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nt">kbeacon.io/service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">payments-api</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="nt">kbeacon.io/environment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="nt">kbeacon.io/criticality</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">critical</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nt">kbeacon.io/watch-secrets</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shared/platform-ca,legacy-payment-token</span>
+</code></pre></div>
+<h2 id="security-considerations">Security considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<p>KBeacon annotations must not contain Secret values.</p>
+<p>Safe annotation content:</p>
+<ul>
+<li>Secret names;</li>
+<li>Secret namespaces;</li>
+<li>ownership metadata;</li>
+<li>service metadata;</li>
+<li>environment metadata;</li>
+<li>criticality metadata.</li>
+</ul>
+<p>Avoid placing credentials, tokens, connection strings, or raw configuration payloads in annotations. Kubernetes annotations are broadly visible to users and controllers that can read object metadata.</p>
+<h2 id="validation-guidance">Validation guidance<a class="headerlink" href="#validation-guidance" title="Permanent link">&para;</a></h2>
+<p>Recommended checks when adding or changing annotations:</p>
+<ul>
+<li>confirm the workload appears in the Agent API workload list;</li>
+<li>confirm expected Secret dependencies appear in dependency-map or workload dependency responses;</li>
+<li>confirm ignored references are intentionally absent;</li>
+<li>review Prometheus labels for owner team and criticality metadata;</li>
+<li>keep annotation values stable enough for dashboard grouping and alert routing.</li>
+</ul>
+<h2 id="related-documentation">Related documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Discovery modes: <code>docs/user-guide/discovery-modes.md</code></li>
+<li>Configuration: <code>docs/user-guide/configuration.md</code></li>
+<li>Metrics reference: <code>docs/reference/metrics.md</code></li>
+<li>API contract: <code>docs/api/openapi.yaml</code></li>
+</ul>
+<h2 id="serviceaccount-imagepullsecrets-fallback">ServiceAccount imagePullSecrets fallback<a class="headerlink" href="#serviceaccount-imagepullsecrets-fallback" title="Permanent link">&para;</a></h2>
+<p>ServiceAccount image pull Secret discovery is not annotation-driven.</p>
+<p>When inferred discovery is enabled, KBeacon can discover <code>serviceAccount.imagePullSecrets</code> as fallback dependencies for workloads that do not define Pod-level <code>imagePullSecrets</code>.</p>
+<p>Explicit KBeacon annotations remain useful for non-standard dependency relationships that are not visible in Pod specs or ServiceAccount metadata.</p>
+<h2 id="ingress-tls-references">Ingress TLS references<a class="headerlink" href="#ingress-tls-references" title="Permanent link">&para;</a></h2>
+<p>Ingress TLS Secret discovery does not require KBeacon annotations.</p>
+<p>KBeacon discovers networking.k8s.io/v1 Ingress TLS references from:</p>
+<div class="language-yaml highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">tls</span><span class="p">:</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">secretName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app-tls</span>
+</code></pre></div>
+<p>The dependency source type is <code>ingress.tls</code>.</p>
+<p>Use <code>resourcesToWatch.networking.ingresses=false</code> to disable this watcher and omit Ingress RBAC.</p>
+<h2 id="projected-secret-volumes">Projected Secret volumes<a class="headerlink" href="#projected-secret-volumes" title="Permanent link">&para;</a></h2>
+<p>Kubernetes projected volumes can include Secret projections. KBeacon discovers these references from Pod specs and workload Pod templates.</p>
+<p>Supported source path:</p>
+<div class="language-text highlight"><pre><span></span><code>spec.volumes[].projected.sources[].secret.name
+</code></pre></div>
+<p>KBeacon records these dependencies with source type <code>volumes.projected.sources.secret</code>. The dependency is namespace-local to the workload, matching Kubernetes Secret volume semantics.</p>
+<h2 id="cert-manager-certificate-resources">cert-manager Certificate resources<a class="headerlink" href="#cert-manager-certificate-resources" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.certManager.certificates=true</code>, cert-manager <code>Certificate</code> objects can use the same KBeacon metadata annotations as workloads. The inferred dependency source type is <code>cert-manager.certificate.spec.secretName</code>.</p>
+<h2 id="externalsecret-resources">ExternalSecret resources<a class="headerlink" href="#externalsecret-resources" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.externalSecrets.externalSecrets=true</code>, External Secrets Operator <code>ExternalSecret</code> objects can use the same KBeacon metadata annotations as workloads.</p>
+<p>KBeacon infers the target Kubernetes Secret from:</p>
+<ol>
+<li><code>spec.target.name</code> when it is set.</li>
+<li><code>metadata.name</code> when <code>spec.target.name</code> is omitted.</li>
+</ol>
+<p>The inferred dependency source type is <code>external-secrets.externalsecret.spec.target.name</code>.</p>
+<p>Explicit KBeacon dependency annotations can still be used on <code>ExternalSecret</code> objects in <code>explicit</code> or <code>hybrid</code> discovery mode. This is useful for non-standard platform relationships that are not visible in <code>spec.target.name</code>.</p>
+<p>Do not put external provider credentials, tokens, connection strings, or raw provider payloads in <code>ExternalSecret</code> annotations. KBeacon annotations should contain only Secret names, namespaces, and operational metadata.</p>
+<h2 id="secretproviderclass-resources">SecretProviderClass resources<a class="headerlink" href="#secretproviderclass-resources" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.secretsStore.secretProviderClasses=true</code>, Secrets Store CSI Driver <code>SecretProviderClass</code> objects can use the same KBeacon metadata annotations as workloads.</p>
+<p>KBeacon infers synced Kubernetes Secret outputs from every non-empty <code>spec.secretObjects[*].secretName</code> entry.</p>
+<p>The inferred dependency source type is <code>secrets-store.csi.secretproviderclass.spec.secretObjects.secretName</code>.</p>
+<p>Explicit KBeacon dependency annotations can still be used on <code>SecretProviderClass</code> objects in <code>explicit</code> or <code>hybrid</code> discovery mode. This is useful for platform relationships that are not represented by <code>spec.secretObjects</code>.</p>
+<p>Do not put external provider credentials, tokens, provider object payloads, mounted file contents, or raw secret values in <code>SecretProviderClass</code> annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.</p>
+<h2 id="strimzi-kafkaconnector-resources">Strimzi KafkaConnector resources<a class="headerlink" href="#strimzi-kafkaconnector-resources" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.strimzi.kafkaConnectors=true</code>, Strimzi <code>KafkaConnector</code> objects can use the same KBeacon metadata annotations as workloads.</p>
+<p>KBeacon infers Kubernetes Secret dependencies from Strimzi Kubernetes Config Provider Secret references in <code>spec.config</code> string values.</p>
+<p>The inferred dependency source type is <code>strimzi.kafkaconnector.spec.config.secrets</code>.</p>
+<p>Explicit KBeacon dependency annotations can still be used on <code>KafkaConnector</code> objects in <code>explicit</code> or <code>hybrid</code> discovery mode. This is useful for connector relationships that are not represented through Strimzi Kubernetes Config Provider Secret syntax.</p>
+<p>Do not put Kafka credentials, database passwords, provider payloads, or raw Secret values in <code>KafkaConnector</code> annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.</p>
+<h2 id="confluent-kafka-connect-connector-resources">Confluent / Kafka Connect Connector resources<a class="headerlink" href="#confluent-kafka-connect-connector-resources" title="Permanent link">&para;</a></h2>
+<p>When <code>resourcesToWatch.confluent.connectors=true</code>, Confluent for Kubernetes <code>Connector</code> objects can use the same KBeacon metadata annotations as workloads.</p>
+<p>KBeacon infers Kubernetes Secret dependencies from <code>spec.connectRest.authentication.*.secretRef</code> and mounted Secret file references in <code>spec.configs</code> string values.</p>
+<p>The Connect REST authentication inferred dependency source type is <code>confluent.connector.spec.connectRest.authentication.secretRef</code>.</p>
+<p>The mounted Secret file inferred dependency source type is <code>confluent.connector.spec.configs.file.mountedSecret</code>.</p>
+<p>Explicit KBeacon dependency annotations can still be used on <code>Connector</code> objects in <code>explicit</code> or <code>hybrid</code> discovery mode. This is useful for Kafka Connect relationships that are not represented through supported <code>secretRef</code> or mounted file syntax.</p>
+<p>Do not put Kafka credentials, database passwords, provider payloads, mounted file contents, or raw Secret values in <code>Connector</code> annotations. KBeacon annotations should contain only Kubernetes Secret names, namespaces, and operational metadata.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../compatibility/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Compatibility">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Compatibility
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../developer-guide/architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "content.code.copy", "content.action.edit", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
